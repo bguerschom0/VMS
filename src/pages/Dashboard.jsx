@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Card } from '../components/common/Card'
+import  Card  from '../components/common/Card'
 import { useVisitor } from '../hooks/useVisitor'
 import { formatDate } from '../utils/format'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
