@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { validateForm, loginSchema } from '../utils/validation'
 import Button from '../components/common/Button'
 import Input from '../components/common/Input'
 import Card from '../components/common/Card'
@@ -14,18 +13,17 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    const validation = validateForm(loginSchema, formData)
-    
-    if (!validation.valid) {
-      setErrors(validation.errors)
+
+    if (!formData.email || !formData.password) {
+      setErrors({ submit: 'Please fill in both fields' })
       return
     }
 
     try {
       await signIn(formData.email, formData.password)
-      navigate('/dashboard')
+      navigate('/dashboard') // Redirect to dashboard after successful login
     } catch (error) {
-      setErrors({ submit: error.message })
+      setErrors({ submit: error.message }) // Display the error if login fails
     }
   }
 
