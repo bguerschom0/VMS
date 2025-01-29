@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Card } from '../components/common/Card'
+import  Card  from '../components/common/Card'
 import { Input } from '../components/common/Input'
 import { Select } from '../components/common/Select'
 import { Button } from '../components/common/Button'
