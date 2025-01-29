@@ -6,7 +6,9 @@ import CheckIn from './pages/CheckIn'
 import CheckOut from './pages/CheckOut'
 import VisitorReport from './pages/VisitorReport'
 
-const AppLayout = ({ children }) => {
+// Component that wraps each page for layout
+const AppLayout = ({ children, pageName }) => {
+  console.log(`Rendering page: ${pageName}`)
   return (
     <div className="min-h-screen">
       <Header />
@@ -22,10 +24,22 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
-        <Route path="/check-in" element={<AppLayout><CheckIn /></AppLayout>} />
-        <Route path="/check-out" element={<AppLayout><CheckOut /></AppLayout>} />
-        <Route path="/reports" element={<AppLayout><VisitorReport /></AppLayout>} />
+        <Route 
+          path="/" 
+          element={<AppLayout pageName="Dashboard"><Dashboard /></AppLayout>} 
+        />
+        <Route 
+          path="/check-in" 
+          element={<AppLayout pageName="CheckIn"><CheckIn /></AppLayout>} 
+        />
+        <Route 
+          path="/check-out" 
+          element={<AppLayout pageName="CheckOut"><CheckOut /></AppLayout>} 
+        />
+        <Route 
+          path="/reports" 
+          element={<AppLayout pageName="VisitorReport"><VisitorReport /></AppLayout>} 
+        />
       </Routes>
     </Router>
   )
