@@ -1,16 +1,41 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { useAuth } from './hooks/useAuth'
+
+// Layout Components
 import Header from './components/layout/Header'
 import Sidebar from './components/layout/Sidebar'
+
+// Pages
+import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import CheckIn from './pages/CheckIn'
 import CheckOut from './pages/CheckOut'
 import VisitorReport from './pages/VisitorReport'
 
-// Component that wraps each page for layout
-const AppLayout = ({ children, pageName }) => {
-  console.log(`Rendering page: ${pageName}`)
+// Protected Route wrapper
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth()
+  const location = useLocation()
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-black"></div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />
+  }
+
+  return children
+}
+
+// Layout wrapper for authenticated pages
+const AuthenticatedLayout = ({ children }) => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
       <Sidebar />
       <main className="pl-64 pt-16">
@@ -21,27 +46,84 @@ const AppLayout = ({ children, pageName }) => {
 }
 
 const App = () => {
+  const { user } = useAuth()
+
   return (
-    <Router>
-      <Routes>
-        <Route 
-          path="/" 
-          element={<AppLayout pageName="Dashboard"><Dashboard /></AppLayout>} 
-        />
-        <Route 
-          path="/check-in" 
-          element={<AppLayout pageName="CheckIn"><CheckIn /></AppLayout>} 
-        />
-        <Route 
-          path="/check-out" 
-          element={<AppLayout pageName="CheckOut"><CheckOut /></AppLayout>} 
-        />
-        <Route 
-          path="/reports" 
-          element={<AppLayout pageName="VisitorReport"><VisitorReport /></AppLayout>} 
-        />
-      </Routes>
-    </Router>
+    <Routes>
+      {/* Public route */}
+      <Route 
+        path="/login" 
+        element={
+          user ? <Navigate to="/dashboard" replace /> : <Login />
+        } 
+      />
+
+      {/* Protected routes */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <AuthenticatedLayout>
+              <Dashboard />
+            </AuthenticatedLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/check-in"
+        element={
+          <ProtectedRoute>
+            <AuthenticatedLayout>
+              <CheckIn />
+            </AuthenticatedLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/check-out"
+        element={
+          <ProtectedRoute>
+            <AuthenticatedLayout>
+              <CheckOut />
+            </AuthenticatedLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/reports"
+        element={
+          <ProtectedRoute>
+            <AuthenticatedLayout>
+              <VisitorReport />
+            </AuthenticatedLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Redirect root to dashboard or login */}
+      <Route
+        path="/"
+        element={
+          <Navigate to={user ? "/dashboard" : "/login"} replace />
+        }
+      />
+
+      {/* Catch all route */}
+      <Route
+        path="*"
+        element={
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+              <h1 className="text-4xl font-bold mb-4">404</h1>
+              <p className="text-gray-600">Page not found</p>
+            </div>
+          </div>
+        }
+      />
+    </Routes>
   )
 }
 
