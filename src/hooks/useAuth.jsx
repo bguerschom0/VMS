@@ -8,28 +8,35 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Get initial session
-    const session = supabase.auth.session()
-    setUser(session?.user ?? null)
-    setLoading(false)
+    // ✅ Get initial session using the correct method
+    const fetchSession = async () => {
+      const { data, error } = await supabase.auth.getSession()
+      if (error) console.error("Error getting session:", error)
+      setUser(data?.session?.user ?? null)
+      setLoading(false)
+    }
+    
+    fetchSession()
 
-    // Listen for auth changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+    // ✅ Listen for auth changes (corrected)
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
       setLoading(false)
     })
 
     return () => {
-      authListener?.unsubscribe()
+      authListener.subscription.unsubscribe()
     }
   }, [])
 
+  // ✅ Fixed `signIn` function
   const signIn = async (email, password) => {
     try {
-      const { user, error } = await supabase.auth.signIn({ email, password })
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) throw error
-      return user
+      return data.user
     } catch (error) {
+      console.error("Sign-in error:", error.message)
       throw error
     }
   }
@@ -40,6 +47,7 @@ export const AuthProvider = ({ children }) => {
       if (error) throw error
       setUser(null)
     } catch (error) {
+      console.error("Sign-out error:", error.message)
       throw error
     }
   }
@@ -53,7 +61,7 @@ export const AuthProvider = ({ children }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext)
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider')
   }
   return context
