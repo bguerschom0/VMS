@@ -1,181 +1,160 @@
-import { useState } from 'react'
-import  Card  from '../components/common/Card'
-import  Input  from '../components/common/Input'
-import  Select  from '../components/common/Select'
-import  Button  from '../components/common/Button'
-import { useVisitor } from '../hooks/useVisitor'
-import { validateForm, visitorSchema } from '../utils/validation'
-import { formatIdentityNumber } from '../utils/format'
+import { useState } from 'react';
+import { Card } from '../components/common/Card';
+import { Input } from '../components/common/Input';
+import { Select } from '../components/common/Select';
+import { Button } from '../components/common/Button';
+import { visitorsDump, departmentsDump } from '../data/visitorsDump';
 
 const CheckIn = () => {
-  const [searchId, setSearchId] = useState('')
-  const [visitorData, setVisitorData] = useState(null)
+  const [searchInput, setSearchInput] = useState('');
+  const [visitorData, setVisitorData] = useState(null);
   const [formData, setFormData] = useState({
-    identityType: '',
-    identityNumber: '',
-    firstName: '',
-    lastName: '',
-    fatherName: '',
-    motherName: '',
-    gender: '',
     department: '',
     purpose: ''
-  })
-  const [errors, setErrors] = useState({})
-  const { loading, fetchVisitorById, checkIn } = useVisitor()
+  });
+  const [errors, setErrors] = useState({});
 
-  const handleSearch = async () => {
-    const visitor = await fetchVisitorById(searchId)
-    if (visitor) {
-      setVisitorData(visitor)
-      setFormData({
-        ...visitor,
-        department: '',
-        purpose: ''
-      })
-    }
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    const validation = validateForm(visitorSchema, formData)
+  const handleSearch = (e) => {
+    e.preventDefault();
+    // Search in dump by either phone or ID
+    const visitor = visitorsDump.find(v => 
+      v.phoneNumber === searchInput || 
+      v.identityNumber === searchInput
+    );
     
-    if (!validation.valid) {
-      setErrors(validation.errors)
-      return
+    if (visitor) {
+      setVisitorData(visitor);
+      setErrors({});
+    } else {
+      setVisitorData(null);
+      setErrors({ search: 'No visitor found with this ID/Phone' });
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!visitorData) return;
+    if (!formData.department) {
+      setErrors({ department: 'Please select a department' });
+      return;
+    }
+    if (!formData.purpose) {
+      setErrors({ purpose: 'Please enter purpose of visit' });
+      return;
     }
 
-    try {
-      await checkIn(formData, formData.department, formData.purpose)
-      // Show success message and reset form
-      setFormData({
-        identityType: '',
-        identityNumber: '',
-        firstName: '',
-        lastName: '',
-        fatherName: '',
-        motherName: '',
-        gender: '',
-        department: '',
-        purpose: ''
-      })
-      setVisitorData(null)
-      setSearchId('')
-    } catch (error) {
-      setErrors({ submit: error.message })
-    }
-  }
+    // Here you would typically save to your database
+    console.log('Check-in:', { ...visitorData, ...formData });
+    // Reset form
+    setSearchInput('');
+    setVisitorData(null);
+    setFormData({ department: '', purpose: '' });
+  };
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Visitor Check-In</h1>
+      <h1 className="text-2xl font-bold mb-6 text-center">Visitor Check-In</h1>
 
-      <Card className="mb-6">
-        <div className="flex gap-4">
-          <Input
-            placeholder="Enter ID/Passport Number"
-            value={searchId}
-            onChange={(e) => setSearchId(e.target.value)}
-          />
-          <Button onClick={handleSearch} disabled={loading}>
-            Search
-          </Button>
-        </div>
-      </Card>
-
-      <Card>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Select
-              label="Identity Type"
-              options={[
-                { value: 'National ID', label: 'National ID' },
-                { value: 'Passport', label: 'Passport' }
-              ]}
-              value={formData.identityType}
-              onChange={(e) => setFormData({ ...formData, identityType: e.target.value })}
-              error={errors.identityType}
-            />
-
+      {/* Search Card */}
+      <div className="max-w-md mx-auto mb-6">
+        <Card>
+          <form onSubmit={handleSearch} className="space-y-4">
             <Input
-              label="Identity Number"
-              value={formData.identityNumber}
-              onChange={(e) => setFormData({ ...formData, identityNumber: e.target.value })}
-              error={errors.identityNumber}
+              placeholder="Enter National ID or Phone Number"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              error={errors.search}
+              className="text-center"
             />
-
-            <Input
-              label="First Name"
-              value={formData.firstName}
-              onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-              error={errors.firstName}
-            />
-
-            <Input
-              label="Last Name"
-              value={formData.lastName}
-              onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-              error={errors.lastName}
-            />
-
-            <Input
-              label="Father's Name"
-              value={formData.fatherName}
-              onChange={(e) => setFormData({ ...formData, fatherName: e.target.value })}
-            />
-
-            <Input
-              label="Mother's Name"
-              value={formData.motherName}
-              onChange={(e) => setFormData({ ...formData, motherName: e.target.value })}
-            />
-
-            <Select
-              label="Gender"
-              options={[
-                { value: 'Male', label: 'Male' },
-                { value: 'Female', label: 'Female' },
-                { value: 'Other', label: 'Other' }
-              ]}
-              value={formData.gender}
-              onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-              error={errors.gender}
-            />
-
-            <Select
-              label="Department"
-              options={[
-                { value: 'HR', label: 'Human Resources' },
-                { value: 'IT', label: 'Information Technology' },
-                { value: 'FIN', label: 'Finance' }
-              ]}
-              value={formData.department}
-              onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-              error={errors.department}
-            />
-
-            <Input
-              label="Purpose of Visit"
-              value={formData.purpose}
-              onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
-              error={errors.purpose}
-              className="md:col-span-2"
-            />
-          </div>
-
-          {errors.submit && (
-            <p className="text-sm text-red-500 mt-2">{errors.submit}</p>
-          )}
-
-          <div className="flex justify-end">
-            <Button type="submit" disabled={loading}>
-              Check In Visitor
+            <Button type="submit" fullWidth>
+              Search
             </Button>
-          </div>
-        </form>
-      </Card>
-    </div>
-  )
-}
+          </form>
+        </Card>
+      </div>
 
-export default CheckIn
+      {/* Visitor Information Card */}
+      {visitorData && (
+        <Card className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Photo Column */}
+            <div className="flex flex-col items-center justify-start">
+              <img
+                src={visitorData.photoUrl}
+                alt="Visitor"
+                className="w-40 h-40 rounded-lg object-cover mb-4"
+              />
+              <h3 className="text-lg font-semibold">
+                {visitorData.firstName} {visitorData.lastName}
+              </h3>
+            </div>
+
+            {/* Details Column */}
+            <div className="md:col-span-2 grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Identity Type</label>
+                <p className="mt-1">{visitorData.identityType}</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Identity Number</label>
+                <p className="mt-1">{visitorData.identityNumber}</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Father's Name</label>
+                <p className="mt-1">{visitorData.fatherName}</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Mother's Name</label>
+                <p className="mt-1">{visitorData.motherName}</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Gender</label>
+                <p className="mt-1">{visitorData.gender}</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Phone Number</label>
+                <p className="mt-1">{visitorData.phoneNumber}</p>
+              </div>
+
+              {/* Manual Input Fields */}
+              <div className="col-span-2">
+                <Select
+                  label="Department"
+                  options={departmentsDump.map(dept => ({
+                    value: dept.id,
+                    label: dept.name
+                  }))}
+                  value={formData.department}
+                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                  error={errors.department}
+                />
+              </div>
+              
+              <div className="col-span-2">
+                <Input
+                  label="Purpose of Visit"
+                  value={formData.purpose}
+                  onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
+                  error={errors.purpose}
+                />
+              </div>
+
+              <div className="col-span-2">
+                <Button onClick={handleSubmit} fullWidth>
+                  Complete Check-In
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+};
+
+export default CheckIn;
