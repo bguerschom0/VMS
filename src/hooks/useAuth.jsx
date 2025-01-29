@@ -1,97 +1,55 @@
-import { create } from 'zustand'
-import { supabase } from '../config/supabase'
+import { useState, useEffect, createContext, useContext } from 'react';
 
-const useAuth = create((set, get) => ({
-  user: null,
-  loading: true,
-  error: null,
+const AuthContext = createContext({});
 
-  initialize: async () => {
-    try {
-      // Check for existing session
-      const { data: { session }, error } = await supabase.auth.getSession()
-      
-      if (error) throw error
-      
-      if (session?.user) {
-        // Fetch additional user data from users table
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-        
-        if (userError) throw userError
-        
-        set({ user: { ...session.user, ...userData }, loading: false })
-      } else {
-        set({ user: null, loading: false })
-      }
-    } catch (error) {
-      set({ error: error.message, loading: false })
+// Mock user data
+const MOCK_USER = {
+  id: 'admin-123',
+  email: 'admin@example.com',
+  fullName: 'Admin User',
+  role: 'admin',
+  department: 'IT'
+};
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check for existing session in localStorage
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
     }
-  },
+    setLoading(false);
+  }, []);
 
-  login: async (email, password) => {
-    try {
-      set({ loading: true, error: null })
-      
-      const { data: { user }, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
-
-      if (error) throw error
-
-      // Fetch additional user data
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-      
-      if (userError) throw userError
-
-      set({ 
-        user: { ...user, ...userData },
-        loading: false,
-        error: null
-      })
-
-      return { success: true }
-    } catch (error) {
-      set({ 
-        user: null,
-        loading: false,
-        error: error.message
-      })
-      return { success: false, error: error.message }
+  const signIn = async (username, password) => {
+    // Hardcoded credential check
+    if (username === 'admin' && password === '456') {
+      setUser(MOCK_USER);
+      localStorage.setItem('user', JSON.stringify(MOCK_USER));
+      return { user: MOCK_USER, error: null };
     }
-  },
+    return { user: null, error: 'Invalid credentials' };
+  };
 
-  logout: async () => {
-    try {
-      set({ loading: true })
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
-      
-      set({ 
-        user: null,
-        loading: false,
-        error: null
-      })
-      
-      return { success: true }
-    } catch (error) {
-      set({ 
-        loading: false,
-        error: error.message
-      })
-      return { success: false, error: error.message }
-    }
-  },
+  const signOut = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+  };
 
-  clearError: () => set({ error: null })
-}))
+  return (
+    <AuthContext.Provider value={{ user, loading, signIn, signOut }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
-export default useAuth
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
