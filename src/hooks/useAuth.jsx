@@ -1,70 +1,97 @@
-import { useState, useEffect, createContext, useContext } from 'react'
+import { create } from 'zustand'
 import { supabase } from '../config/supabase'
 
-const AuthContext = createContext({})
+const useAuth = create((set, get) => ({
+  user: null,
+  loading: true,
+  error: null,
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    // Check if a user is logged in
-    const session = supabase.auth.session()
-    setUser(session?.user ?? null)
-    setLoading(false)
-
-    // Listen for auth state changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
-
-    return () => {
-      authListener?.unsubscribe()
-    }
-  }, [])
-
-  // Sign in method using email and password
-  const signIn = async (email, password) => {
+  initialize: async () => {
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', email)
-        .single()
-
-      if (error || !data) {
-        throw new Error('User not found')
-      }
-
-      // Check if the password matches
-      if (data.password === password) {
-        setUser(data) // Successfully logged in, save user info
-        return data
+      // Check for existing session
+      const { data: { session }, error } = await supabase.auth.getSession()
+      
+      if (error) throw error
+      
+      if (session?.user) {
+        // Fetch additional user data from users table
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+        
+        if (userError) throw userError
+        
+        set({ user: { ...session.user, ...userData }, loading: false })
       } else {
-        throw new Error('Incorrect password')
+        set({ user: null, loading: false })
       }
     } catch (error) {
-      throw error
+      set({ error: error.message, loading: false })
     }
-  }
+  },
 
-  // Sign out method
-  const signOut = async () => {
-    setUser(null)
-  }
+  login: async (email, password) => {
+    try {
+      set({ loading: true, error: null })
+      
+      const { data: { user }, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
 
-  return (
-    <AuthContext.Provider value={{ user, loading, signIn, signOut }}>
-      {children}
-    </AuthContext.Provider>
-  )
-}
+      if (error) throw error
 
-export const useAuth = () => {
-  const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-  return context
-}
+      // Fetch additional user data
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+      
+      if (userError) throw userError
+
+      set({ 
+        user: { ...user, ...userData },
+        loading: false,
+        error: null
+      })
+
+      return { success: true }
+    } catch (error) {
+      set({ 
+        user: null,
+        loading: false,
+        error: error.message
+      })
+      return { success: false, error: error.message }
+    }
+  },
+
+  logout: async () => {
+    try {
+      set({ loading: true })
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+      
+      set({ 
+        user: null,
+        loading: false,
+        error: null
+      })
+      
+      return { success: true }
+    } catch (error) {
+      set({ 
+        loading: false,
+        error: error.message
+      })
+      return { success: false, error: error.message }
+    }
+  },
+
+  clearError: () => set({ error: null })
+}))
+
+export default useAuth
