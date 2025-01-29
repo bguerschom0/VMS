@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Card } from '../components/common/Card'
+import  Card  from '../components/common/Card'
 import { Select } from '../components/common/Select'
 import { formatDate, formatName } from '../utils/format'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
