@@ -4,7 +4,7 @@ export const visitorsDump = [
     fullName: "John Michael Doe",
     identityNumber: "1234567890123",
     gender: "Male",
-    phoneNumber: "0712345678",
+    phoneNumber: "250788315218",
     otherNumber: "0787654321",
     photoUrl: "IMG_0676.JPG",
     items: []
