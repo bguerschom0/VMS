@@ -1,13 +1,15 @@
+
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import Sidebar from '../../components/layout/Sidebar';
 import  Card  from '../../components/common/Card';
 import  Input  from '../../components/common/Input';
 import  Select  from '../../components/common/Select';
 import  Button  from '../../components/common/Button';
 import { departmentsDump } from '../../data/visitorsDump';
 
-
+// TextArea Component
 const TextArea = ({ label, value, onChange, error, rows = 3 }) => (
   <div>
     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -20,7 +22,8 @@ const TextArea = ({ label, value, onChange, error, rows = 3 }) => (
       className={`w-full px-3 py-2 rounded-lg border ${
         error ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
       } focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-gray-400
-      bg-white dark:bg-gray-800 text-gray-900 dark:text-white`}
+      bg-white dark:bg-gray-800 text-gray-900 dark:text-white
+      transition-colors duration-200`}
     />
     {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
   </div>
@@ -29,6 +32,8 @@ const TextArea = ({ label, value, onChange, error, rows = 3 }) => (
 const VisitorForm = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  
+  // Form State
   const [formData, setFormData] = useState({
     fullName: '',
     identityNumber: '',
@@ -55,6 +60,7 @@ const VisitorForm = () => {
   const [errors, setErrors] = useState({});
   const [photoPreview, setPhotoPreview] = useState(null);
 
+  // Load visitor data if editing
   useEffect(() => {
     const { visitor, isNewVisitor } = location.state || {};
     
@@ -80,25 +86,37 @@ const VisitorForm = () => {
     }
   }, [location.state, navigate]);
 
+  // Handle photo upload
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        setErrors(prev => ({ ...prev, photo: 'Photo must be less than 5MB' }));
+        return;
+      }
+      
       const reader = new FileReader();
       reader.onloadend = () => {
         setPhotoPreview(reader.result);
+        setFormData(prev => ({ ...prev, photoUrl: reader.result }));
       };
       reader.readAsDataURL(file);
     }
   };
 
+  // Form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Basic validation
+    // Validation
     const newErrors = {};
     if (!formData.fullName) newErrors.fullName = 'Full name is required';
     if (!formData.department) newErrors.department = 'Department is required';
     if (!formData.purpose) newErrors.purpose = 'Purpose is required';
+    if (formData.laptopDetails.hasLaptop) {
+      if (!formData.laptopDetails.brand) newErrors.laptopBrand = 'Laptop brand is required';
+      if (!formData.laptopDetails.serialNumber) newErrors.laptopSerial = 'Serial number is required';
+    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -114,16 +132,20 @@ const VisitorForm = () => {
     }
   };
 
-   <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Card className="bg-white dark:bg-gray-800 shadow-xl">
-            <form onSubmit={handleSubmit} className="space-y-8">
-              {/* Centered Photo Section */}
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Sidebar />
+      
+      <main className="pl-64">
+        <div className="p-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="max-w-6xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-xl"
+          >
+            <form onSubmit={handleSubmit} className="p-6 space-y-8">
+              {/* Photo Section */}
               <div className="flex justify-center mb-8">
                 <div className="relative">
                   <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-gray-200 dark:border-gray-700">
@@ -154,26 +176,26 @@ const VisitorForm = () => {
                 </div>
               </div>
 
-              {/* Form Fields Grid */}
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Form Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Input
                   label="Full Name"
                   value={formData.fullName}
-                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
                   error={errors.fullName}
                 />
 
                 <Input
                   label="Identity Number"
                   value={formData.identityNumber}
-                  onChange={(e) => setFormData({ ...formData, identityNumber: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, identityNumber: e.target.value }))}
                   error={errors.identityNumber}
                 />
 
                 <Select
                   label="Gender"
                   value={formData.gender}
-                  onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value }))}
                   error={errors.gender}
                   options={[
                     { value: 'Male', label: 'Male' },
@@ -184,20 +206,20 @@ const VisitorForm = () => {
                 <Input
                   label="Phone Number"
                   value={formData.phoneNumber}
-                  onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
                   error={errors.phoneNumber}
                 />
 
                 <Input
                   label="Other Number"
                   value={formData.otherNumber}
-                  onChange={(e) => setFormData({ ...formData, otherNumber: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, otherNumber: e.target.value }))}
                 />
 
                 <Select
                   label="Department"
                   value={formData.department}
-                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
                   error={errors.department}
                   options={departmentsDump.map(dept => ({
                     value: dept.id,
@@ -209,7 +231,7 @@ const VisitorForm = () => {
                   <TextArea
                     label="Purpose of Visit"
                     value={formData.purpose}
-                    onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
+                    onChange={(e) => setFormData(prev => ({ ...prev, purpose: e.target.value }))}
                     error={errors.purpose}
                     rows={4}
                   />
@@ -219,26 +241,27 @@ const VisitorForm = () => {
                   <TextArea
                     label="Items Brought"
                     value={formData.items}
-                    onChange={(e) => setFormData({ ...formData, items: e.target.value })}
+                    onChange={(e) => setFormData(prev => ({ ...prev, items: e.target.value }))}
                     rows={3}
                   />
                 </div>
 
-                {/* Laptop Details Section */}
+                {/* Laptop Details */}
                 <div className="md:col-span-2 space-y-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
                   <div className="flex items-center">
                     <input
                       type="checkbox"
                       id="hasLaptop"
                       checked={formData.laptopDetails.hasLaptop}
-                      onChange={(e) => setFormData({
-                        ...formData,
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
                         laptopDetails: {
-                          ...formData.laptopDetails,
+                          ...prev.laptopDetails,
                           hasLaptop: e.target.checked
                         }
-                      })}
-                      className="h-4 w-4 text-black dark:text-gray-300 focus:ring-black dark:focus:ring-gray-400 border-gray-300 dark:border-gray-600 rounded"
+                      }))}
+                      className="h-4 w-4 text-black dark:text-gray-300 focus:ring-black dark:focus:ring-gray-400 
+                               border-gray-300 dark:border-gray-600 rounded"
                     />
                     <label htmlFor="hasLaptop" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
                       Brought Laptop
@@ -250,32 +273,31 @@ const VisitorForm = () => {
                       <Input
                         label="Laptop Brand"
                         value={formData.laptopDetails.brand}
-                        onChange={(e) => setFormData({
-                          ...formData,
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
                           laptopDetails: {
-                            ...formData.laptopDetails,
+                            ...prev.laptopDetails,
                             brand: e.target.value
                           }
-                        })}
-                        className="bg-white dark:bg-gray-800"
+                        }))}
+                        error={errors.laptopBrand}
                       />
                       <Input
                         label="Serial Number"
                         value={formData.laptopDetails.serialNumber}
-                        onChange={(e) => setFormData({
-                          ...formData,
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
                           laptopDetails: {
-                            ...formData.laptopDetails,
+                            ...prev.laptopDetails,
                             serialNumber: e.target.value
                           }
-                        })}
-                        className="bg-white dark:bg-gray-800"
+                        }))}
+                        error={errors.laptopSerial}
                       />
                     </div>
                   )}
                 </div>
 
-                {/* Date and Time fields */}
                 <Input
                   label="Date of Visit"
                   type="date"
@@ -293,7 +315,6 @@ const VisitorForm = () => {
                 />
               </div>
 
-              {/* Error Message */}
               {errors.submit && (
                 <div className="text-red-500 dark:text-red-400 text-sm text-center">
                   {errors.submit}
@@ -306,23 +327,26 @@ const VisitorForm = () => {
                   type="button"
                   variant="secondary"
                   onClick={() => navigate('/check-in')}
-                  className="text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
+                  className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 
+                           dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 
+                           dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-black dark:bg-gray-700 text-white hover:bg-gray-800 dark:hover:bg-gray-600"
+                  className="px-6 py-2 bg-black dark:bg-gray-700 text-white rounded-lg
+                           hover:bg-gray-800 dark:hover:bg-gray-600 transition-colors duration-200"
                 >
                   Complete Check-In
                 </Button>
               </div>
             </form>
-          </Card>
-        </motion.div>
-      </div>
+          </motion.div>
+        </div>
+      </main>
     </div>
-  
+  );
 };
 
 export default VisitorForm;
