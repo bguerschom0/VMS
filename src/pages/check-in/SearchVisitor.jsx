@@ -3,27 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { visitorsDump } from '../../data/visitorsDump';
 import Sidebar from '../../components/layout/Sidebar';
-import Footer from '../../components/layout/Footer';
-
-const FloatingCircle = ({ size, initialX, initialY, duration }) => (
-  <motion.div
-    className="absolute rounded-full bg-gray-100/50 dark:bg-gray-800/50"
-    style={{ width: size, height: size }}
-    initial={{ x: initialX, y: initialY }}
-    animate={{
-      x: [initialX - 20, initialX + 20, initialX],
-      y: [initialY - 20, initialY + 20, initialY],
-      scale: [1, 1.1, 1],
-      rotate: [0, 180, 360]
-    }}
-    transition={{
-      duration,
-      repeat: Infinity,
-      repeatType: "reverse",
-      ease: "easeInOut"
-    }}
-  />
-);
 
 const SearchVisitor = () => {
   const [searchInput, setSearchInput] = useState('');
@@ -31,7 +10,32 @@ const SearchVisitor = () => {
   const inputRef = useRef(null);
   const navigate = useNavigate();
 
-  
+  // Format input function
+  const formatInput = (value) => {
+    // Handle special case for passport users
+    if (value === '#00') return value;
+
+    // Remove any non-numeric characters
+    const numericOnly = value.replace(/\D/g, '');
+    
+    // Check if it looks like an ID (16 digits)
+    if (numericOnly.length > 10) {
+      // Limit to 16 digits for ID
+      return numericOnly.slice(0, 16);
+    }
+    
+    // For phone number (12 digits: 25 + 10 digits)
+    if (numericOnly.startsWith('25')) {
+      return numericOnly.slice(0, 12);
+    } else if (numericOnly.length > 0) {
+      // Automatically add 25 prefix if not present
+      return '25' + numericOnly.slice(0, 10);
+    }
+    
+    return numericOnly;
+  };
+
+  // Handle input change
   const handleInputChange = (e) => {
     const value = e.target.value;
     if (value === '#00') {
@@ -42,34 +46,36 @@ const SearchVisitor = () => {
     setError('');
   };
 
+  // Validate input
   const validateInput = (value) => {
     if (value === '#00') return true;
     const numericValue = value.replace(/\D/g, '');
     
     // Check for valid ID or phone number
-    const isValidId = numericValue.length === 12 || numericValue.length === 13;
-    const isValidPhone = numericValue.length === 10;
+    const isValidId = numericValue.length === 16;
+    const isValidPhone = numericValue.length === 12 && numericValue.startsWith('25');
     
     return isValidId || isValidPhone;
   };
 
+  // Handle search
   const handleSearch = (e) => {
     e.preventDefault();
     const searchValue = searchInput.replace(/\D/g, '');
     
     if (!validateInput(searchInput)) {
-      setError('Please enter a valid ID (12-13 digits) or phone number (10 digits)');
+      setError('Please enter a valid ID (16 digits) or phone number (2507********)');
       return;
     }
 
     if (searchInput === '#00') {
-      navigate('/check-in/form', { state: { isNewVisitor: true } });
+      navigate('/check-in/form', { state: { isNewVisitor: true, isPassport: true } });
       return;
     }
 
     const visitor = visitorsDump.find(v => 
-      v.identityNumber.replace(/\D/g, '') === searchValue || 
-      v.phoneNumber.replace(/\D/g, '') === searchValue
+      v.identityNumber === searchValue || 
+      v.phoneNumber === searchValue
     );
 
     if (visitor) {
@@ -79,13 +85,33 @@ const SearchVisitor = () => {
     }
   };
 
- return (
+  // Floating Circle Component
+  const FloatingCircle = ({ size, initialX, initialY, duration }) => (
+    <motion.div
+      className="absolute rounded-full bg-gray-100/50 dark:bg-gray-800/50"
+      style={{ width: size, height: size }}
+      initial={{ x: initialX, y: initialY }}
+      animate={{
+        x: [initialX - 20, initialX + 20, initialX],
+        y: [initialY - 20, initialY + 20, initialY],
+        scale: [1, 1.1, 1],
+        rotate: [0, 180, 360]
+      }}
+      transition={{
+        duration,
+        repeat: Infinity,
+        repeatType: "reverse",
+        ease: "easeInOut"
+      }}
+    />
+  );
+
+  return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       <Sidebar />
       
-      <main className="pl-64"> {/* Left padding for sidebar */}
+      <main className="pl-64">
         <div className="h-screen flex items-center justify-center">
-          {/* Centered container for search and floating circles */}
           <div className="relative w-full max-w-xl h-96 flex items-center justify-center">
             {/* Animated background circles */}
             <FloatingCircle size={120} initialX={-150} initialY={-50} duration={8} />
@@ -156,7 +182,7 @@ const SearchVisitor = () => {
                 )}
               </form>
 
-              {/* Search Guide - Now below input */}
+              {/* Search Guide */}
               <motion.div
                 className="mt-8 text-center"
                 initial={{ opacity: 0, y: 10 }}
