@@ -2,30 +2,8 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { visitorsDump } from '../../data/visitorsDump';
-import Header from '../../components/layout/Header';
 import Sidebar from '../../components/layout/Sidebar';
 import Footer from '../../components/layout/Footer';
-
-const formatInput = (input) => {
-  // Remove any non-numeric characters
-  const numericOnly = input.replace(/\D/g, '');
-  
-  // Check if it looks like an ID (16 digits)
-  if (numericOnly.length > 10) {
-    // Limit to 16 digits for ID
-    return numericOnly.slice(0, 16);
-  }
-  
-  // For phone number (12 digits: 25 + 10 digits)
-  if (numericOnly.startsWith('25')) {
-    return numericOnly.slice(0, 12);
-  } else if (numericOnly.length > 0) {
-    // Automatically add 25 prefix if not present
-    return '25' + numericOnly.slice(0, 10);
-  }
-  
-  return numericOnly;
-};
 
 const FloatingCircle = ({ size, initialX, initialY, duration }) => (
   <motion.div
