@@ -9,7 +9,7 @@ export const visitorsDump = [
     motherName: "Sarah Doe",
     gender: "Male",
     phoneNumber: "0712345678",
-    photoUrl: "/api/placeholder/150/150"
+    photoUrl: "IMG_0676.JPG"
   },
   {
     id: "2",
@@ -21,7 +21,7 @@ export const visitorsDump = [
     motherName: "Emma Smith",
     gender: "Female",
     phoneNumber: "0723456789",
-    photoUrl: "/api/placeholder/150/150"
+    photoUrl: "IMG_0676.JPG"
   },
   {
     id: "3",
@@ -33,7 +33,7 @@ export const visitorsDump = [
     motherName: "Mary Johnson",
     gender: "Male",
     phoneNumber: "0734567890",
-    photoUrl: "/api/placeholder/150/150"
+    photoUrl: "IMG_0676.JPG"
   }
 ]
 
