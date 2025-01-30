@@ -1,66 +1,28 @@
-
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import Sidebar from '../../components/layout/Sidebar';
-import  Card  from '../../components/common/Card';
-import  Input  from '../../components/common/Input';
-import  Select  from '../../components/common/Select';
-import  Button  from '../../components/common/Button';
 import { departmentsDump } from '../../data/visitorsDump';
-
-// TextArea Component
-const TextArea = ({ label, value, onChange, error, rows = 3 }) => (
-  <div>
-    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-      {label}
-    </label>
-    <textarea
-      value={value}
-      onChange={onChange}
-      rows={rows}
-      className={`w-full px-3 py-2 rounded-lg border ${
-        error ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-      } focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-gray-400
-      bg-white dark:bg-gray-800 text-gray-900 dark:text-white
-      transition-colors duration-200`}
-    />
-    {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
-  </div>
-);
+import Sidebar from '../../components/layout/Sidebar';
 
 const VisitorForm = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  
-  // Form State
   const [formData, setFormData] = useState({
+    // Personal Information
     fullName: '',
     identityNumber: '',
     gender: '',
     phoneNumber: '',
     otherNumber: '',
+    // Additional Information
     department: '',
     purpose: '',
     items: '',
-    laptopDetails: {
-      hasLaptop: false,
-      brand: '',
-      serialNumber: ''
-    },
-    photoUrl: '',
-    dateOfVisit: new Date().toISOString().split('T')[0],
-    timeOfArrival: new Date().toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      hour12: false 
-    })
+    equipment: '',
+    photoUrl: 'IMG_0676.JPG'
   });
-  
   const [errors, setErrors] = useState({});
-  const [photoPreview, setPhotoPreview] = useState(null);
 
-  // Load visitor data if editing
   useEffect(() => {
     const { visitor, isNewVisitor } = location.state || {};
     
@@ -72,51 +34,21 @@ const VisitorForm = () => {
     if (visitor) {
       setFormData(prev => ({
         ...prev,
-        ...visitor,
-        dateOfVisit: new Date().toISOString().split('T')[0],
-        timeOfArrival: new Date().toLocaleTimeString('en-US', { 
-          hour: '2-digit', 
-          minute: '2-digit',
-          hour12: false 
-        })
+        ...visitor
       }));
-      if (visitor.photoUrl) {
-        setPhotoPreview(visitor.photoUrl);
-      }
     }
   }, [location.state, navigate]);
 
-  // Handle photo upload
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        setErrors(prev => ({ ...prev, photo: 'Photo must be less than 5MB' }));
-        return;
-      }
-      
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result);
-        setFormData(prev => ({ ...prev, photoUrl: reader.result }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // Form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     // Validation
     const newErrors = {};
-    if (!formData.fullName) newErrors.fullName = 'Full name is required';
-    if (!formData.department) newErrors.department = 'Department is required';
-    if (!formData.purpose) newErrors.purpose = 'Purpose is required';
-    if (formData.laptopDetails.hasLaptop) {
-      if (!formData.laptopDetails.brand) newErrors.laptopBrand = 'Laptop brand is required';
-      if (!formData.laptopDetails.serialNumber) newErrors.laptopSerial = 'Serial number is required';
-    }
+    if (!formData.fullName) newErrors.fullName = 'Required';
+    if (!formData.identityNumber) newErrors.identityNumber = 'Required';
+    if (!formData.phoneNumber) newErrors.phoneNumber = 'Required';
+    if (!formData.department) newErrors.department = 'Required';
+    if (!formData.purpose) newErrors.purpose = 'Required';
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -124,11 +56,22 @@ const VisitorForm = () => {
     }
 
     try {
-      // Here you would typically save to your database
-      console.log('Form submitted:', formData);
+      // Add timestamp here before sending to backend
+      const submitData = {
+        ...formData,
+        dateOfVisit: new Date().toISOString(),
+        timeOfArrival: new Date().toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: false 
+        })
+      };
+
+      // Here you would send data to your backend
+      console.log('Form submitted:', submitData);
       navigate('/check-in');
     } catch (error) {
-      setErrors({ submit: 'Failed to submit form. Please try again.' });
+      setErrors({ submit: 'Failed to submit form' });
     }
   };
 
@@ -137,212 +80,167 @@ const VisitorForm = () => {
       <Sidebar />
       
       <main className="pl-64">
-        <div className="p-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="max-w-6xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-xl"
-          >
-            <form onSubmit={handleSubmit} className="p-6 space-y-8">
-              {/* Photo Section */}
-              <div className="flex justify-center mb-8">
-                <div className="relative">
-                  <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-gray-200 dark:border-gray-700">
-                    {photoPreview ? (
-                      <img
-                        src={photoPreview}
-                        alt="Visitor"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                        <span className="text-gray-400 dark:text-gray-500">No Photo</span>
-                      </div>
-                    )}
-                  </div>
-                  <label className="absolute bottom-0 right-0 bg-black dark:bg-gray-600 text-white p-2 rounded-full cursor-pointer hover:bg-gray-800 dark:hover:bg-gray-500 transition-colors">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handlePhotoChange}
+        <div className="p-8">
+          <form onSubmit={handleSubmit}>
+            <div className="flex gap-8">
+              {/* Left Column - Photo and Personal Info */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="w-80 bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6 space-y-6"
+              >
+                {/* Photo Section */}
+                <div className="flex flex-col items-center">
+                  <div className="w-40 h-40 rounded-full overflow-hidden mb-6">
+                    <img
+                      src={formData.photoUrl}
+                      alt="Visitor"
+                      className="w-full h-full object-cover"
                     />
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </label>
+                  </div>
                 </div>
-              </div>
 
-              {/* Form Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Input
-                  label="Full Name"
-                  value={formData.fullName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-                  error={errors.fullName}
-                />
+                {/* Personal Information Fields */}
+                <div className="space-y-4">
+                  <input
+                    type="text"
+                    placeholder="Full Name"
+                    value={formData.fullName}
+                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                    className={`w-full px-4 py-2 rounded-lg border ${errors.fullName ? 'border-red-500' : 'border-gray-200'} 
+                             focus:outline-none focus:ring-2 focus:ring-black dark:bg-gray-700 dark:text-white`}
+                  />
+                  
+                  <input
+                    type="text"
+                    placeholder="Identity Number"
+                    value={formData.identityNumber}
+                    onChange={(e) => setFormData({ ...formData, identityNumber: e.target.value })}
+                    className={`w-full px-4 py-2 rounded-lg border ${errors.identityNumber ? 'border-red-500' : 'border-gray-200'}
+                             focus:outline-none focus:ring-2 focus:ring-black dark:bg-gray-700 dark:text-white`}
+                  />
+                  
+                  <select
+                    value={formData.gender}
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black
+                             dark:bg-gray-700 dark:text-white"
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                  </select>
+                  
+                  <input
+                    type="text"
+                    placeholder="Phone Number"
+                    value={formData.phoneNumber}
+                    onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                    className={`w-full px-4 py-2 rounded-lg border ${errors.phoneNumber ? 'border-red-500' : 'border-gray-200'}
+                             focus:outline-none focus:ring-2 focus:ring-black dark:bg-gray-700 dark:text-white`}
+                  />
+                  
+                  <input
+                    type="text"
+                    placeholder="Other Contact Number"
+                    value={formData.otherNumber}
+                    onChange={(e) => setFormData({ ...formData, otherNumber: e.target.value })}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black
+                             dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+              </motion.div>
 
-                <Input
-                  label="Identity Number"
-                  value={formData.identityNumber}
-                  onChange={(e) => setFormData(prev => ({ ...prev, identityNumber: e.target.value }))}
-                  error={errors.identityNumber}
-                />
+              {/* Right Column - Additional Information */}
+              <div className="flex-1 space-y-6">
+                {/* Department Selection */}
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6"
+                >
+                  <h3 className="text-lg font-medium mb-4 dark:text-white">Department/Office</h3>
+                  <select
+                    value={formData.department}
+                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                    className={`w-full px-4 py-2 rounded-lg border ${errors.department ? 'border-red-500' : 'border-gray-200'}
+                             focus:outline-none focus:ring-2 focus:ring-black dark:bg-gray-700 dark:text-white`}
+                  >
+                    <option value="">Select Department</option>
+                    {departmentsDump.map(dept => (
+                      <option key={dept.id} value={dept.id}>{dept.name}</option>
+                    ))}
+                  </select>
+                </motion.div>
 
-                <Select
-                  label="Gender"
-                  value={formData.gender}
-                  onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value }))}
-                  error={errors.gender}
-                  options={[
-                    { value: 'Male', label: 'Male' },
-                    { value: 'Female', label: 'Female' }
-                  ]}
-                />
-
-                <Input
-                  label="Phone Number"
-                  value={formData.phoneNumber}
-                  onChange={(e) => setFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
-                  error={errors.phoneNumber}
-                />
-
-                <Input
-                  label="Other Number"
-                  value={formData.otherNumber}
-                  onChange={(e) => setFormData(prev => ({ ...prev, otherNumber: e.target.value }))}
-                />
-
-                <Select
-                  label="Department"
-                  value={formData.department}
-                  onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
-                  error={errors.department}
-                  options={departmentsDump.map(dept => ({
-                    value: dept.id,
-                    label: dept.name
-                  }))}
-                />
-
-                <div className="md:col-span-2">
-                  <TextArea
-                    label="Purpose of Visit"
+                {/* Purpose of Visit */}
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6"
+                >
+                  <h3 className="text-lg font-medium mb-4 dark:text-white">Purpose of Visit</h3>
+                  <textarea
                     value={formData.purpose}
-                    onChange={(e) => setFormData(prev => ({ ...prev, purpose: e.target.value }))}
-                    error={errors.purpose}
-                    rows={4}
+                    onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
+                    className={`w-full px-4 py-2 rounded-lg border ${errors.purpose ? 'border-red-500' : 'border-gray-200'}
+                             focus:outline-none focus:ring-2 focus:ring-black min-h-[100px] dark:bg-gray-700 dark:text-white`}
+                    placeholder="Enter purpose of visit"
                   />
-                </div>
+                </motion.div>
 
-                <div className="md:col-span-2">
-                  <TextArea
-                    label="Items Brought"
+                {/* Items and Equipment */}
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6"
+                >
+                  <h3 className="text-lg font-medium mb-4 dark:text-white">Items & Equipment</h3>
+                  <textarea
                     value={formData.items}
-                    onChange={(e) => setFormData(prev => ({ ...prev, items: e.target.value }))}
-                    rows={3}
+                    onChange={(e) => setFormData({ ...formData, items: e.target.value })}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black
+                             min-h-[100px] mb-4 dark:bg-gray-700 dark:text-white"
+                    placeholder="List any items brought"
                   />
-                </div>
-
-                {/* Laptop Details */}
-                <div className="md:col-span-2 space-y-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="hasLaptop"
-                      checked={formData.laptopDetails.hasLaptop}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        laptopDetails: {
-                          ...prev.laptopDetails,
-                          hasLaptop: e.target.checked
-                        }
-                      }))}
-                      className="h-4 w-4 text-black dark:text-gray-300 focus:ring-black dark:focus:ring-gray-400 
-                               border-gray-300 dark:border-gray-600 rounded"
+                  <div className="space-y-4">
+                    <h4 className="font-medium dark:text-white">Equipment Details</h4>
+                    <textarea
+                      value={formData.equipment}
+                      onChange={(e) => setFormData({ ...formData, equipment: e.target.value })}
+                      className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black
+                               min-h-[100px] dark:bg-gray-700 dark:text-white"
+                      placeholder="Enter equipment details (e.g., laptop serial number)"
                     />
-                    <label htmlFor="hasLaptop" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                      Brought Laptop
-                    </label>
                   </div>
-
-                  {formData.laptopDetails.hasLaptop && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input
-                        label="Laptop Brand"
-                        value={formData.laptopDetails.brand}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          laptopDetails: {
-                            ...prev.laptopDetails,
-                            brand: e.target.value
-                          }
-                        }))}
-                        error={errors.laptopBrand}
-                      />
-                      <Input
-                        label="Serial Number"
-                        value={formData.laptopDetails.serialNumber}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          laptopDetails: {
-                            ...prev.laptopDetails,
-                            serialNumber: e.target.value
-                          }
-                        }))}
-                        error={errors.laptopSerial}
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <Input
-                  label="Date of Visit"
-                  type="date"
-                  value={formData.dateOfVisit}
-                  readOnly
-                  className="bg-gray-50 dark:bg-gray-700 cursor-not-allowed"
-                />
-
-                <Input
-                  label="Time of Arrival"
-                  type="time"
-                  value={formData.timeOfArrival}
-                  readOnly
-                  className="bg-gray-50 dark:bg-gray-700 cursor-not-allowed"
-                />
+                </motion.div>
               </div>
+            </div>
 
-              {errors.submit && (
-                <div className="text-red-500 dark:text-red-400 text-sm text-center">
-                  {errors.submit}
-                </div>
-              )}
+            {/* Form Actions */}
+            <div className="mt-8 flex justify-end gap-4">
+              <button
+                type="button"
+                onClick={() => navigate('/check-in')}
+                className="px-6 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 dark:border-gray-600 
+                         dark:hover:bg-gray-700 dark:text-white transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-2 rounded-lg bg-black text-white hover:bg-gray-800 transition-colors"
+              >
+                Complete Check-In
+              </button>
+            </div>
 
-              {/* Form Actions */}
-              <div className="flex justify-end space-x-4 mt-8">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => navigate('/check-in')}
-                  className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 
-                           dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 
-                           dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  className="px-6 py-2 bg-black dark:bg-gray-700 text-white rounded-lg
-                           hover:bg-gray-800 dark:hover:bg-gray-600 transition-colors duration-200"
-                >
-                  Complete Check-In
-                </Button>
-              </div>
-            </form>
-          </motion.div>
+            {errors.submit && (
+              <p className="mt-4 text-center text-red-500">{errors.submit}</p>
+            )}
+          </form>
         </div>
       </main>
     </div>
