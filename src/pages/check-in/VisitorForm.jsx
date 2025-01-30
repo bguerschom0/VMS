@@ -322,7 +322,7 @@ const VisitorForm = () => {
         </motion.div>
       </div>
     </div>
-  );
+  
 };
 
 export default VisitorForm;
