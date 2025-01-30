@@ -1,109 +1,37 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { visitorsDump } from '../../data/visitorsDump';
 import Sidebar from '../../components/layout/Sidebar';
 
 const SearchVisitor = () => {
   const [searchInput, setSearchInput] = useState('');
   const [error, setError] = useState('');
-  const [inputType, setInputType] = useState(''); // 'id', 'phone', or 'passport'
   const inputRef = useRef(null);
   const navigate = useNavigate();
 
-  const formatInput = (value) => {
-    // Special case for passport
-    if (value === '#' || value === '#0' || value === '#00') {
-      return value;
-    }
-
-    // Remove any non-numeric characters
-    const numericOnly = value.replace(/\D/g, '');
-
-    // Determine input type based on first characters or length
-    if (value.startsWith('25')) {
-      setInputType('phone');
-      return numericOnly.slice(0, 12); // Limit to 12 digits for phone
-    } else if (numericOnly.length > 10) {
-      setInputType('id');
-      return numericOnly.slice(0, 16); // Limit to 16 digits for ID
-    } else if (numericOnly.length > 0) {
-      setInputType('phone');
-      // Only add '25' prefix if user is entering a phone number
-      if (numericOnly.length <= 10) {
-        return '25' + numericOnly;
-      }
-    }
-    
-    return numericOnly;
-  };
-
   const handleInputChange = (e) => {
     const value = e.target.value;
-    
-    // Handle special case for passport
-    if (value === '#' || value === '#0' || value === '#00') {
-      setInputType('passport');
-      setSearchInput(value);
-      return;
-    }
-
-    // If previous input was #00 and new input is different, reset
-    if (searchInput === '#00' && value !== '#00') {
-      setSearchInput('');
-      setInputType('');
-      return;
-    }
-
-    // Format the input based on type
-    if (value.startsWith('25') || (inputType === 'phone' && value.length <= 12)) {
-      // Phone number handling
-      setSearchInput(formatInput(value));
-    } else {
-      // ID number handling
-      const formatted = value.replace(/\D/g, '').slice(0, 16);
-      setSearchInput(formatted);
-    }
+    setSearchInput(value);
     setError('');
-  };
-
-  const validateInput = (value) => {
-    if (value === '#00') return true;
-    
-    const numericValue = value.replace(/\D/g, '');
-    
-    // Check for valid ID or phone number
-    if (inputType === 'id') {
-      return numericValue.length === 16;
-    } else if (inputType === 'phone') {
-      return numericValue.length === 12 && numericValue.startsWith('25');
-    }
-    
-    return false;
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
     
+    if (searchInput.trim() === '') {
+      setError('Please enter an ID or Phone number');
+      return;
+    }
+
     if (searchInput === '#00') {
-      navigate('/check-in/form', { state: { isNewVisitor: true, isPassport: true } });
+      navigate('/check-in/form', { state: { isNewVisitor: true } });
       return;
     }
 
-    if (!validateInput(searchInput)) {
-      if (inputType === 'id') {
-        setError('Please enter a valid ID (16 digits)');
-      } else {
-        setError('Please enter a valid phone number (2507********)');
-      }
-      return;
-    }
-
-    const searchValue = searchInput.replace(/\D/g, '');
-    
     const visitor = visitorsDump.find(v => 
-      v.identityNumber === searchValue || 
-      v.phoneNumber === searchValue
+      v.identityNumber === searchInput || 
+      v.phoneNumber === searchInput
     );
 
     if (visitor) {
@@ -113,7 +41,6 @@ const SearchVisitor = () => {
     }
   };
 
-  // Floating Circle Component
   const FloatingCircle = ({ size, initialX, initialY, duration }) => (
     <motion.div
       className="absolute rounded-full bg-gray-100/50 dark:bg-gray-800/50"
@@ -231,7 +158,6 @@ const SearchVisitor = () => {
       
       <footer className="fixed bottom-0 left-64 right-0 bg-white dark:bg-gray-900 h-8">
         <div className="w-full h-full flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
-          {/* Footer content if needed */}
         </div>
       </footer>
     </div>
