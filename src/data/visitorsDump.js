@@ -6,7 +6,7 @@ export const visitorsDump = [
     gender: "Male",
     phoneNumber: "0712345678",
     otherNumber: "0787654321",
-    photoUrl: "/api/placeholder/150/150",
+    photoUrl: "IMG_0676.JPG",
     items: []
   },
   {
@@ -16,7 +16,7 @@ export const visitorsDump = [
     gender: "Female",
     phoneNumber: "0723456789",
     otherNumber: "0789123456",
-    photoUrl: "/api/placeholder/150/150",
+    photoUrl: "IMG_0676.JPG",
     items: []
   }
 ]
