@@ -1,16 +1,16 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
-
 // Layout Components
 import Header from './components/layout/Header'
 import Sidebar from './components/layout/Sidebar'
-
 // Pages
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import CheckIn from './pages/CheckIn'
 import CheckOut from './pages/CheckOut'
 import VisitorReport from './pages/VisitorReport'
+import SearchVisitor from './pages/check-in/SearchVisitor'
+import VisitorForm from './pages/check-in/VisitorForm'
 
 // Protected Route wrapper
 const ProtectedRoute = ({ children }) => {
@@ -45,6 +45,19 @@ const AuthenticatedLayout = ({ children }) => {
   )
 }
 
+// Layout wrapper for full-screen pages (like SearchVisitor)
+const FullScreenLayout = ({ children }) => {
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Header />
+      <Sidebar />
+      <main className="pl-64 pt-16 h-screen">
+        {children}
+      </main>
+    </div>
+  )
+}
+
 const App = () => {
   const { user } = useAuth()
 
@@ -70,12 +83,24 @@ const App = () => {
         }
       />
 
+      {/* Check-in routes */}
       <Route
         path="/check-in"
         element={
           <ProtectedRoute>
+            <FullScreenLayout>
+              <SearchVisitor />
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/check-in/form"
+        element={
+          <ProtectedRoute>
             <AuthenticatedLayout>
-              <CheckIn />
+              <VisitorForm />
             </AuthenticatedLayout>
           </ProtectedRoute>
         }
