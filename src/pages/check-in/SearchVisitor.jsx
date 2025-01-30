@@ -103,26 +103,12 @@ const SearchVisitor = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      <Header />
       <Sidebar />
       
       <main className="pl-64 pr-4"> {/* Adjust padding to account for sidebar */}
         <div className="pt-16 pb-16"> {/* Adjust padding for header and footer */}
           <div className="h-[calc(100vh-8rem)] relative flex items-center justify-center">
-            {/* Search Guide Card */}
-            <div className="absolute top-10 left-1/2 transform -translate-x-1/2 
-                          bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 
-                          border border-gray-200 dark:border-gray-700 
-                          max-w-md w-full mx-auto">
-              <h3 className="text-center font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Search Guide
-              </h3>
-              <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                <p>• ID: requires 16 digits</p>
-                <p>• Phone Number: 2507********</p>
-                <p>• For Passport users: #00</p>
-              </div>
-            </div>
+
 
             {/* Centered container for search and floating circles */}
             <div className="relative w-full max-w-xl h-96 flex items-center justify-center">
@@ -182,6 +168,17 @@ const SearchVisitor = () => {
                       <path d="M21 21l-4.35-4.35" />
                     </motion.svg>
                   </button>
+
+                              {/* Search Guide Card */}
+              <h3 className="text-center font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Search Guide
+              </h3>
+              <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                <p>• ID: requires 16 digits</p>
+                <p>• Phone Number: 2507********</p>
+                <p>• For Passport users: #00</p>
+              </div>
+
 
                   {/* Error Message */}
                   {error && (
