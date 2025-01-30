@@ -53,7 +53,53 @@ const SearchVisitor = () => {
   const inputRef = useRef(null);
   const navigate = useNavigate();
 
-  // ... rest of your state and handlers ...
+  
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    if (value === '#00') {
+      setSearchInput(value);
+    } else {
+      setSearchInput(formatInput(value));
+    }
+    setError('');
+  };
+
+  const validateInput = (value) => {
+    if (value === '#00') return true;
+    const numericValue = value.replace(/\D/g, '');
+    
+    // Check for valid ID or phone number
+    const isValidId = numericValue.length === 12 || numericValue.length === 13;
+    const isValidPhone = numericValue.length === 10;
+    
+    return isValidId || isValidPhone;
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const searchValue = searchInput.replace(/\D/g, '');
+    
+    if (!validateInput(searchInput)) {
+      setError('Please enter a valid ID (12-13 digits) or phone number (10 digits)');
+      return;
+    }
+
+    if (searchInput === '#00') {
+      navigate('/check-in/form', { state: { isNewVisitor: true } });
+      return;
+    }
+
+    const visitor = visitorsDump.find(v => 
+      v.identityNumber.replace(/\D/g, '') === searchValue || 
+      v.phoneNumber.replace(/\D/g, '') === searchValue
+    );
+
+    if (visitor) {
+      navigate('/check-in/form', { state: { visitor } });
+    } else {
+      setError('No visitor found with this ID/Phone');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
