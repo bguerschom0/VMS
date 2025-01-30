@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Card } from '../../components/common/Card';
-import { Input } from '../../components/common/Input';
-import { Select } from '../../components/common/Select';
-import { Button } from '../../components/common/Button';
+import  Card  from '../../components/common/Card';
+import  Input  from '../../components/common/Input';
+import  Select  from '../../components/common/Select';
+import  Button  from '../../components/common/Button';
 import { departmentsDump } from '../../data/visitorsDump';
 
 const VisitorForm = () => {
