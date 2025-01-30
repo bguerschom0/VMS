@@ -7,72 +7,100 @@ import Sidebar from '../../components/layout/Sidebar';
 const SearchVisitor = () => {
   const [searchInput, setSearchInput] = useState('');
   const [error, setError] = useState('');
+  const [inputType, setInputType] = useState(''); // 'id', 'phone', or 'passport'
   const inputRef = useRef(null);
   const navigate = useNavigate();
 
-  // Format input function
   const formatInput = (value) => {
-    // Handle special case for passport users
-    if (value === '#00') return value;
+    // Special case for passport
+    if (value === '#' || value === '#0' || value === '#00') {
+      return value;
+    }
 
     // Remove any non-numeric characters
     const numericOnly = value.replace(/\D/g, '');
-    
-    // Check if it looks like an ID (16 digits)
-    if (numericOnly.length > 10) {
-      // Limit to 16 digits for ID
-      return numericOnly.slice(0, 16);
-    }
-    
-    // For phone number (12 digits: 25 + 10 digits)
-    if (numericOnly.startsWith('25')) {
-      return numericOnly.slice(0, 12);
+
+    // Determine input type based on first characters or length
+    if (value.startsWith('25')) {
+      setInputType('phone');
+      return numericOnly.slice(0, 12); // Limit to 12 digits for phone
+    } else if (numericOnly.length > 10) {
+      setInputType('id');
+      return numericOnly.slice(0, 16); // Limit to 16 digits for ID
     } else if (numericOnly.length > 0) {
-      // Automatically add 25 prefix if not present
-      return '25' + numericOnly.slice(0, 10);
+      setInputType('phone');
+      // Only add '25' prefix if user is entering a phone number
+      if (numericOnly.length <= 10) {
+        return '25' + numericOnly;
+      }
     }
     
     return numericOnly;
   };
 
-  // Handle input change
   const handleInputChange = (e) => {
     const value = e.target.value;
-    if (value === '#00') {
+    
+    // Handle special case for passport
+    if (value === '#' || value === '#0' || value === '#00') {
+      setInputType('passport');
       setSearchInput(value);
-    } else {
+      return;
+    }
+
+    // If previous input was #00 and new input is different, reset
+    if (searchInput === '#00' && value !== '#00') {
+      setSearchInput('');
+      setInputType('');
+      return;
+    }
+
+    // Format the input based on type
+    if (value.startsWith('25') || (inputType === 'phone' && value.length <= 12)) {
+      // Phone number handling
       setSearchInput(formatInput(value));
+    } else {
+      // ID number handling
+      const formatted = value.replace(/\D/g, '').slice(0, 16);
+      setSearchInput(formatted);
     }
     setError('');
   };
 
-  // Validate input
   const validateInput = (value) => {
     if (value === '#00') return true;
+    
     const numericValue = value.replace(/\D/g, '');
     
     // Check for valid ID or phone number
-    const isValidId = numericValue.length === 16;
-    const isValidPhone = numericValue.length === 12 && numericValue.startsWith('25');
+    if (inputType === 'id') {
+      return numericValue.length === 16;
+    } else if (inputType === 'phone') {
+      return numericValue.length === 12 && numericValue.startsWith('25');
+    }
     
-    return isValidId || isValidPhone;
+    return false;
   };
 
-  // Handle search
   const handleSearch = (e) => {
     e.preventDefault();
-    const searchValue = searchInput.replace(/\D/g, '');
     
-    if (!validateInput(searchInput)) {
-      setError('Please enter a valid ID (16 digits) or phone number (2507********)');
-      return;
-    }
-
     if (searchInput === '#00') {
       navigate('/check-in/form', { state: { isNewVisitor: true, isPassport: true } });
       return;
     }
 
+    if (!validateInput(searchInput)) {
+      if (inputType === 'id') {
+        setError('Please enter a valid ID (16 digits)');
+      } else {
+        setError('Please enter a valid phone number (2507********)');
+      }
+      return;
+    }
+
+    const searchValue = searchInput.replace(/\D/g, '');
+    
     const visitor = visitorsDump.find(v => 
       v.identityNumber === searchValue || 
       v.phoneNumber === searchValue
@@ -81,7 +109,7 @@ const SearchVisitor = () => {
     if (visitor) {
       navigate('/check-in/form', { state: { visitor } });
     } else {
-      setError('No visitor found with this ID/Phone');
+      setError('No visitor found');
     }
   };
 
