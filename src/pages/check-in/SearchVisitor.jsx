@@ -7,14 +7,21 @@ const formatInput = (input) => {
   // Remove any non-numeric characters
   const numericOnly = input.replace(/\D/g, '');
   
-  // Check if it looks like an ID (12-13 digits)
-  if (numericOnly.length >= 12) {
-    // Format as ID: 1234-5678-9012
-    return numericOnly.replace(/(\d{4})(\d{4})(\d{4})/, '$1-$2-$3');
+  // Check if it looks like an ID (16 digits)
+  if (numericOnly.length > 10) {
+    // Limit to 16 digits for ID
+    return numericOnly.slice(0, 16);
   }
   
-  // Format as phone number: 0712-345-678
-  return numericOnly.replace(/(\d{4})(\d{3})(\d{3})/, '$1-$2-$3');
+  // For phone number (12 digits starting with 250)
+  if (numericOnly.startsWith('250')) {
+    return numericOnly.slice(0, 12);
+  } else if (numericOnly.length > 0) {
+    // Automatically add 250 prefix if not present
+    return '250' + numericOnly.slice(0, 9);
+  }
+  
+  return numericOnly;
 };
 
 const FloatingCircle = ({ size, initialX, initialY, duration }) => (
@@ -58,8 +65,8 @@ const SearchVisitor = () => {
     const numericValue = value.replace(/\D/g, '');
     
     // Check for valid ID or phone number
-    const isValidId = numericValue.length === 12 || numericValue.length === 13;
-    const isValidPhone = numericValue.length === 10;
+    const isValidId = numericValue.length === 16;
+    const isValidPhone = numericValue.length === 12 && numericValue.startsWith('250');
     
     return isValidId || isValidPhone;
   };
@@ -69,18 +76,18 @@ const SearchVisitor = () => {
     const searchValue = searchInput.replace(/\D/g, '');
     
     if (!validateInput(searchInput)) {
-      setError('Please enter a valid ID (12-13 digits) or phone number (10 digits)');
+      setError('Please enter a valid ID (16 digits) or phone number (250XXXXXXXXX)');
       return;
     }
 
     if (searchInput === '#00') {
-      navigate('/check-in/form', { state: { isNewVisitor: true } });
+      navigate('/check-in/form', { state: { isNewVisitor: true, isPassport: true } });
       return;
     }
 
     const visitor = visitorsDump.find(v => 
-      v.identityNumber.replace(/\D/g, '') === searchValue || 
-      v.phoneNumber.replace(/\D/g, '') === searchValue
+      v.identityNumber === searchValue || 
+      v.phoneNumber === searchValue
     );
 
     if (visitor) {
@@ -91,22 +98,23 @@ const SearchVisitor = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-theme(space.16))] bg-white dark:bg-gray-900 relative overflow-hidden">
-      {/* Animated background circles */}
-      <FloatingCircle size={160} initialX={-100} initialY={-50} duration={8} />
-      <FloatingCircle size={120} initialX={400} initialY={200} duration={10} />
-      <FloatingCircle size={100} initialX={-50} initialY={150} duration={7} />
-      <FloatingCircle size={140} initialX={350} initialY={-100} duration={9} />
+    <div className="fixed inset-0 bg-white dark:bg-gray-900 flex items-center justify-center overflow-hidden">
+      {/* Centered container for search and floating circles */}
+      <div className="relative w-full max-w-xl h-96 flex items-center justify-center">
+        {/* Animated background circles - positioned relative to the container */}
+        <FloatingCircle size={120} initialX={-150} initialY={-50} duration={8} />
+        <FloatingCircle size={100} initialX={150} initialY={-80} duration={10} />
+        <FloatingCircle size={80} initialX={-100} initialY={50} duration={7} />
+        <FloatingCircle size={90} initialX={120} initialY={80} duration={9} />
 
-      {/* Search Container */}
-      <div className="absolute inset-0 flex items-center justify-center p-4">
+        {/* Search Form */}
         <motion.div
-          className="relative z-10 w-full max-w-xl"
+          className="z-10 w-full px-4"
           initial={{ scale: 0.8 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", damping: 15 }}
         >
-          <form onSubmit={handleSearch} className="relative group">
+          <form onSubmit={handleSearch} className="relative">
             <input
               ref={inputRef}
               type="text"
@@ -119,7 +127,7 @@ const SearchVisitor = () => {
                        transition-all duration-300
                        hover:shadow-xl
                        placeholder-gray-400 dark:placeholder-gray-500"
-              placeholder="Enter ID (12-13 digits) or Phone (10 digits)"
+              placeholder="Enter ID (16 digits) or Phone (250XXXXXXXXX)"
               value={searchInput}
               onChange={handleInputChange}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch(e)}
@@ -163,15 +171,14 @@ const SearchVisitor = () => {
 
             {/* Format Guide */}
             <motion.div
-              className="absolute bottom-0 translate-y-full mt-8 text-center w-full text-sm text-gray-500 dark:text-gray-400"
+              className="absolute bottom-[-80px] text-center w-full text-sm text-gray-500 dark:text-gray-400"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
             >
-              <p className="mt-4">Format examples:</p>
-              <p>ID: 1234-5678-9012</p>
-              <p>Phone: 0712-345-678</p>
-              <p>Quick entry: #00</p>
+              <p>ID: 16 digits</p>
+              <p>Phone: 250XXXXXXXXX</p>
+              <p>For Passport users: #00</p>
             </motion.div>
           </form>
         </motion.div>
