@@ -51,6 +51,7 @@ const VisitorForm = () => {
       hour12: false 
     })
   });
+  
   const [errors, setErrors] = useState({});
   const [photoPreview, setPhotoPreview] = useState(null);
 
@@ -90,15 +91,37 @@ const VisitorForm = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6">
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Basic validation
+    const newErrors = {};
+    if (!formData.fullName) newErrors.fullName = 'Full name is required';
+    if (!formData.department) newErrors.department = 'Department is required';
+    if (!formData.purpose) newErrors.purpose = 'Purpose is required';
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    try {
+      // Here you would typically save to your database
+      console.log('Form submitted:', formData);
+      navigate('/check-in');
+    } catch (error) {
+      setErrors({ submit: 'Failed to submit form. Please try again.' });
+    }
+  };
+
+   <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Card>
+          <Card className="bg-white dark:bg-gray-800 shadow-xl">
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Centered Photo Section */}
               <div className="flex justify-center mb-8">
@@ -111,12 +134,12 @@ const VisitorForm = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                        <span className="text-gray-400">No Photo</span>
+                      <div className="w-full h-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                        <span className="text-gray-400 dark:text-gray-500">No Photo</span>
                       </div>
                     )}
                   </div>
-                  <label className="absolute bottom-0 right-0 bg-black text-white p-2 rounded-full cursor-pointer">
+                  <label className="absolute bottom-0 right-0 bg-black dark:bg-gray-600 text-white p-2 rounded-full cursor-pointer hover:bg-gray-800 dark:hover:bg-gray-500 transition-colors">
                     <input
                       type="file"
                       accept="image/*"
@@ -132,7 +155,7 @@ const VisitorForm = () => {
               </div>
 
               {/* Form Fields Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Input
                   label="Full Name"
                   value={formData.fullName}
@@ -202,7 +225,7 @@ const VisitorForm = () => {
                 </div>
 
                 {/* Laptop Details Section */}
-                <div className="md:col-span-2 space-y-4">
+                <div className="md:col-span-2 space-y-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
                   <div className="flex items-center">
                     <input
                       type="checkbox"
@@ -215,7 +238,7 @@ const VisitorForm = () => {
                           hasLaptop: e.target.checked
                         }
                       })}
-                      className="h-4 w-4 text-black focus:ring-black border-gray-300 rounded"
+                      className="h-4 w-4 text-black dark:text-gray-300 focus:ring-black dark:focus:ring-gray-400 border-gray-300 dark:border-gray-600 rounded"
                     />
                     <label htmlFor="hasLaptop" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
                       Brought Laptop
@@ -234,6 +257,7 @@ const VisitorForm = () => {
                             brand: e.target.value
                           }
                         })}
+                        className="bg-white dark:bg-gray-800"
                       />
                       <Input
                         label="Serial Number"
@@ -245,17 +269,19 @@ const VisitorForm = () => {
                             serialNumber: e.target.value
                           }
                         })}
+                        className="bg-white dark:bg-gray-800"
                       />
                     </div>
                   )}
                 </div>
 
+                {/* Date and Time fields */}
                 <Input
                   label="Date of Visit"
                   type="date"
                   value={formData.dateOfVisit}
                   readOnly
-                  className="bg-gray-50"
+                  className="bg-gray-50 dark:bg-gray-700 cursor-not-allowed"
                 />
 
                 <Input
@@ -263,9 +289,16 @@ const VisitorForm = () => {
                   type="time"
                   value={formData.timeOfArrival}
                   readOnly
-                  className="bg-gray-50"
+                  className="bg-gray-50 dark:bg-gray-700 cursor-not-allowed"
                 />
               </div>
+
+              {/* Error Message */}
+              {errors.submit && (
+                <div className="text-red-500 dark:text-red-400 text-sm text-center">
+                  {errors.submit}
+                </div>
+              )}
 
               {/* Form Actions */}
               <div className="flex justify-end space-x-4 mt-8">
@@ -273,10 +306,14 @@ const VisitorForm = () => {
                   type="button"
                   variant="secondary"
                   onClick={() => navigate('/check-in')}
+                  className="text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
                 >
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button
+                  type="submit"
+                  className="bg-black dark:bg-gray-700 text-white hover:bg-gray-800 dark:hover:bg-gray-600"
+                >
                   Complete Check-In
                 </Button>
               </div>
