@@ -7,6 +7,7 @@ const Sidebar = () => {
     { name: 'Dashboard', path: '/dashboard', icon: '📊' },
     { name: 'Check In', path: '/check-in', icon: '➡️' },
     { name: 'Check Out', path: '/check-out', icon: '⬅️' },
+    { name: 'Visitor History', path: '/visitor-history', icon: '📊' },
     { name: 'Reports', path: '/reports', icon: '📈' },
   ]
 
