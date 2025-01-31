@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createClient } from '@supabase/supabase-js';
-import { User, Lock, Moon, Sun } from 'lucide-react';
+import { User, Lock, ArrowRight, Send } from 'lucide-react';
 
 // Initialize Supabase client with Vite environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -14,11 +14,6 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [darkMode, setDarkMode] = useState(() => {
-    const savedMode = localStorage.getItem('darkMode');
-    return savedMode ? JSON.parse(savedMode) : 
-           window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
   const navigate = useNavigate();
 
   // Simulated user authentication function
@@ -62,28 +57,14 @@ const Login = () => {
       setUsername('');
       setPassword('');
       
-      // Navigate based on user role
-      if (userData.role === 'admin') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/user/dashboard');
-      }
+      // Navigate to dashboard for all users
+      navigate('/dashboard');
     } catch (err) {
       setError(err.message || 'Failed to sign in');
     } finally {
       setIsLoading(false);
     }
   };
-
-  // Dark mode effect
-  useEffect(() => {
-    localStorage.setItem('darkMode', JSON.stringify(darkMode));
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
 
   return (
     <div className="min-h-screen bg-[#0A2647] flex items-center justify-center p-4 relative overflow-hidden">
@@ -111,6 +92,7 @@ const Login = () => {
             <p className="text-gray-600 animate-fade-in">
               Sign in to access this portal
             </p>
+            
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
