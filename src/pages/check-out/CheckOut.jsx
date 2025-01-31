@@ -47,6 +47,11 @@ const CheckOut = () => {
         );
       }
 
+        const handleCheckout = (visitor) => {
+    setSelectedVisitor(visitor);
+    setShowModal(true);
+  };
+
       const { data, error, count } = await query
         .range((currentPage - 1) * limit, currentPage * limit - 1);
 
