@@ -154,7 +154,55 @@ const ActiveScheduledVisitors = () => {
             </div>
 
             {/* Pagination */}
-            {/* ... Same pagination code as before ... */}
+                        <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">
+                  Rows per page:
+                </span>
+                <select
+                  value={limit}
+                  onChange={(e) => {
+                    setLimit(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="px-2 py-1 rounded border border-gray-200 dark:border-gray-600
+                           dark:bg-gray-700 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={30}>30</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-gray-600 dark:text-gray-300">
+                  Page {currentPage} of {Math.ceil(totalCount / limit)}
+                </span>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 rounded border border-gray-200 dark:border-gray-600
+                             disabled:opacity-50 disabled:cursor-not-allowed
+                             hover:bg-gray-50 dark:hover:bg-gray-700
+                             text-gray-700 dark:text-gray-200"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(Math.ceil(totalCount / limit), prev + 1))}
+                    disabled={currentPage === Math.ceil(totalCount / limit)}
+                    className="px-3 py-1 rounded border border-gray-200 dark:border-gray-600
+                             disabled:opacity-50 disabled:cursor-not-allowed
+                             hover:bg-gray-50 dark:hover:bg-gray-700
+                             text-gray-700 dark:text-gray-200"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </main>
