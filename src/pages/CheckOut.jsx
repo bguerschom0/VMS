@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import Sidebar from '../../components/layout/Sidebar';
+import Sidebar from '../components/layout/Sidebar';
 
 const CheckOut = () => {
   const [visitors, setVisitors] = useState([]);
