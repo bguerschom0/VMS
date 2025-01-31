@@ -6,11 +6,11 @@ import Sidebar from './components/layout/Sidebar'
 // Pages
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
-import CheckIn from './pages/CheckIn'
-import CheckOut from './pages/CheckOut'
 import VisitorReport from './pages/VisitorReport'
 import SearchVisitor from './pages/check-in/SearchVisitor'
 import VisitorForm from './pages/check-in/VisitorForm'
+import CheckOut from './pages/check-out/CheckOut'
+import CheckoutModal from '.pages/check-out/CheckoutModal'
 
 // Protected Route wrapper
 const ProtectedRoute = ({ children }) => {
@@ -106,6 +106,7 @@ const App = () => {
         }
       />
 
+      {/* Check-out routes */}
       <Route
         path="/check-out"
         element={
@@ -116,6 +117,18 @@ const App = () => {
           </ProtectedRoute>
         }
       />
+
+      <Route
+        path="/check-out/form"
+        element={
+          <ProtectedRoute>
+            <AuthenticatedLayout>
+              <CheckoutModal />
+            </AuthenticatedLayout>
+          </ProtectedRoute>
+        }
+      />
+     
 
       <Route
         path="/reports"
