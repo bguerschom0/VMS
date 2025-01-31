@@ -9,6 +9,19 @@ const Header = () => {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
   
+  const handleSignOut = async () => {
+    try {
+      await signOut()
+      navigate('/login')
+    } catch (error) {
+      console.error('Sign out failed:', error)
+    }
+  }
+
+  const handleLogoClick = () => {
+    navigate('/dashboard')
+  }
+
   const navigation = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Check In', path: '/check-in', icon: LogIn },
@@ -31,7 +44,12 @@ const Header = () => {
     <header className="bg-gray-50 dark:bg-gray-900 shadow-sm mt-0">
       <div className="max-w-full px-4 py-2">
         <div className="flex justify-between items-center">
-          <img src="/public/logo.png" alt="Logo" className="h-10 w-auto" />
+          <img 
+            src="/public/logo.png" 
+            alt="Logo" 
+            className="h-10 w-auto cursor-pointer" 
+            onClick={handleLogoClick}
+          />
 
           <div className="flex-1 flex justify-center">
             <nav className="flex items-center space-x-6">
@@ -94,7 +112,7 @@ const Header = () => {
                   </div>
                   <button
                     onClick={() => {
-                      signOut()
+                      handleSignOut()
                       setIsDropdownOpen(false)
                     }}
                     className="flex items-center w-full text-left px-6 py-2 text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700"
