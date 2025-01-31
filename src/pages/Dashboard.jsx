@@ -6,6 +6,13 @@ import {
 } from 'recharts';
 import { supabase } from '../config/supabase';
 
+import { 
+  Users, 
+  UserCheck, 
+  Calendar, 
+  CheckCircle 
+} from 'lucide-react';
+
 const StatCard = ({ title, value, icon, change, changeType }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
@@ -148,33 +155,53 @@ const Dashboard = () => {
             </motion.div>
           </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard
-              title="Total Visitors"
-              value={stats.totalVisitors}
-              icon={/* ... */}
-              change={12}
-              changeType="increase"
-            />
-            <StatCard
-              title="Active Visitors"
-              value={stats.activeVisitors}
-              icon={/* ... */}
-            />
-            <StatCard
-              title="Scheduled Visits"
-              value={stats.scheduledVisits}
-              icon={/* ... */}
-              change={5}
-              changeType="increase"
-            />
-            <StatCard
-              title="Completed Visits"
-              value={stats.completedVisits}
-              icon={/* ... */}
-            />
-          </div>
+{/* Stats Grid */}
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+  <StatCard
+    title="Total Visitors"
+    value={stats.totalVisitors}
+    icon={
+      <Users 
+        size={24}
+        className="text-gray-600 dark:text-gray-300" 
+      />
+    }
+    change={12}
+    changeType="increase"
+  />
+  <StatCard
+    title="Active Visitors"
+    value={stats.activeVisitors}
+    icon={
+      <UserCheck 
+        size={24}
+        className="text-gray-600 dark:text-gray-300" 
+      />
+    }
+  />
+  <StatCard
+    title="Scheduled Visits"
+    value={stats.scheduledVisits}
+    icon={
+      <Calendar 
+        size={24}
+        className="text-gray-600 dark:text-gray-300" 
+      />
+    }
+    change={5}
+    changeType="increase"
+  />
+  <StatCard
+    title="Completed Visits"
+    value={stats.completedVisits}
+    icon={
+      <CheckCircle 
+        size={24}
+        className="text-gray-600 dark:text-gray-300" 
+      />
+    }
+  />
+</div>
 
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
