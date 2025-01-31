@@ -9,6 +9,7 @@ const Sidebar = () => {
     { name: 'Check Out', path: '/check-out', icon: '⬅️' },
     { name: 'Visitor History', path: '/visitor-history', icon: '📊' },
     { name: 'Bulk Visitor', path: '/bulkvisitors', icon: '📊' },
+    { name: 'Scheduled Visitor', path: '/scheduled-visitors', icon: '📊' },
     { name: 'Reports', path: '/reports', icon: '📈' },
   ]
 
