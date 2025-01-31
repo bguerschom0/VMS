@@ -156,18 +156,13 @@ const handleSubmit = async () => {
 
   setLoading(true);
   try {
+    // Get current user's UUID
     const { data: { user } } = await supabase.auth.getUser();
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('username')
-      .eq('id', user?.id)
-      .single();
+    
+    if (!user?.id) {
+      throw new Error('User not authenticated');
+    }
 
-    if (userError) throw userError;
-
-    const username = userData?.username || 'system';
-
-    // Match exactly with your database schema
     const visitorsToInsert = previewData.map(row => ({
       full_name: row['Full Name'],
       identity_number: row['ID/Passport Number'],
@@ -180,7 +175,7 @@ const handleSubmit = async () => {
       laptop_brand: row['Laptop Brand'] || null,
       laptop_serial: row['Laptop Serial'] || null,
       status: 'pending',
-      created_by: username,
+      created_by: user.id,  // Using UUID from authenticated user
       notes: null,
       arrival_time: null,
       departure_time: null
