@@ -63,7 +63,6 @@ const SearchVisitor = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      <Sidebar />
       
       <main className="pl-64">
         <div className="h-screen flex items-center justify-center">
