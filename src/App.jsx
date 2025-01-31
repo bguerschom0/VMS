@@ -15,6 +15,7 @@ import VisitorDetailsModal from './pages/visitors-history/VisitorDetailsModal'
 import VisitorHistory from './pages/visitors-history/VisitorHistory'
 import BulkVisitorUpload from './pages/bulk-upload/BulkVisitorUpload'
 import ActiveScheduledVisitors from './pages/scheduled-visitors/ActiveScheduledVisitors'
+import UserManagement from './pages/UserManagement/UserManagement'
 
 // Protected Route wrapper
 const ProtectedRoute = ({ children }) => {
@@ -179,6 +180,18 @@ const App = () => {
         }
       />
 
+            {/* User Management routes */}
+      <Route
+        path="/user-management"
+        element={
+          <ProtectedRoute>
+            <AuthenticatedLayout>
+              <UserManagement />
+            </AuthenticatedLayout>
+          </ProtectedRoute>
+        }
+      />
+      
       <Route
         path="/reports"
         element={
