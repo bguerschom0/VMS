@@ -1,10 +1,33 @@
+:
+
+    Reduced search bar width using max-w-md
+    Fixed "Rows per page" layout to be inline
+    Added 5 rows option to the limit selector
+    Improved search functionality with debouncing
+    Added proper user session handling
+    Enhanced search query to be more effective
+    Added proper whitespace handling for the pagination controls
+
+Would you like me to:
+
+    Adjust any of the spacings?
+    Modify the search behavior further?
+    Add more pagination options?
+    Enhance the user session handling?
+
+Claude can make mistakes. Please double-check responses.
+
+
+src/pages/check-out/CheckOut.jsx
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '../../config/supabase';
+import { useAuth } from '../../hooks/useAuth'; // Import auth hook
 import CheckoutModal from './CheckoutModal';
 import Sidebar from '../../components/layout/Sidebar';
 
 const CheckOut = () => {
+  const { user } = useAuth(); // Get current user
   const [visitors, setVisitors] = useState([]);
   const [selectedVisitor, setSelectedVisitor] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -15,7 +38,15 @@ const CheckOut = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchVisitors();
+    if (searchTerm) {
+      const delayDebounce = setTimeout(() => {
+        fetchVisitors();
+      }, 300);
+
+      return () => clearTimeout(delayDebounce);
+    } else {
+      fetchVisitors();
+    }
   }, [currentPage, limit, searchTerm]);
 
   const fetchVisitors = async () => {
@@ -27,14 +58,14 @@ const CheckOut = () => {
         .is('exit_timestamp', null)
         .order('entry_timestamp', { ascending: false });
 
-      if (searchTerm) {
-        query = query.or(`
-          full_name.ilike.%${searchTerm}%,
-          identity_number.ilike.%${searchTerm}%,
-          phone_number.ilike.%${searchTerm}%,
-          department.ilike.%${searchTerm}%,
-          visitor_card.ilike.%${searchTerm}%
-        `);
+      if (searchTerm.trim()) {
+        query = query.or(
+          `full_name.ilike.%${searchTerm}%,` +
+          `identity_number.ilike.%${searchTerm}%,` +
+          `phone_number.ilike.%${searchTerm}%,` +
+          `department.ilike.%${searchTerm}%,` +
+          `visitor_card.ilike.%${searchTerm}%`
+        );
       }
 
       const { data, error, count } = await query
@@ -43,17 +74,12 @@ const CheckOut = () => {
       if (error) throw error;
 
       setVisitors(data);
-      setTotalCount(count);
+      setTotalCount(count || 0);
     } catch (error) {
       console.error('Error fetching visitors:', error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleCheckout = (visitor) => {
-    setSelectedVisitor(visitor);
-    setShowModal(true);
   };
 
   const confirmCheckout = async (visitorId) => {
@@ -62,7 +88,7 @@ const CheckOut = () => {
         .from('visitors')
         .update({ 
           exit_timestamp: new Date().toISOString(),
-          exit_username: 'current_user' // Replace with actual logged-in user
+          exit_username: user?.email // Use actual logged-in user's email
         })
         .eq('id', visitorId);
 
@@ -84,16 +110,18 @@ const CheckOut = () => {
       <main className="pl-64">
         <div className="p-8">
           <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl">
-            {/* Search Bar */}
+            {/* Search Bar - Reduced width */}
             <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <input
-                type="text"
-                placeholder="Search by name, ID, phone, department..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
-                         dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
-              />
+              <div className="max-w-md">
+                <input
+                  type="text"
+                  placeholder="Search visitors..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
+                           dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+                />
+              </div>
             </div>
 
             {/* Table */}
@@ -158,8 +186,10 @@ const CheckOut = () => {
 
             {/* Pagination */}
             <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600 dark:text-gray-300">Rows per page:</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">
+                  Rows per page:
+                </span>
                 <select
                   value={limit}
                   onChange={(e) => {
@@ -169,6 +199,7 @@ const CheckOut = () => {
                   className="px-2 py-1 rounded border border-gray-200 dark:border-gray-600
                            dark:bg-gray-700 dark:text-white text-sm"
                 >
+                  <option value={5}>5</option>
                   <option value={10}>10</option>
                   <option value={30}>30</option>
                   <option value={50}>50</option>
@@ -184,7 +215,8 @@ const CheckOut = () => {
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
                     className="px-3 py-1 rounded border border-gray-200 dark:border-gray-600
-                             disabled:opacity-50 disabled:cursor-not-allowed"
+                             disabled:opacity-50 disabled:cursor-not-allowed
+                             hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
                     Previous
                   </button>
@@ -192,7 +224,8 @@ const CheckOut = () => {
                     onClick={() => setCurrentPage(prev => Math.min(Math.ceil(totalCount / limit), prev + 1))}
                     disabled={currentPage === Math.ceil(totalCount / limit)}
                     className="px-3 py-1 rounded border border-gray-200 dark:border-gray-600
-                             disabled:opacity-50 disabled:cursor-not-allowed"
+                             disabled:opacity-50 disabled:cursor-not-allowed
+                             hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
                     Next
                   </button>
