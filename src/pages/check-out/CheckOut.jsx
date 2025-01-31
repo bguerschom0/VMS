@@ -1,24 +1,3 @@
-:
-
-    Reduced search bar width using max-w-md
-    Fixed "Rows per page" layout to be inline
-    Added 5 rows option to the limit selector
-    Improved search functionality with debouncing
-    Added proper user session handling
-    Enhanced search query to be more effective
-    Added proper whitespace handling for the pagination controls
-
-Would you like me to:
-
-    Adjust any of the spacings?
-    Modify the search behavior further?
-    Add more pagination options?
-    Enhance the user session handling?
-
-Claude can make mistakes. Please double-check responses.
-
-
-src/pages/check-out/CheckOut.jsx
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '../../config/supabase';
