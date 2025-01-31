@@ -38,29 +38,37 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      // Query the users table
+      // Perform authentication query with more specific error handling
       const { data, error: queryError } = await supabase
         .from('users')
-        .select('username, password, role')
+        .select('*')
         .eq('username', username)
-        .eq('password', password)
         .single();
 
-      if (queryError) throw queryError;
-
-      if (data) {
-        // Clear form
-        setUsername('');
-        setPassword('');
-        
-        // Navigate to dashboard (same route for all users)
-        navigate('/dashboard');
-      } else {
-        setError('Invalid username or password');
+      // Check if user exists
+      if (!data) {
+        setError('User not found');
+        setIsLoading(false);
+        return;
       }
+
+      // Check password
+      if (data.password !== password) {
+        setError('Invalid password');
+        setIsLoading(false);
+        return;
+      }
+
+      // Successful login
+      // Clear form
+      setUsername('');
+      setPassword('');
+      
+      // Navigate to dashboard
+      navigate('/dashboard');
     } catch (err) {
       console.error('Login error:', err);
-      setError('An error occurred during sign in');
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
