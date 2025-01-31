@@ -62,29 +62,39 @@ const UserManagement = () => {
 
   const handleAddUser = async (e) => {
     e.preventDefault();
-    const { error } = await supabase
-      .from('users')
-      .insert([{
-        username: newUser.username,
-        full_name: newUser.full_name,
-        email: newUser.email,
-        password_hash: newUser.password, // In production, hash this password
-        role: newUser.role,
-        is_active: true
-      }]);
-    
-    if (!error) {
-      fetchUsers();
-      setIsModalOpen(false);
-      setNewUser({ 
-        username: '', 
-        full_name: '',
-        email: '', 
-        password: '', 
-        role: 'user' 
-      });
-    } else {
-      console.error('Error adding user:', error);
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .insert({
+          username: newUser.username,
+          full_name: newUser.full_name,
+          email: newUser.email,
+          password_hash: newUser.password, // In production, hash this password
+          role: newUser.role,
+          is_active: true
+        })
+        .select();
+      
+      if (error) {
+        console.error('Detailed error adding user:', error);
+        alert(`Error: ${error.message}`);
+        return;
+      }
+      
+      if (data) {
+        fetchUsers();
+        setIsModalOpen(false);
+        setNewUser({ 
+          username: '', 
+          full_name: '',
+          email: '', 
+          password: '', 
+          role: 'user' 
+        });
+      }
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      alert(`Unexpected error: ${err.message}`);
     }
   };
 
