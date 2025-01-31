@@ -20,6 +20,9 @@ import VisitorHistory from './pages/visitors-history/VisitorHistory'
 //Bulk Visitors
 import BulkVisitorUpload from './pages/bulk-upload/BulkVisitorUpload'
 
+// Scheduled visitor
+import ActiveScheduledVisitors from './pages/scheduled-visitors/ActiveScheduledVisitors'
+
 // Protected Route wrapper
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth()
@@ -168,6 +171,20 @@ const App = () => {
           <ProtectedRoute>
             <AuthenticatedLayout>
               <BulkVisitorUpload />
+            </AuthenticatedLayout>
+          </ProtectedRoute>
+        }
+      />
+
+
+            {/* Scheduled-visitors routes */}
+
+            <Route
+        path="/scheduled-visitors"
+        element={
+          <ProtectedRoute>
+            <AuthenticatedLayout>
+              <ActiveScheduledVisitors />
             </AuthenticatedLayout>
           </ProtectedRoute>
         }
