@@ -9,13 +9,9 @@ const Header = () => {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
   
-  const handleSignOut = async () => {
-    try {
-      await signOut()
-      navigate('/login')
-    } catch (error) {
-      console.error('Sign out failed:', error)
-    }
+  const handleSignOut = () => {
+    signOut()
+    navigate('/login')
   }
 
   const handleLogoClick = () => {
