@@ -235,5 +235,6 @@ return (
       />
     </div>
   );
+};
 
 export default CheckOut;
