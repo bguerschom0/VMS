@@ -42,7 +42,7 @@ const AuthenticatedLayout = ({ children }) => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
-      <main className="pl-16 pt-16 pb-10">
+      <main className="pt-10 pb-10">
         {children}
       </main>
     </div>
@@ -54,7 +54,7 @@ const FullScreenLayout = ({ children }) => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
-      <main className="pl-64 pt-16 h-screen">
+      <main className="pb-10 pt-10 h-screen">
         {children}
       </main>
     </div>
