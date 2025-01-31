@@ -10,7 +10,7 @@ import VisitorReport from './pages/VisitorReport'
 import SearchVisitor from './pages/check-in/SearchVisitor'
 import VisitorForm from './pages/check-in/VisitorForm'
 import CheckOut from './pages/check-out/CheckOut'
-import CheckoutModal from '.pages/check-out/CheckoutModal'
+import CheckoutModal from './pages/check-out/CheckoutModal'
 
 // Protected Route wrapper
 const ProtectedRoute = ({ children }) => {
