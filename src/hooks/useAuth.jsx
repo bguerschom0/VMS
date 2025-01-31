@@ -75,3 +75,5 @@ export const useAuth = () => {
     logout 
   };
 };
+
+export { AuthProvider } from './AuthProvider';
