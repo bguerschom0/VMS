@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { Edit, Trash2, Plus, Search } from 'lucide-react';
+import { Edit, Trash2, Plus, Search, Eye, EyeOff } from 'lucide-react';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL, 
@@ -13,9 +13,12 @@ const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [newUser, setNewUser] = useState({
     username: '',
+    full_name: '',
     email: '',
+    password: '',
     role: 'user'
   });
 
@@ -28,6 +31,7 @@ const UserManagement = () => {
   useEffect(() => {
     const filtered = users.filter(user => 
       user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredUsers(filtered);
@@ -61,15 +65,26 @@ const UserManagement = () => {
     const { error } = await supabase
       .from('users')
       .insert([{
-        ...newUser,
-        password_hash: 'temporary_password', // Replace with secure password generation
+        username: newUser.username,
+        full_name: newUser.full_name,
+        email: newUser.email,
+        password_hash: newUser.password, // In production, hash this password
+        role: newUser.role,
         is_active: true
       }]);
     
     if (!error) {
       fetchUsers();
       setIsModalOpen(false);
-      setNewUser({ username: '', email: '', role: 'user' });
+      setNewUser({ 
+        username: '', 
+        full_name: '',
+        email: '', 
+        password: '', 
+        role: 'user' 
+      });
+    } else {
+      console.error('Error adding user:', error);
     }
   };
 
@@ -79,6 +94,7 @@ const UserManagement = () => {
       .from('users')
       .update({
         username: selectedUser.username,
+        full_name: selectedUser.full_name,
         email: selectedUser.email,
         role: selectedUser.role
       })
@@ -120,6 +136,7 @@ const UserManagement = () => {
           <thead className="bg-gray-100">
             <tr>
               <th className="p-3 text-left">Username</th>
+              <th className="p-3 text-left">Full Name</th>
               <th className="p-3 text-left">Email</th>
               <th className="p-3 text-left">Role</th>
               <th className="p-3 text-left">Actions</th>
@@ -129,6 +146,7 @@ const UserManagement = () => {
             {filteredUsers.map(user => (
               <tr key={user.id} className="border-b">
                 <td className="p-3">{user.username}</td>
+                <td className="p-3">{user.full_name}</td>
                 <td className="p-3">{user.email}</td>
                 <td className="p-3">{user.role}</td>
                 <td className="p-3">
@@ -166,6 +184,14 @@ const UserManagement = () => {
                 required
               />
               <input
+                type="text"
+                placeholder="Full Name"
+                value={newUser.full_name}
+                onChange={(e) => setNewUser({...newUser, full_name: e.target.value})}
+                className="w-full p-2 mb-3 border rounded-md"
+                required
+              />
+              <input
                 type="email"
                 placeholder="Email"
                 value={newUser.email}
@@ -173,6 +199,23 @@ const UserManagement = () => {
                 className="w-full p-2 mb-3 border rounded-md"
                 required
               />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  value={newUser.password}
+                  onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                  className="w-full p-2 mb-3 border rounded-md pr-10"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2 top-3 text-gray-500"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
               <select
                 value={newUser.role}
                 onChange={(e) => setNewUser({...newUser, role: e.target.value})}
@@ -212,6 +255,14 @@ const UserManagement = () => {
                 placeholder="Username"
                 value={selectedUser.username}
                 onChange={(e) => setSelectedUser({...selectedUser, username: e.target.value})}
+                className="w-full p-2 mb-3 border rounded-md"
+                required
+              />
+              <input
+                type="text"
+                placeholder="Full Name"
+                value={selectedUser.full_name}
+                onChange={(e) => setSelectedUser({...selectedUser, full_name: e.target.value})}
                 className="w-full p-2 mb-3 border rounded-md"
                 required
               />
