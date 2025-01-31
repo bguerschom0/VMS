@@ -1,12 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Moon, Sun, User, Lock } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL, 
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
+import { useAuth } from '../../hooks/useAuth';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -14,33 +9,18 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
 
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('username', username)
-        .single();
+    const { user, error: loginError } = await login(username, password);
 
-      if (error) throw error;
-
-      if (data && data.password_hash === password) {
-        await supabase
-          .from('users')
-          .update({ last_login: new Date().toISOString() })
-          .eq('id', data.id);
-
-        navigate('/dashboard');
-      } else {
-        setError('Invalid credentials');
-      }
-    } catch (err) {
-      setError('Login failed');
-      console.error('Login error:', err);
+    if (user) {
+      navigate('/dashboard');
+    } else {
+      setError(loginError || 'Login failed');
     }
   };
 
