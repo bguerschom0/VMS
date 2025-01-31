@@ -10,8 +10,10 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const Login = () => {
-  const [formData, setFormData] = useState({ username: '', password: '' });
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     const savedMode = localStorage.getItem('darkMode');
     return savedMode ? JSON.parse(savedMode) : 
@@ -30,21 +32,28 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    if (isLoading) return;
 
+    setError('');
+    setIsLoading(true);
+    
     try {
       // Query the users table
       const { data, error: queryError } = await supabase
         .from('users')
-        .select('username, password')
-        .eq('username', formData.username)
-        .eq('password', formData.password)
+        .select('username, password, role')
+        .eq('username', username)
+        .eq('password', password)
         .single();
 
       if (queryError) throw queryError;
 
       if (data) {
-        // Successful login
+        // Clear form
+        setUsername('');
+        setPassword('');
+        
+        // Navigate to dashboard (same route for all users)
         navigate('/dashboard');
       } else {
         setError('Invalid username or password');
@@ -52,6 +61,8 @@ const Login = () => {
     } catch (err) {
       console.error('Login error:', err);
       setError('An error occurred during sign in');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -67,31 +78,35 @@ const Login = () => {
         {darkMode ? <Sun size={24} /> : <Moon size={24} />}
       </button>
 
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0">
-        <div className={`absolute top-20 left-12 w-32 h-32 rounded-lg animate-float transition-colors duration-300 
-          ${darkMode ? 'bg-gray-800 opacity-30' : 'bg-gray-800 opacity-10'}`}></div>
-        <div className={`absolute bottom-20 right-12 w-40 h-40 rounded-full animate-pulse transition-colors duration-300
-          ${darkMode ? 'bg-gray-700 opacity-30' : 'bg-gray-700 opacity-10'}`}></div>
-      </div>
-
       {/* Login Card */}
       <div className="relative flex min-h-screen items-center justify-center px-4">
         <div className="w-full max-w-md transform transition-all">
           <div className={`rounded-2xl shadow-xl p-8 space-y-6 transition-colors duration-300
             ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
             
-            {/* Logo */}
-            <div className="flex justify-center mb-6">
-              <img 
-                src="/logo.png" 
-                alt="Logo" 
-                className="h-16 w-auto"
-              />
+            {/* Logo or Title */}
+            <div className="text-center mb-8">
+              <h2 className={`text-2xl font-bold transition-colors duration-300 
+                ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>
+                Welcome
+              </h2>
+              <p className={`text-sm transition-colors duration-300 
+                ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                Sign in to access your dashboard
+              </p>
             </div>
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Error Message */}
+              {error && (
+                <div className={`p-3 rounded-lg text-sm text-center ${darkMode ? 
+                  'bg-red-900/20 text-red-400' : 
+                  'bg-red-50 text-red-500'}`}>
+                  {error}
+                </div>
+              )}
+
               {/* Username Input */}
               <div className="relative">
                 <User 
@@ -100,14 +115,15 @@ const Login = () => {
                 />
                 <input
                   type="text"
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   className={`w-full pl-10 pr-4 py-3 rounded-lg border transition-all duration-300
                     ${darkMode ? 
                       'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-gray-500' : 
                       'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-gray-500'}`}
                   placeholder="Username"
                   required
+                  disabled={isLoading}
                 />
               </div>
 
@@ -119,25 +135,17 @@ const Login = () => {
                 />
                 <input
                   type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className={`w-full pl-10 pr-4 py-3 rounded-lg border transition-all duration-300
                     ${darkMode ? 
                       'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-gray-500' : 
                       'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-gray-500'}`}
                   placeholder="Password"
                   required
+                  disabled={isLoading}
                 />
               </div>
-
-              {/* Error Message */}
-              {error && (
-                <div className={`p-3 rounded-lg text-sm ${darkMode ? 
-                  'bg-red-900/20 text-red-400' : 
-                  'bg-red-50 text-red-500'}`}>
-                  {error}
-                </div>
-              )}
 
               {/* Submit Button */}
               <button
@@ -146,8 +154,13 @@ const Login = () => {
                   ${darkMode ? 
                     'bg-gray-700 text-gray-100 hover:bg-gray-600' : 
                     'bg-gray-600 text-white hover:bg-gray-500'}`}
+                disabled={isLoading}
               >
-                Sign In
+                {isLoading ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mx-auto"></div>
+                ) : (
+                  'Sign In'
+                )}
               </button>
             </form>
           </div>
