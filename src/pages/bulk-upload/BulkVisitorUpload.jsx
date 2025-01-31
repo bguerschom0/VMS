@@ -142,49 +142,61 @@ const BulkVisitorUpload = () => {
     }
   };
 
-  const handleSubmit = async () => {
-    if (!previewData.length) {
-      setError('Please upload a file first');
-      return;
-    }
+const handleSubmit = async () => {
+  if (!previewData.length) {
+    setError('Please upload a file first');
+    return;
+  }
 
-    const invalidRows = previewData.filter(row => !row.isValid);
-    if (invalidRows.length > 0) {
-      setError(`Please fix errors in rows: ${invalidRows.map(row => row.rowNumber).join(', ')}`);
-      return;
-    }
+  const invalidRows = previewData.filter(row => !row.isValid);
+  if (invalidRows.length > 0) {
+    setError(`Please fix errors in rows: ${invalidRows.map(row => row.rowNumber).join(', ')}`);
+    return;
+  }
 
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('scheduled_visitors')
-        .insert(
-          previewData.map(row => ({
-            full_name: row['Full Name'],
-            identity_number: row['ID/Passport Number'],
-            phone_number: row['Phone Number'],
-            department: row['Department'],
-            purpose: row['Purpose of Visit'],
-            visit_start_date: new Date(row['Visit Start Date']).toISOString(),
-            visit_end_date: new Date(row['Visit End Date']).toISOString(),
-            items: row['Items/Equipment'] || null,
-            laptop_brand: row['Laptop Brand'] || null,
-            laptop_serial: row['Laptop Serial'] || null,
-            status: 'pending',
-            created_by: supabase.auth.user()?.email || 'system'
-          }))
-        );
+  setLoading(true);
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    // Get the user's metadata which contains the username
+    const { data: userData, error: userError } = await supabase
+      .from('users')  // Assuming you have a users table
+      .select('username')
+      .eq('id', user?.id)
+      .single();
 
-      if (error) throw error;
-      
-      setSuccess(`Successfully uploaded ${previewData.length} visitor${previewData.length > 1 ? 's' : ''}!`);
-      clearData();
-    } catch (error) {
-      setError('Error uploading visitors: ' + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    if (userError) throw userError;
+
+    const username = userData?.username || 'system';
+
+    const { data, error } = await supabase
+      .from('scheduled_visitors')
+      .insert(
+        previewData.map(row => ({
+          full_name: row['Full Name'],
+          identity_number: row['ID/Passport Number'],
+          phone_number: row['Phone Number'],
+          department: row['Department'],
+          purpose: row['Purpose of Visit'],
+          visit_start_date: new Date(row['Visit Start Date']).toISOString(),
+          visit_end_date: new Date(row['Visit End Date']).toISOString(),
+          items: row['Items/Equipment'] || null,
+          laptop_brand: row['Laptop Brand'] || null,
+          laptop_serial: row['Laptop Serial'] || null,
+          status: 'pending',
+          created_by: username // Using username instead of email
+        }))
+      );
+
+    if (error) throw error;
+    
+    setSuccess(`Successfully uploaded ${previewData.length} visitor${previewData.length > 1 ? 's' : ''}!`);
+    clearData();
+  } catch (error) {
+    setError('Error uploading visitors: ' + error.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
