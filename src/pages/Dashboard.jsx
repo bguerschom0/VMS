@@ -1,13 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Users, 
-  UserCheck, 
-  Calendar, 
-  CheckCircle 
-} from 'lucide-react';
-
-import { 
   BarChart, 
   Bar, 
   XAxis, 
@@ -19,16 +12,24 @@ import {
   Pie,
   Cell
 } from 'recharts';
+import { 
+  Users, 
+  UserCheck, 
+  Calendar, 
+  CheckCircle 
+} from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../config/supabase';
 
+// Colors for pie chart
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
+// Stats Card Component
 const StatCard = ({ title, value, icon, change, changeType }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl"
+    className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300"
   >
     <div className="flex justify-between items-start">
       <div>
@@ -71,7 +72,7 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch total visitors
       const { count: totalVisitors } = await supabase
         .from('visitors')
@@ -89,45 +90,52 @@ const Dashboard = () => {
         .select('*', { count: 'exact' })
         .gte('visit_end_date', new Date().toISOString());
 
-      // Fetch department statistics
-      const { data: deptStats } = await supabase
-        .from('visitors')
-        .select('department')
-        .not('department', 'is', null);
-
-      // Process department stats
-      const deptCounts = deptStats.reduce((acc, curr) => {
-        acc[curr.department] = (acc[curr.department] || 0) + 1;
-        return acc;
-      }, {});
-
-      setDepartmentStats(
-        Object.entries(deptCounts).map(([name, value]) => ({
-          name,
-          value
-        }))
-      );
-
-      // Fetch monthly statistics
-      const { data: monthlyData } = await supabase
+      // Fetch monthly visits for the last 6 months
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+      
+      const { data: monthlyData, error: monthlyError } = await supabase
         .from('visitors')
         .select('entry_timestamp')
-        .gte('entry_timestamp', new Date(new Date().setMonth(new Date().getMonth() - 6)).toISOString());
+        .gte('entry_timestamp', sixMonthsAgo.toISOString())
+        .order('entry_timestamp', { ascending: true });
 
-      // Process monthly stats
-      const monthlyVisits = monthlyData.reduce((acc, curr) => {
-        const month = new Date(curr.entry_timestamp).toLocaleString('default', { month: 'short' });
+      if (monthlyError) throw monthlyError;
+
+      // Process monthly data
+      const monthlyVisits = monthlyData.reduce((acc, visit) => {
+        const month = new Date(visit.entry_timestamp).toLocaleString('default', { month: 'short' });
         acc[month] = (acc[month] || 0) + 1;
         return acc;
       }, {});
 
-      setMonthlyStats(
-        Object.entries(monthlyVisits).map(([month, visits]) => ({
-          month,
-          visits
-        }))
-      );
+      const monthlyStatsArray = Object.entries(monthlyVisits).map(([month, count]) => ({
+        month,
+        visits: count
+      }));
 
+      setMonthlyStats(monthlyStatsArray);
+
+      // Fetch department distribution
+      const { data: departmentData, error: departmentError } = await supabase
+        .from('visitors')
+        .select('department')
+        .not('department', 'is', null);
+
+      if (departmentError) throw departmentError;
+
+      // Process department data
+      const departmentCounts = departmentData.reduce((acc, { department }) => {
+        acc[department] = (acc[department] || 0) + 1;
+        return acc;
+      }, {});
+
+      const departmentStatsArray = Object.entries(departmentCounts).map(([name, value]) => ({
+        name,
+        value
+      }));
+
+      setDepartmentStats(departmentStatsArray);
       setStats({
         totalVisitors,
         activeVisitors,
@@ -142,19 +150,20 @@ const Dashboard = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
-      {loading ? (
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
-        </div>
-      ) : (
-        <div className="max-w-7xl mx-auto space-y-8">
-          {/* Welcome Section */}
-          <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl">
+return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        {loading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {/* Welcome Section */}
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
+              className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl"
             >
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
                 Welcome back, {user?.username || 'User'}
@@ -163,117 +172,156 @@ const Dashboard = () => {
                 Here's what's happening with your visitors today
               </p>
             </motion.div>
-          </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard
-              title="Total Visitors"
-              value={stats.totalVisitors}
-              icon={
-                <Users 
-                  size={24}
-                  className="text-gray-600 dark:text-gray-300" 
-                />
-              }
-              change={12}
-              changeType="increase"
-            />
-            <StatCard
-              title="Active Visitors"
-              value={stats.activeVisitors}
-              icon={
-                <UserCheck 
-                  size={24}
-                  className="text-gray-600 dark:text-gray-300" 
-                />
-              }
-            />
-            <StatCard
-              title="Scheduled Visits"
-              value={stats.scheduledVisits}
-              icon={
-                <Calendar 
-                  size={24}
-                  className="text-gray-600 dark:text-gray-300" 
-                />
-              }
-              change={5}
-              changeType="increase"
-            />
-            <StatCard
-              title="Completed Visits"
-              value={stats.completedVisits}
-              icon={
-                <CheckCircle 
-                  size={24}
-                  className="text-gray-600 dark:text-gray-300" 
-                />
-              }
-            />
-          </div>
-
-{/* Charts */}
-<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-  {/* Monthly Visits Chart */}
-  <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl">
-    <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-      Monthly Visits
-    </h3>
-    <div className="h-80">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={monthlyStats}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="month" />
-          <YAxis />
-          <Tooltip />
-          <Bar dataKey="visits" fill="#000000" />
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
-  </div>
-
-  {/* Department Distribution */}
-  <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl">
-    <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-      Visits by Department
-    </h3>
-    <div className="h-80">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-            data={departmentStats}
-            cx="50%"
-            cy="50%"
-            labelLine={false}
-            label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-            outerRadius={80}
-            fill="#8884d8"
-            dataKey="value"
-          >
-            {departmentStats.map((entry, index) => (
-              <Cell 
-                key={`cell-${index}`} 
-                fill={COLORS[index % COLORS.length]} 
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <StatCard
+                title="Total Visitors"
+                value={stats.totalVisitors}
+                icon={
+                  <Users 
+                    size={24}
+                    className="text-gray-600 dark:text-gray-300" 
+                  />
+                }
+                change={12}
+                changeType="increase"
               />
-            ))}
-          </Pie>
-          <Tooltip />
-        </PieChart>
-      </ResponsiveContainer>
-    </div>
-  </div>
-</div>
+              <StatCard
+                title="Active Visitors"
+                value={stats.activeVisitors}
+                icon={
+                  <UserCheck 
+                    size={24}
+                    className="text-gray-600 dark:text-gray-300" 
+                  />
+                }
+              />
+              <StatCard
+                title="Scheduled Visits"
+                value={stats.scheduledVisits}
+                icon={
+                  <Calendar 
+                    size={24}
+                    className="text-gray-600 dark:text-gray-300" 
+                  />
+                }
+                change={5}
+                changeType="increase"
+              />
+              <StatCard
+                title="Completed Visits"
+                value={stats.completedVisits}
+                icon={
+                  <CheckCircle 
+                    size={24}
+                    className="text-gray-600 dark:text-gray-300" 
+                  />
+                }
+              />
+            </div>
 
-          {/* Recent Activity */}
-          <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl">
-            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-              Recent Activity
-            </h3>
-            {/* Add recent activity table here */}
+            {/* Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Monthly Visits Chart */}
+              <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl">
+                <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+                  Monthly Visits
+                </h3>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={monthlyStats}>
+                      <CartesianGrid strokeDasharray="3 3" className="opacity-50" />
+                      <XAxis 
+                        dataKey="month" 
+                        tick={{ fill: '#666' }}
+                      />
+                      <YAxis 
+                        tick={{ fill: '#666' }}
+                        width={30}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#fff',
+                          border: 'none',
+                          borderRadius: '8px',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                        }}
+                      />
+                      <Bar 
+                        dataKey="visits" 
+                        fill="#000000" 
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Department Distribution */}
+              <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl">
+                <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+                  Visits by Department
+                </h3>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={departmentStats}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {departmentStats.map((entry, index) => (
+                          <Cell 
+                            key={`cell-${index}`} 
+                            fill={COLORS[index % COLORS.length]} 
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: '#fff',
+                          border: 'none',
+                          borderRadius: '8px',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  
+                  {/* Legend */}
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    {departmentStats.map((entry, index) => (
+                      <div key={entry.name} className="flex items-center">
+                        <div 
+                          className="w-3 h-3 rounded-full mr-2" 
+                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                        />
+                        <span className="text-sm text-gray-600 dark:text-gray-300">
+                          {entry.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Activity Section */}
+            <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl mb-8">
+              <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+                Recent Activity
+              </h3>
+              {/* Add your recent activity content here */}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
