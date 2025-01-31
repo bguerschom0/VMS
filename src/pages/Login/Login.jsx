@@ -58,6 +58,12 @@ const LoginPage = () => {
         ? 'bg-neutral-900 text-white' 
         : 'bg-neutral-100 text-black'
     }`}>
+      {/* Floating Elements - Doubled */}
+      <div className="absolute top-24 left-12 w-24 h-24 bg-neutral-500 opacity-10 animate-float"></div>
+      <div className="absolute bottom-24 right-12 w-24 h-24 rounded-full bg-neutral-500 opacity-10 animate-pulse"></div>
+      <div className="absolute top-12 right-24 w-24 h-24 bg-neutral-500 opacity-10 animate-float-reverse"></div>
+      <div className="absolute bottom-12 left-24 w-24 h-24 rounded-full bg-neutral-500 opacity-10 animate-pulse-reverse"></div>
+
       {/* Dark Mode Toggle */}
       <button 
         onClick={toggleDarkMode} 
@@ -71,7 +77,7 @@ const LoginPage = () => {
           ? 'bg-neutral-800 border border-neutral-700' 
           : 'bg-white'
       }`}>
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mb-2">
           <img 
             src="/logo.png" 
             alt="Logo" 
@@ -79,7 +85,7 @@ const LoginPage = () => {
           />
         </div>
 
-        <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
+        <h2 className="text-2xl font-bold text-center mb-2">Welcome Back</h2>
         
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
