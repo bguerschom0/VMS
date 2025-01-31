@@ -1,55 +1,77 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect } from 'react';
+import { createClient } from '@supabase/supabase-js';
 
-const AuthContext = createContext({});
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL, 
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
-// Mock user data
-const MOCK_USER = {
-  id: 'admin-123',
-  email: 'admin@example.com',
-  fullName: 'Admin User',
-  role: 'admin',
-  department: 'IT'
-};
-
-export const AuthProvider = ({ children }) => {
+export const useAuth = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing session in localStorage
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-    setLoading(false);
+    // Check if user is logged in
+    const checkUser = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('*')
+          .single();
+
+        if (data) {
+          setUser(data);
+        } else {
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('Error checking user:', error);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkUser();
   }, []);
 
-  const signIn = async (username, password) => {
-    // Hardcoded credential check
-    if (username === 'admin' && password === '456') {
-      setUser(MOCK_USER);
-      localStorage.setItem('user', JSON.stringify(MOCK_USER));
-      return { user: MOCK_USER, error: null };
+  const login = async (username, password) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('username', username)
+        .eq('password_hash', password)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        // Update last login
+        await supabase
+          .from('users')
+          .update({ last_login: new Date().toISOString() })
+          .eq('id', data.id);
+
+        setUser(data);
+        return { user: data, error: null };
+      }
+
+      return { user: null, error: 'Invalid credentials' };
+    } catch (error) {
+      console.error('Login error:', error);
+      return { user: null, error: error.message };
     }
-    return { user: null, error: 'Invalid credentials' };
   };
 
-  const signOut = () => {
+  const logout = async () => {
     setUser(null);
-    localStorage.removeItem('user');
   };
 
-  return (
-    <AuthContext.Provider value={{ user, loading, signIn, signOut }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  return { 
+    user, 
+    loading, 
+    login, 
+    logout 
+  };
 };
