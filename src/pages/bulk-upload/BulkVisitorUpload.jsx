@@ -167,7 +167,7 @@ const handleSubmit = async () => {
 
     const username = userData?.username || 'system';
 
-    // Prepare data for insertion without id field
+    // Match exactly with your database schema
     const visitorsToInsert = previewData.map(row => ({
       full_name: row['Full Name'],
       identity_number: row['ID/Passport Number'],
@@ -180,18 +180,26 @@ const handleSubmit = async () => {
       laptop_brand: row['Laptop Brand'] || null,
       laptop_serial: row['Laptop Serial'] || null,
       status: 'pending',
-      created_by: username
+      created_by: username,
+      notes: null,
+      arrival_time: null,
+      departure_time: null
     }));
 
     const { data, error } = await supabase
       .from('scheduled_visitors')
-      .insert(visitorsToInsert);
+      .insert(visitorsToInsert)
+      .select();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Detailed error:', error);
+      throw error;
+    }
     
     setSuccess(`Successfully uploaded ${previewData.length} visitor${previewData.length > 1 ? 's' : ''}!`);
     clearData();
   } catch (error) {
+    console.error('Full error object:', error);
     setError('Error uploading visitors: ' + error.message);
   } finally {
     setLoading(false);
