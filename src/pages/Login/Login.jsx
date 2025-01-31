@@ -49,12 +49,6 @@ const LoginPage = () => {
         
         <form>
           <div className="mb-4 relative">
-            <label 
-              htmlFor="username" 
-              className="block mb-2 text-sm font-medium"
-            >
-              
-            </label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                 <User 
@@ -66,23 +60,17 @@ const LoginPage = () => {
               <input 
                 type="text" 
                 id="username" 
-                className={`w-full p-2 pl-10 rounded-md border transition-colors duration-300 ${
+                className={`w-full p-2 pl-10 rounded-md border transition-colors duration-300 text-center ${
                   isDarkMode 
                     ? 'bg-neutral-700 border-neutral-600 text-white' 
                     : 'bg-white border-neutral-300 text-black'
                 }`}
-                placeholder="Enter your username"
+                placeholder="username"
               />
             </div>
           </div>
           
           <div className="mb-6 relative">
-            <label 
-              htmlFor="password" 
-              className="block mb-2 text-sm font-medium"
-            >
-              
-            </label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                 <Lock 
@@ -94,12 +82,12 @@ const LoginPage = () => {
               <input 
                 type="password" 
                 id="password" 
-                className={`w-full p-2 pl-10 rounded-md border transition-colors duration-300 ${
+                className={`w-full p-2 pl-10 rounded-md border transition-colors duration-300 text-center ${
                   isDarkMode 
                     ? 'bg-neutral-700 border-neutral-600 text-white' 
                     : 'bg-white border-neutral-300 text-black'
                 }`}
-                placeholder="Enter your password"
+                placeholder="password"
               />
             </div>
           </div>
