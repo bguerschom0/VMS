@@ -8,6 +8,7 @@ const Sidebar = () => {
     { name: 'Check In', path: '/check-in', icon: '➡️' },
     { name: 'Check Out', path: '/check-out', icon: '⬅️' },
     { name: 'Visitor History', path: '/visitor-history', icon: '📊' },
+    { name: 'Bulk Visitor', path: '/bulkvisitors', icon: '📊' },
     { name: 'Reports', path: '/reports', icon: '📈' },
   ]
 
