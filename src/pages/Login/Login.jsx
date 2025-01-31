@@ -28,15 +28,12 @@ const LoginPage = () => {
 
       if (error) throw error;
 
-      // In real-world, use proper password hashing comparison
       if (data && data.password_hash === password) {
-        // Update last login
         await supabase
           .from('users')
           .update({ last_login: new Date().toISOString() })
           .eq('id', data.id);
 
-        // Navigate to dashboard
         navigate('/dashboard');
       } else {
         setError('Invalid credentials');
