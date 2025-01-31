@@ -4,6 +4,44 @@ import * as XLSX from 'xlsx';
 import { supabase } from '../../config/supabase';
 import Sidebar from '../../components/layout/Sidebar';
 
+const UploadCard = ({ title, icon, description, onClick, buttonText }) => (
+  <motion.div
+    whileHover={{ scale: 1.02 }}
+    whileTap={{ scale: 0.98 }}
+    className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 cursor-pointer
+             hover:shadow-2xl transition-all duration-300"
+    onClick={onClick}
+  >
+    <div className="flex flex-col items-center text-center space-y-6">
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        className="w-24 h-24 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center"
+      >
+        {icon}
+      </motion.div>
+
+      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+        {title}
+      </h3>
+
+      <p className="text-gray-600 dark:text-gray-400 max-w-sm">
+        {description}
+      </p>
+
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="px-6 py-3 bg-black text-white rounded-full hover:bg-gray-800
+                 transition-colors duration-200 font-medium"
+      >
+        {buttonText}
+      </motion.button>
+    </div>
+  </motion.div>
+);
+
 const BulkVisitorUpload = () => {
   const [previewData, setPreviewData] = useState([]);
   const [fileName, setFileName] = useState('');
@@ -11,7 +49,7 @@ const BulkVisitorUpload = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const handleFileUpload = async (e) => {
+    const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     setFileName(file.name);
     setError('');
@@ -130,65 +168,53 @@ const BulkVisitorUpload = () => {
     XLSX.writeFile(template, 'visitor_upload_template.xlsx');
   };
 
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar />
       
       <main className="pl-64">
         <div className="p-8">
-          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6">
-            <div className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                Bulk Visitor Upload
-              </h2>
-              
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={downloadTemplate}
-                  className="px-4 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600
-                           hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
-                >
-                  Download Template
-                </button>
-                
-                <div className="relative">
-                  <input
-                    type="file"
-                    accept=".xlsx,.xls"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    id="file-upload"
-                  />
-                  <label
-                    htmlFor="file-upload"
-                    className="px-4 py-2 rounded-lg bg-black text-white hover:bg-gray-800
-                             cursor-pointer transition-colors duration-200"
-                  >
-                    Upload Excel File
-                  </label>
-                </div>
-              </div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">
+            Bulk Visitor Upload
+          </h1>
 
-              {fileName && (
-                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                  Selected file: {fileName}
-                </p>
-              )}
-            </div>
+          <div className="grid md:grid-cols-2 gap-8 mb-8">
+            <UploadCard
+              title="Download Template"
+              icon={
+                <svg className="w-12 h-12 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              }
+              description="Download our standardized Excel template to ensure your data is formatted correctly"
+              onClick={downloadTemplate}
+              buttonText="Download Template"
+            />
 
-            {error && (
-              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border-l-4 border-red-500 text-red-700 dark:text-red-200">
-                {error}
-              </div>
-            )}
+            <UploadCard
+              title="Upload Excel File"
+              icon={
+                <svg className="w-12 h-12 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+              }
+              description="Upload your completed Excel file with visitor information"
+              onClick={() => document.getElementById('file-upload').click()}
+              buttonText="Select File"
+            />
+          </div>
 
-            {success && (
-              <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/30 border-l-4 border-green-500 text-green-700 dark:text-green-200">
-                {success}
-              </div>
-            )}
+          <input
+            type="file"
+            id="file-upload"
+            accept=".xlsx,.xls"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
 
-            {previewData.length > 0 && (
+          {/* Preview Section */}
+                      {previewData.length > 0 && (
               <div>
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
                   Preview ({previewData.length} records)
@@ -236,7 +262,7 @@ const BulkVisitorUpload = () => {
                   </table>
                 </div>
 
-                <div className="mt-6 flex justify-end">
+                                <div className="mt-6 flex justify-end">
                   <button
                     onClick={handleSubmit}
                     disabled={loading || previewData.some(row => !row.isValid)}
