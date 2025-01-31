@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { Moon, Sun, ChevronDown } from 'lucide-react'
+import { Moon, Sun, ChevronDown, LayoutDashboard, LogIn, LogOut, History, Users, Calendar, BarChart } from 'lucide-react'
 
 const Header = () => {
   const [isDarkMode, setIsDarkMode] = useState(false)
@@ -9,13 +9,13 @@ const Header = () => {
   const navigate = useNavigate()
   
   const navigation = [
-    { name: 'Dashboard', path: '/dashboard', icon: '📊' },
-    { name: 'Check In', path: '/check-in', icon: '✓' },
-    { name: 'Check Out', path: '/check-out', icon: '←' },
-    { name: 'Visitor History', path: '/visitor-history', icon: '📋' },
-    { name: 'Bulk Visitor', path: '/bulkvisitors', icon: '👥' },
-    { name: 'Scheduled Visitor', path: '/scheduled-visitors', icon: '📅' },
-    { name: 'Reports', path: '/reports', icon: '📊' },
+    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Check In', path: '/check-in', icon: LogIn },
+    { name: 'Check Out', path: '/check-out', icon: LogOut },
+    { name: 'Visitor History', path: '/visitor-history', icon: History },
+    { name: 'Bulk Visitor', path: '/bulkvisitors', icon: Users },
+    { name: 'Scheduled Visitor', path: '/scheduled-visitors', icon: Calendar },
+    { name: 'Reports', path: '/reports', icon: BarChart },
   ]
 
   useEffect(() => {
@@ -39,16 +39,19 @@ const Header = () => {
             </div>
             
             <nav className="hidden md:flex space-x-4">
-              {navigation.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                >
-                  <span className="mr-2">{item.icon}</span>
-                  {item.name}
-                </Link>
-              ))}
+              {navigation.map((item) => {
+                const Icon = item.icon
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    <Icon className="h-4 w-4 mr-2" />
+                    {item.name}
+                  </Link>
+                )
+              })}
             </nav>
           </div>
 
