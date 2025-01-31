@@ -4,7 +4,7 @@ import { useAuth } from './hooks/useAuth'
 import Header from './components/layout/Header'
 import Sidebar from './components/layout/Sidebar'
 // Pages
-import Login from './pages/Login'
+import LoginPage from './pages/Login/Login'
 import Dashboard from './pages/Dashboard'
 import VisitorReport from './pages/VisitorReport'
 import SearchVisitor from './pages/check-in/SearchVisitor'
@@ -78,7 +78,7 @@ const App = () => {
       <Route 
         path="/login" 
         element={
-          user ? <Navigate to="/dashboard" replace /> : <Login />
+          user ? <Navigate to="/dashboard" replace /> : <LoginPage />
         } 
       />
 
