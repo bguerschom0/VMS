@@ -65,7 +65,7 @@ const LoginPage = () => {
                     ? 'bg-neutral-700 border-neutral-600 text-white' 
                     : 'bg-white border-neutral-300 text-black'
                 }`}
-                placeholder="username"
+                placeholder="Enter the Username"
               />
             </div>
           </div>
@@ -87,7 +87,7 @@ const LoginPage = () => {
                     ? 'bg-neutral-700 border-neutral-600 text-white' 
                     : 'bg-white border-neutral-300 text-black'
                 }`}
-                placeholder="password"
+                placeholder="Enter the Password"
               />
             </div>
           </div>
