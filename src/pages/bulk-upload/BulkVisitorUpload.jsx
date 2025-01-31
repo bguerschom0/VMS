@@ -277,6 +277,8 @@ const BulkVisitorUpload = () => {
             )}
           </div>
 
+              </main>
+    </div>
   );
 };
 
