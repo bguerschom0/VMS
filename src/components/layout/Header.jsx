@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { Moon, Sun, ChevronDown, LayoutDashboard, LogIn, LogOut, History, Users, Calendar, BarChart, User } from 'lucide-react'
+import { Moon, Sun, ChevronDown, LayoutDashboard, LogIn, LogOut, History, Users, Calendar, BarChart, User, Users2  } from 'lucide-react'
 
 const Header = () => {
   const [isDarkMode, setIsDarkMode] = useState(false)
@@ -30,6 +30,7 @@ const Header = () => {
     { name: 'Bulk Visitor', path: '/bulkvisitors', icon: Users },
     { name: 'Scheduled Visitor', path: '/scheduled-visitors', icon: Calendar },
     { name: 'Reports', path: '/reports', icon: BarChart },
+    { name: 'User Management', path: '/user-management', icon: Users2 }
   ]
 
   useEffect(() => {
