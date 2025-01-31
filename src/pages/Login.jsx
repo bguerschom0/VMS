@@ -3,24 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { createClient } from '@supabase/supabase-js';
 import { User, Lock, Moon, Sun } from 'lucide-react';
 
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.REACT_APP_SUPABASE_URL,
-  process.env.REACT_APP_SUPABASE_ANON_KEY
-);
+// Initialize Supabase client with Vite environment variables
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const Login = () => {
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
   const [darkMode, setDarkMode] = useState(() => {
-    // Get initial dark mode from localStorage or system preference
     const savedMode = localStorage.getItem('darkMode');
     return savedMode ? JSON.parse(savedMode) : 
            window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
   const navigate = useNavigate();
 
-  // Update dark mode in localStorage and document
   useEffect(() => {
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
     if (darkMode) {
