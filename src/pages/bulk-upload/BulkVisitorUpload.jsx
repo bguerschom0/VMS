@@ -156,12 +156,15 @@ const handleSubmit = async () => {
 
   setLoading(true);
   try {
-    // Get current user's UUID
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user?.id) {
-      throw new Error('User not authenticated');
+    // Get current session using getSession
+    const { data: sessionData } = await supabase.auth.getSession();
+    const session = sessionData?.session;
+
+    if (!session?.user?.id) {
+      throw new Error('Please sign in to upload visitors');
     }
+
+    const userId = session.user.id;
 
     const visitorsToInsert = previewData.map(row => ({
       full_name: row['Full Name'],
@@ -175,7 +178,7 @@ const handleSubmit = async () => {
       laptop_brand: row['Laptop Brand'] || null,
       laptop_serial: row['Laptop Serial'] || null,
       status: 'pending',
-      created_by: user.id,  // Using UUID from authenticated user
+      created_by: userId,  // Using the session user's UUID
       notes: null,
       arrival_time: null,
       departure_time: null
