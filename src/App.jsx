@@ -17,6 +17,9 @@ import CheckoutModal from './pages/check-out/CheckoutModal'
 import VisitorDetailsModal from './pages/visitors-history/VisitorDetailsModal'
 import VisitorHistory from './pages/visitors-history/VisitorHistory'
 
+//Bulk Visitors
+import BulkVisitorUpload from './pages/bulk-upload/BulkVisitorUpload'
+
 // Protected Route wrapper
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth()
@@ -156,7 +159,20 @@ const App = () => {
           </ProtectedRoute>
         }
       />
-     
+
+      {/* Bulk-visitors routes */}
+
+            <Route
+        path="/bulkvisitors"
+        element={
+          <ProtectedRoute>
+            <AuthenticatedLayout>
+              <BulkVisitorUpload />
+            </AuthenticatedLayout>
+          </ProtectedRoute>
+        }
+      />
+
 
       <Route
         path="/reports"
