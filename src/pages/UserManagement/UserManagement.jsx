@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Edit, Trash2, Plus, Search, Eye, EyeOff } from 'lucide-react';
-import bcrypt from 'bcrypt';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL, 
@@ -75,17 +74,13 @@ const UserManagement = () => {
   const handleAddUser = async (e) => {
     e.preventDefault();
     try {
-      // Hash the password
-      const saltRounds = 10;
-      const hashedPassword = await bcrypt.hash(newUser.password, saltRounds);
-
       const { data, error } = await supabase
         .from('users')
         .insert({
           username: newUser.username,
           full_name: newUser.full_name,
           email: newUser.email,
-          password_hash: hashedPassword,
+          password_hash: newUser.password,
           role: newUser.role,
           is_active: true
         })
