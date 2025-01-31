@@ -21,14 +21,32 @@ const Login = () => {
   });
   const navigate = useNavigate();
 
-  useEffect(() => {
-    localStorage.setItem('darkMode', JSON.stringify(darkMode));
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+  // Simulated user authentication function
+  const signIn = async (username, password) => {
+    // Query the users table
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('username', username)
+      .single();
+
+    // Generic error message to prevent username enumeration
+    if (error || !data) {
+      throw new Error('Invalid username or password');
     }
-  }, [darkMode]);
+
+    // Compare passwords (in a real app, use proper hashing)
+    if (data.password !== password) {
+      throw new Error('Invalid username or password');
+    }
+
+    // Return user data
+    return { 
+      id: data.id, 
+      username: data.username, 
+      role: data.role 
+    };
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,153 +56,115 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      // Perform authentication query with more specific error handling
-      const { data, error: queryError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('username', username)
-        .single();
-
-      // Check if user exists
-      if (!data) {
-        setError('User not found');
-        setIsLoading(false);
-        return;
-      }
-
-      // Check password
-      if (data.password !== password) {
-        setError('Invalid password');
-        setIsLoading(false);
-        return;
-      }
-
-      // Successful login
+      const userData = await signIn(username, password);
+      
       // Clear form
       setUsername('');
       setPassword('');
       
-      // Navigate to dashboard
-      navigate('/dashboard');
+      // Navigate based on user role
+      if (userData.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/user/dashboard');
+      }
     } catch (err) {
-      console.error('Login error:', err);
-      setError('An unexpected error occurred. Please try again.');
+      setError(err.message || 'Failed to sign in');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Dark mode effect
+  useEffect(() => {
+    localStorage.setItem('darkMode', JSON.stringify(darkMode));
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
   return (
-    <div className={`min-h-screen relative overflow-hidden transition-colors duration-300 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-      {/* Dark Mode Toggle */}
-      <button
-        onClick={() => setDarkMode(!darkMode)}
-        className={`absolute top-4 right-4 p-2 rounded-full transition-colors duration-300 
-          ${darkMode ? 'bg-gray-800 text-gray-200' : 'bg-gray-200 text-gray-800'}`}
-        aria-label="Toggle dark mode"
-      >
-        {darkMode ? <Sun size={24} /> : <Moon size={24} />}
-      </button>
-
-      {/* Login Card */}
-      <div className="relative flex min-h-screen items-center justify-center px-4">
-        <div className="w-full max-w-md transform transition-all">
-          <div className={`rounded-2xl shadow-xl p-8 space-y-6 transition-colors duration-300
-            ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-            
-            {/* Logo or Title */}
-            <div className="text-center mb-8">
-              <h2 className={`text-2xl font-bold transition-colors duration-300 
-                ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>
-                Welcome
-              </h2>
-              <p className={`text-sm transition-colors duration-300 
-                ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                Sign in to access your dashboard
-              </p>
+    <div className="min-h-screen bg-[#0A2647] flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Animated Background Flow */}
+      <div className="absolute inset-0 overflow-hidden">
+        <svg viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+          <rect width="100%" height="100%" fill="#0A2647"/>
+          <g fill="rgba(255,255,255,0.1)">
+            {/* ... (previous circle animations) ... */}
+          </g>
+        </svg>
+      </div>
+      
+      <div className="w-full max-w-md">
+        <div className="bg-white rounded-2xl shadow-xl p-8 relative transform transition-all hover:scale-[1.01]">
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 bg-[#0A2647] rounded-full flex items-center justify-center animate-bounce-slow">
+                <Send className="w-8 h-8 text-white" />
+              </div>
             </div>
+            <h2 className="text-2xl font-bold text-[#0A2647] mb-2">
+              Welcome
+            </h2>
+            <p className="text-gray-600 animate-fade-in">
+              Sign in to access this portal
+            </p>
+          </div>
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Error Message */}
-              {error && (
-                <div className={`p-3 rounded-lg text-sm text-center ${darkMode ? 
-                  'bg-red-900/20 text-red-400' : 
-                  'bg-red-50 text-red-500'}`}>
-                  {error}
-                </div>
-              )}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="bg-red-50 text-red-500 p-3 rounded-lg text-sm text-center animate-shake">
+                {error}
+              </div>
+            )}
 
-              {/* Username Input */}
+            <div className="space-y-4">
               <div className="relative">
-                <User 
-                  className={`absolute left-3 top-3.5 h-5 w-5 transition-colors duration-300
-                    ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}
-                />
                 <input
                   type="text"
+                  required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className={`w-full pl-10 pr-4 py-3 rounded-lg border transition-all duration-300
-                    ${darkMode ? 
-                      'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-gray-500' : 
-                      'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-gray-500'}`}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0A2647] focus:border-transparent transition-all"
                   placeholder="Username"
-                  required
                   disabled={isLoading}
                 />
               </div>
 
-              {/* Password Input */}
               <div className="relative">
-                <Lock 
-                  className={`absolute left-3 top-3.5 h-5 w-5 transition-colors duration-300
-                    ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}
-                />
                 <input
                   type="password"
+                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`w-full pl-10 pr-4 py-3 rounded-lg border transition-all duration-300
-                    ${darkMode ? 
-                      'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-gray-500' : 
-                      'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-gray-500'}`}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0A2647] focus:border-transparent transition-all"
                   placeholder="Password"
-                  required
                   disabled={isLoading}
                 />
               </div>
+            </div>
 
-              {/* Submit Button */}
-              <button
-                type="submit"
-                className={`w-full py-3 rounded-lg transform hover:scale-[1.02] transition-all duration-200
-                  ${darkMode ? 
-                    'bg-gray-700 text-gray-100 hover:bg-gray-600' : 
-                    'bg-gray-600 text-white hover:bg-gray-500'}`}
-                disabled={isLoading}
-              >
+            <button
+              type="submit"
+              className="w-full py-3 bg-[#0A2647] text-white rounded-lg hover:bg-[#0A2647]/90 transition-all transform hover:scale-[1.02]"
+              disabled={isLoading}
+            >
+              <span className="flex items-center justify-center">
                 {isLoading ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mx-auto"></div>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                 ) : (
-                  'Sign In'
+                  <>
+                    Sign in to continue
+                    <ArrowRight className="ml-2 w-4 h-4" />
+                  </>
                 )}
-              </button>
-            </form>
-          </div>
+              </span>
+            </button>
+          </form>
         </div>
       </div>
-
-      {/* Animations */}
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(20px); }
-        }
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
-        }
-      `}</style>
     </div>
   );
 };
