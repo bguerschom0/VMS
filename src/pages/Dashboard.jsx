@@ -1,17 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell
-} from 'recharts';
-import { supabase } from '../config/supabase';
-
-import { 
   Users, 
   UserCheck, 
   Calendar, 
   CheckCircle 
 } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../config/supabase';
 
 const StatCard = ({ title, value, icon, change, changeType }) => (
   <motion.div
@@ -42,6 +38,7 @@ const StatCard = ({ title, value, icon, change, changeType }) => (
 );
 
 const Dashboard = () => {
+  const { user } = useAuth();
   const [stats, setStats] = useState({
     totalVisitors: 0,
     activeVisitors: 0,
@@ -130,8 +127,6 @@ const Dashboard = () => {
     }
   };
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
       {loading ? (
@@ -147,7 +142,7 @@ const Dashboard = () => {
               animate={{ opacity: 1, y: 0 }}
             >
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Welcome back, {supabase.auth.user()?.email}
+                Welcome back, {user?.username || 'User'}
               </h1>
               <p className="mt-2 text-gray-600 dark:text-gray-400">
                 Here's what's happening with your visitors today
@@ -155,53 +150,53 @@ const Dashboard = () => {
             </motion.div>
           </div>
 
-{/* Stats Grid */}
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-  <StatCard
-    title="Total Visitors"
-    value={stats.totalVisitors}
-    icon={
-      <Users 
-        size={24}
-        className="text-gray-600 dark:text-gray-300" 
-      />
-    }
-    change={12}
-    changeType="increase"
-  />
-  <StatCard
-    title="Active Visitors"
-    value={stats.activeVisitors}
-    icon={
-      <UserCheck 
-        size={24}
-        className="text-gray-600 dark:text-gray-300" 
-      />
-    }
-  />
-  <StatCard
-    title="Scheduled Visits"
-    value={stats.scheduledVisits}
-    icon={
-      <Calendar 
-        size={24}
-        className="text-gray-600 dark:text-gray-300" 
-      />
-    }
-    change={5}
-    changeType="increase"
-  />
-  <StatCard
-    title="Completed Visits"
-    value={stats.completedVisits}
-    icon={
-      <CheckCircle 
-        size={24}
-        className="text-gray-600 dark:text-gray-300" 
-      />
-    }
-  />
-</div>
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCard
+              title="Total Visitors"
+              value={stats.totalVisitors}
+              icon={
+                <Users 
+                  size={24}
+                  className="text-gray-600 dark:text-gray-300" 
+                />
+              }
+              change={12}
+              changeType="increase"
+            />
+            <StatCard
+              title="Active Visitors"
+              value={stats.activeVisitors}
+              icon={
+                <UserCheck 
+                  size={24}
+                  className="text-gray-600 dark:text-gray-300" 
+                />
+              }
+            />
+            <StatCard
+              title="Scheduled Visits"
+              value={stats.scheduledVisits}
+              icon={
+                <Calendar 
+                  size={24}
+                  className="text-gray-600 dark:text-gray-300" 
+                />
+              }
+              change={5}
+              changeType="increase"
+            />
+            <StatCard
+              title="Completed Visits"
+              value={stats.completedVisits}
+              icon={
+                <CheckCircle 
+                  size={24}
+                  className="text-gray-600 dark:text-gray-300" 
+                />
+              }
+            />
+          </div>
 
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
