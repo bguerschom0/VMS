@@ -1,48 +1,7 @@
-import bcrypt from 'bcrypt';
-
-const handleAddUser = async (e) => {
-    e.preventDefault();
-    try {
-      // Hash the password
-      const saltRounds = 10;
-      const hashedPassword = await bcrypt.hash(newUser.password, saltRounds);
-
-      const { data, error } = await supabase
-        .from('users')
-        .insert({
-          username: newUser.username,
-          full_name: newUser.full_name,
-          email: newUser.email,
-          password_hash: hashedPassword,
-          role: newUser.role,
-          is_active: true
-        })
-        .select();
-      
-      if (error) {
-        console.error('Detailed error adding user:', error);
-        alert(`Error: ${error.message}`);
-        return;
-      }
-      
-      if (data) {
-        fetchUsers();
-        setIsModalOpen(false);
-        setNewUser({ 
-          username: '', 
-          full_name: '',
-          email: '', 
-          password: '', 
-          role: 'user' 
-        });
-      }
-    } catch (err) {
-      console.error('Unexpected error:', err);
-      alert(`Unexpected error: ${err.message}`);
-    }
-  };import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Edit, Trash2, Plus, Search, Eye, EyeOff } from 'lucide-react';
+import bcrypt from 'bcrypt';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL, 
@@ -55,6 +14,8 @@ const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [newUser, setNewUser] = useState({
     username: '',
@@ -91,27 +52,40 @@ const UserManagement = () => {
     if (error) console.error('Error fetching users:', error);
   };
 
-  const handleDeleteUser = async (userId) => {
+  const confirmDeleteUser = (userId) => {
+    setUserToDelete(userId);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+
     const { error } = await supabase
       .from('users')
       .delete()
-      .eq('id', userId);
+      .eq('id', userToDelete);
     
     if (!error) {
       fetchUsers();
+      setIsDeleteConfirmOpen(false);
+      setUserToDelete(null);
     }
   };
 
   const handleAddUser = async (e) => {
     e.preventDefault();
     try {
+      // Hash the password
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(newUser.password, saltRounds);
+
       const { data, error } = await supabase
         .from('users')
         .insert({
           username: newUser.username,
           full_name: newUser.full_name,
           email: newUser.email,
-          password_hash: newUser.password, // In production, hash this password
+          password_hash: hashedPassword,
           role: newUser.role,
           is_active: true
         })
@@ -209,7 +183,7 @@ const UserManagement = () => {
                     <Edit size={20} />
                   </button>
                   <button 
-                    onClick={() => handleDeleteUser(user.id)}
+                    onClick={() => confirmDeleteUser(user.id)}
                     className="text-red-500"
                   >
                     <Trash2 size={20} />
@@ -220,6 +194,30 @@ const UserManagement = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteConfirmOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg w-96">
+            <h2 className="text-2xl mb-4">Confirm Deletion</h2>
+            <p className="mb-6">Are you sure you want to delete this user?</p>
+            <div className="flex justify-end">
+              <button 
+                onClick={() => setIsDeleteConfirmOpen(false)}
+                className="mr-3 text-gray-600"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleDeleteUser}
+                className="bg-red-500 text-white p-2 rounded-md"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add User Modal */}
       {isModalOpen && (
