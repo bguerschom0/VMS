@@ -12,6 +12,11 @@ import VisitorForm from './pages/check-in/VisitorForm'
 import CheckOut from './pages/check-out/CheckOut'
 import CheckoutModal from './pages/check-out/CheckoutModal'
 
+//visitor history
+
+import VisitorDetailsModal from './pages/visitors-history/VisitorDetailsModal'
+import VisitorHistory from './pages/visitors-history/VisitorHistory'
+
 // Protected Route wrapper
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth()
@@ -124,6 +129,29 @@ const App = () => {
           <ProtectedRoute>
             <AuthenticatedLayout>
               <CheckoutModal />
+            </AuthenticatedLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* visitors-history routes */}
+
+            <Route
+        path="/visitor-history"
+        element={
+          <ProtectedRoute>
+            <AuthenticatedLayout>
+              <VisitorHistory />
+            </AuthenticatedLayout>
+          </ProtectedRoute>
+        }
+      />
+            <Route
+        path="/visitor-history/form"
+        element={
+          <ProtectedRoute>
+            <AuthenticatedLayout>
+              <VisitorDetailsModal />
             </AuthenticatedLayout>
           </ProtectedRoute>
         }
