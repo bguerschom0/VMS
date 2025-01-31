@@ -1,4 +1,46 @@
-import React, { useState, useEffect } from 'react';
+import bcrypt from 'bcrypt';
+
+const handleAddUser = async (e) => {
+    e.preventDefault();
+    try {
+      // Hash the password
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(newUser.password, saltRounds);
+
+      const { data, error } = await supabase
+        .from('users')
+        .insert({
+          username: newUser.username,
+          full_name: newUser.full_name,
+          email: newUser.email,
+          password_hash: hashedPassword,
+          role: newUser.role,
+          is_active: true
+        })
+        .select();
+      
+      if (error) {
+        console.error('Detailed error adding user:', error);
+        alert(`Error: ${error.message}`);
+        return;
+      }
+      
+      if (data) {
+        fetchUsers();
+        setIsModalOpen(false);
+        setNewUser({ 
+          username: '', 
+          full_name: '',
+          email: '', 
+          password: '', 
+          role: 'user' 
+        });
+      }
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      alert(`Unexpected error: ${err.message}`);
+    }
+  };import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Edit, Trash2, Plus, Search, Eye, EyeOff } from 'lucide-react';
 
