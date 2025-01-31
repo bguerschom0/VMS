@@ -45,6 +45,7 @@ const AuthenticatedLayout = ({ children }) => {
       <main className="pt-10 pb-10">
         {children}
       </main>
+      <Footer />
     </div>
   )
 }
@@ -57,6 +58,7 @@ const FullScreenLayout = ({ children }) => {
       <main className="pb-10 pt-10 h-screen">
         {children}
       </main>
+      <Footer />
     </div>
   )
 }
