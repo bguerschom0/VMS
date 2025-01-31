@@ -157,9 +157,8 @@ const handleSubmit = async () => {
   setLoading(true);
   try {
     const { data: { user } } = await supabase.auth.getUser();
-    // Get the user's metadata which contains the username
     const { data: userData, error: userError } = await supabase
-      .from('users')  // Assuming you have a users table
+      .from('users')
       .select('username')
       .eq('id', user?.id)
       .single();
@@ -168,24 +167,25 @@ const handleSubmit = async () => {
 
     const username = userData?.username || 'system';
 
+    // Prepare data for insertion without id field
+    const visitorsToInsert = previewData.map(row => ({
+      full_name: row['Full Name'],
+      identity_number: row['ID/Passport Number'],
+      phone_number: row['Phone Number'],
+      department: row['Department'],
+      purpose: row['Purpose of Visit'],
+      visit_start_date: new Date(row['Visit Start Date']).toISOString(),
+      visit_end_date: new Date(row['Visit End Date']).toISOString(),
+      items: row['Items/Equipment'] || null,
+      laptop_brand: row['Laptop Brand'] || null,
+      laptop_serial: row['Laptop Serial'] || null,
+      status: 'pending',
+      created_by: username
+    }));
+
     const { data, error } = await supabase
       .from('scheduled_visitors')
-      .insert(
-        previewData.map(row => ({
-          full_name: row['Full Name'],
-          identity_number: row['ID/Passport Number'],
-          phone_number: row['Phone Number'],
-          department: row['Department'],
-          purpose: row['Purpose of Visit'],
-          visit_start_date: new Date(row['Visit Start Date']).toISOString(),
-          visit_end_date: new Date(row['Visit End Date']).toISOString(),
-          items: row['Items/Equipment'] || null,
-          laptop_brand: row['Laptop Brand'] || null,
-          laptop_serial: row['Laptop Serial'] || null,
-          status: 'pending',
-          created_by: username // Using username instead of email
-        }))
-      );
+      .insert(visitorsToInsert);
 
     if (error) throw error;
     
