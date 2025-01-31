@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
@@ -6,85 +6,121 @@ const Login = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-
     try {
+      // Add your authentication logic here
       const response = await fetch('/api/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-
-      const data = await response.json();
-
+      
       if (response.ok) {
-        // Login successful
-        navigate('/Index');
+        navigate('/dashboard');
       } else {
-        // Login failed
-        setError(data.message || 'Invalid username or password');
-        setTimeout(() => setError(''), 5000); // Hide error after 5 seconds
+        setError('Invalid credentials');
       }
     } catch (err) {
-      setError('An error occurred during sign in');
-      setTimeout(() => setError(''), 5000);
+      setError('An error occurred');
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#dbd5d5]">
-      <div className="bg-[#e2e2e6] rounded-lg shadow-[100px_100px_300px_0_rgba(29,13,218,0.09),-100px_-100px_300px_0_#fff] p-8 w-[50vh] h-[29vh] flex flex-col items-center justify-center">
-        {error && (
-          <div 
-            className="text-red-500 mb-4 text-center"
-            style={{ fontFamily: 'MTNBrighterSans' }}
-          >
-            {error}
-          </div>
-        )}
-        <form onSubmit={handleSubmit} className="w-full flex flex-col items-center space-y-4">
-          <div className="relative w-full flex justify-center">
-            <i className="fas fa-user absolute left-[15%] top-3 text-lg text-gray-500"></i>
-            <input
-              type="text"
-              value={formData.username}
-              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-              className="w-[30vh] p-2 border border-gray-300 rounded focus:border-white focus:shadow-[-15px_-15px_30px_0_#fff,15px_15px_30px_0_rgba(29,13,202,0.09)] outline-none"
-              style={{ fontFamily: 'MTNBrighterSans' }}
-              placeholder="Username"
-              required
-              autoComplete="off"
-            />
-          </div>
-          
-          <div className="relative w-full flex justify-center">
-            <i className="fas fa-lock absolute left-[15%] top-3 text-lg text-gray-500"></i>
-            <input
-              type="password"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-[30vh] p-2 border border-gray-300 rounded focus:border-white focus:shadow-[-15px_-15px_30px_0_#fff,15px_15px_30px_0_rgba(29,13,202,0.09)] outline-none"
-              style={{ fontFamily: 'MTNBrighterSans' }}
-              placeholder="Password"
-              required
-              autoComplete="off"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="bg-[#2a1f62] text-white px-5 py-2 rounded hover:bg-[rgba(15,2,78,0.09)] transition-colors duration-300"
-            style={{ fontFamily: 'MTNBrighterSans' }}
-          >
-            Login
-          </button>
-        </form>
+    <div className="min-h-screen bg-gray-50 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-12 w-32 h-32 bg-blue-900 opacity-10 rounded-lg animate-float"></div>
+        <div className="absolute bottom-20 right-12 w-40 h-40 bg-blue-800 opacity-10 rounded-full animate-pulse"></div>
+        <div className="absolute top-1/4 right-1/4 w-24 h-24 bg-blue-900 opacity-10 rounded-lg animate-float-delayed"></div>
+        <div className="absolute bottom-1/3 left-1/3 w-28 h-28 bg-blue-800 opacity-10 rounded-full animate-pulse-delayed"></div>
       </div>
+
+      {/* Login Card */}
+      <div className="relative flex min-h-screen items-center justify-center px-4">
+        <div className="w-full max-w-md transform transition-all">
+          <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
+            {/* Header */}
+            <div className="text-center space-y-2">
+              <h2 className="text-3xl font-bold text-gray-900">Welcome Back</h2>
+              <p className="text-gray-500">Please sign in to continue</p>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Username Input */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Username</label>
+                <input
+                  type="text"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-900 focus:border-transparent transition-all"
+                  placeholder="Enter your username"
+                  required
+                />
+              </div>
+
+              {/* Password Input */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Password</label>
+                <input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-900 focus:border-transparent transition-all"
+                  placeholder="Enter your password"
+                  required
+                />
+              </div>
+
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-50 text-red-500 p-3 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                className="w-full bg-blue-900 text-white py-3 rounded-lg hover:bg-blue-800 transform hover:scale-[1.02] transition-all duration-200"
+              >
+                Sign In
+              </button>
+
+              {/* Additional Options */}
+              <div className="text-center text-sm text-gray-500">
+                <a href="#" className="hover:text-blue-900 transition-colors">
+                  Forgot your password?
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      {/* Add custom styles for animations */}
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(20px); }
+        }
+        @keyframes float-delayed {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-20px); }
+        }
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        .animate-float-delayed {
+          animation: float-delayed 8s ease-in-out infinite;
+        }
+        .animate-pulse-delayed {
+          animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+          animation-delay: 2s;
+        }
+      `}</style>
     </div>
   );
 };
