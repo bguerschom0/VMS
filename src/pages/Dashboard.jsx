@@ -6,8 +6,23 @@ import {
   Calendar, 
   CheckCircle 
 } from 'lucide-react';
+
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../config/supabase';
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 const StatCard = ({ title, value, icon, change, changeType }) => (
   <motion.div
@@ -198,54 +213,57 @@ const Dashboard = () => {
             />
           </div>
 
-          {/* Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Monthly Visits Chart */}
-            <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl">
-              <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-                Monthly Visits
-              </h3>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyStats}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="visits" fill="#000000" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+{/* Charts */}
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  {/* Monthly Visits Chart */}
+  <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl">
+    <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+      Monthly Visits
+    </h3>
+    <div className="h-80">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={monthlyStats}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="month" />
+          <YAxis />
+          <Tooltip />
+          <Bar dataKey="visits" fill="#000000" />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  </div>
 
-            {/* Department Distribution */}
-            <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl">
-              <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-                Visits by Department
-              </h3>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={departmentStats}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {departmentStats.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </div>
+  {/* Department Distribution */}
+  <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl">
+    <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+      Visits by Department
+    </h3>
+    <div className="h-80">
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie
+            data={departmentStats}
+            cx="50%"
+            cy="50%"
+            labelLine={false}
+            label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+            outerRadius={80}
+            fill="#8884d8"
+            dataKey="value"
+          >
+            {departmentStats.map((entry, index) => (
+              <Cell 
+                key={`cell-${index}`} 
+                fill={COLORS[index % COLORS.length]} 
+              />
+            ))}
+          </Pie>
+          <Tooltip />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
+  </div>
+</div>
 
           {/* Recent Activity */}
           <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl">
