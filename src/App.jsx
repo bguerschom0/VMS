@@ -42,7 +42,7 @@ const AuthenticatedLayout = ({ children }) => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
-      <main className="pl-64 pt-16">
+      <main className="pl-16 pt-16 pb-10">
         {children}
       </main>
     </div>
