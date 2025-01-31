@@ -294,31 +294,10 @@ return (
                     </PieChart>
                   </ResponsiveContainer>
                   
-                  {/* Legend */}
-                  <div className="mt-4 grid grid-cols-2 gap-2">
-                    {departmentStats.map((entry, index) => (
-                      <div key={entry.name} className="flex items-center">
-                        <div 
-                          className="w-3 h-3 rounded-full mr-2" 
-                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                        />
-                        <span className="text-sm text-gray-600 dark:text-gray-300">
-                          {entry.name}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Recent Activity Section */}
-            <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl mb-8">
-              <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-                Recent Activity
-              </h3>
-              {/* Add your recent activity content here */}
-            </div>
           </div>
         )}
       </div>
