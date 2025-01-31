@@ -1,11 +1,22 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { Moon, Sun, ChevronDown } from 'lucide-react'
 
 const Header = () => {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
+  
+  const navigation = [
+    { name: 'Dashboard', path: '/dashboard', icon: '📊' },
+    { name: 'Check In', path: '/check-in', icon: '✓' },
+    { name: 'Check Out', path: '/check-out', icon: '←' },
+    { name: 'Visitor History', path: '/visitor-history', icon: '📋' },
+    { name: 'Bulk Visitor', path: '/bulkvisitors', icon: '👥' },
+    { name: 'Scheduled Visitor', path: '/scheduled-visitors', icon: '📅' },
+    { name: 'Reports', path: '/reports', icon: '📊' },
+  ]
 
   useEffect(() => {
     if (isDarkMode) {
@@ -16,31 +27,52 @@ const Header = () => {
   }, [isDarkMode])
 
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <header className="bg-gray-50 dark:bg-gray-900 shadow-sm mt-0">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
         <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <h1 className="text-xl font-bold text-black dark:text-white">
-              Visitor Management
-            </h1>
+          <div className="flex items-center space-x-8">
+            <div className="flex items-center">
+              <img src="/public/logo.png" alt="Logo" className="h-10 w-auto" />
+              <h1 className="ml-3 text-xl font-bold text-gray-900 dark:text-gray-100">
+                Visitor Management
+              </h1>
+            </div>
+            
+            <nav className="hidden md:flex space-x-4">
+              {navigation.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <span className="mr-2">{item.icon}</span>
+                  {item.name}
+                </Link>
+              ))}
+            </nav>
           </div>
-          
+
           <div className="flex items-center space-x-4">
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700"
+              className="p-2 rounded-lg text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
-              {isDarkMode ? '🌞' : '🌙'}
+              {isDarkMode ? (
+                <Sun className="h-5 w-5" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
             </button>
-            
+
             {user && (
-              <div className="flex items-center space-x-3">
-                <span className="text-sm text-gray-700 dark:text-gray-300">
+              <div className="flex items-center space-x-3 bg-gray-100 dark:bg-gray-800 rounded-full px-4 py-2">
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                   {user.fullName}
                 </span>
+                <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                 <button
                   onClick={() => signOut()}
-                  className="text-sm text-black dark:text-white hover:underline"
+                  className="text-sm text-gray-900 dark:text-gray-100 hover:underline ml-2"
                 >
                   Sign Out
                 </button>
