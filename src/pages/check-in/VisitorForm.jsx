@@ -105,7 +105,7 @@ const VisitorForm = () => {
   return (
     <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200`}>
       
-      <main className="pl-64">
+      <main>
         {/* Dark Mode Toggle */}
         <div className="absolute top-4 right-4 z-10">
           <button
