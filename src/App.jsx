@@ -51,19 +51,6 @@ const AuthenticatedLayout = ({ children }) => {
   )
 }
 
-// Layout wrapper for full-screen pages (like SearchVisitor)
-const FullScreenLayout = ({ children }) => {
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Header />
-      <main className="pb-10 pt-10 h-screen">
-        {children}
-      </main>
-      <Footer />
-    </div>
-  )
-}
-
 const App = () => {
   const { user } = useAuth()
 
@@ -90,16 +77,17 @@ const App = () => {
       />
 
       {/* Check-in routes */}
-      <Route
+            <Route
         path="/check-in"
         element={
           <ProtectedRoute>
-            <FullScreenLayout>
+            <AuthenticatedLayout>
               <SearchVisitor />
-            </FullScreenLayout>
+            </AuthenticatedLayout>
           </ProtectedRoute>
         }
       />
+      
 
       <Route
         path="/check-in/form"
@@ -181,7 +169,7 @@ const App = () => {
         }
       />
 
-            {/* User Management routes */}
+        {/* User Management routes */}
       <Route
         path="/user-management"
         element={
