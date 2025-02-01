@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { Moon, Sun, ChevronDown, LayoutDashboard, LogIn, LogOut, History, Users, Calendar, BarChart, User, Users2 } from 'lucide-react'
 
+
 const Header = () => {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
