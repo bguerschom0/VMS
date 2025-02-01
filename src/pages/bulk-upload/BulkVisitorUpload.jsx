@@ -207,7 +207,7 @@ const handleSubmit = async () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       
-      <main className="pl-64">
+      <main>
         <div className="p-8">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">
             Bulk Visitor Upload
