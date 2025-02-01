@@ -64,7 +64,7 @@ const SearchVisitor = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       
-      <main className="pl-64">
+      <main>
         <div className="h-screen flex items-center justify-center">
           <div className="relative w-full max-w-xl h-96 flex items-center justify-center">
             {/* Animated background circles */}
@@ -155,10 +155,6 @@ const SearchVisitor = () => {
         </div>
       </main>
       
-      <footer className="fixed bottom-0 left-64 right-0 bg-white dark:bg-gray-900 h-8">
-        <div className="w-full h-full flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
-        </div>
-      </footer>
     </div>
   );
 };
