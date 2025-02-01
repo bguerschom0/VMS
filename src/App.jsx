@@ -6,7 +6,7 @@ import Sidebar from './components/layout/Sidebar'
 // Pages
 import LoginPage from './pages/Login/Login'
 import Dashboard from './pages/Dashboard'
-import VisitorReport from './pages/VisitorReport'
+import Report from './pages/VisitorReport'
 import SearchVisitor from './pages/check-in/SearchVisitor'
 import VisitorForm from './pages/check-in/VisitorForm'
 import CheckOut from './pages/check-out/CheckOut'
@@ -197,7 +197,7 @@ const App = () => {
         element={
           <ProtectedRoute>
             <AuthenticatedLayout>
-              <VisitorReport />
+              <Report />
             </AuthenticatedLayout>
           </ProtectedRoute>
         }
