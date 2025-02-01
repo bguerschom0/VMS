@@ -57,8 +57,7 @@ const VisitorHistory = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
 
-      
-      <main className="pl-10 pr-10>
+    
         <div className="p-8">
           <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl">
             {/* Search Bar */}
@@ -188,7 +187,7 @@ const VisitorHistory = () => {
             </div>
           </div>
         </div>
-      </main>
+
 
       <VisitorDetailsModal
         isOpen={showModal}
