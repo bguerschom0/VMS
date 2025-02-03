@@ -10,45 +10,30 @@ const PasswordChangeModal = ({ isOpen, onClose, onSubmit }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
 
+  if (!isOpen) return null;
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    setError('');
-
     if (newPassword !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
-
-    if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters long');
-      return;
-    }
-
     onSubmit(newPassword);
   };
 
-  if (!isOpen) return null;
-
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
+      <motion.div 
+        initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="bg-white dark:bg-gray-800 rounded-3xl p-8 w-96 shadow-xl"
+        className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-md w-full mx-4"
       >
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-          Change Password
-        </h2>
-        <p className="text-gray-600 dark:text-gray-400 mb-6">
-          Your password has expired. Please create a new password.
-        </p>
-
+        <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Change Password</h2>
         {error && (
           <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-200 rounded-lg">
             {error}
           </div>
         )}
-
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <input
@@ -57,8 +42,8 @@ const PasswordChangeModal = ({ isOpen, onClose, onSubmit }) => {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 
-                       bg-white dark:bg-gray-900 text-gray-900 dark:text-white
-                       focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+                       bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+              required
             />
           </div>
           <div>
@@ -68,11 +53,11 @@ const PasswordChangeModal = ({ isOpen, onClose, onSubmit }) => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 
-                       bg-white dark:bg-gray-900 text-gray-900 dark:text-white
-                       focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+                       bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+              required
             />
           </div>
-          <div className="flex justify-end space-x-3">
+          <div className="flex justify-end gap-4">
             <button
               type="button"
               onClick={onClose}
@@ -82,10 +67,9 @@ const PasswordChangeModal = ({ isOpen, onClose, onSubmit }) => {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg
-                       hover:bg-gray-800 dark:hover:bg-gray-100"
+              className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg"
             >
-              Change Password
+              Update Password
             </button>
           </div>
         </form>
@@ -102,6 +86,7 @@ const LoginPage = () => {
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return document.documentElement.classList.contains('dark');
   });
+  
   const navigate = useNavigate();
   const { login, updatePassword } = useAuth();
 
@@ -110,7 +95,7 @@ const LoginPage = () => {
     setError('');
 
     const { user, error: loginError, passwordChangeRequired } = await login(username, password);
-
+    
     if (loginError) {
       setError(loginError);
       return;
@@ -140,47 +125,11 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      {/* Animated Background Elements - Centered around login form */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          animate={{
-            x: [0, 20, 0],
-            y: [0, -20, 0],
-          }}
-          transition={{
-            duration: 5,
-            repeat: Infinity,
-            repeatType: "reverse"
-          }}
-          className="absolute top-1/2 left-1/2 transform -translate-x-[200px] -translate-y-[200px] 
-                   w-24 h-24 bg-black dark:bg-white opacity-[0.07] rounded-full"
-        />
-        <motion.div
-          animate={{
-            x: [0, -20, 0],
-            y: [0, 20, 0],
-          }}
-          transition={{
-            duration: 7,
-            repeat: Infinity,
-            repeatType: "reverse"
-          }}
-          className="absolute top-1/2 left-1/2 transform translate-x-[150px] translate-y-[150px] 
-                   w-32 h-32 bg-black dark:bg-white opacity-[0.07] rounded-full"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-          }}
-          transition={{
-            duration: 6,
-            repeat: Infinity,
-            repeatType: "reverse"
-          }}
-          className="absolute top-1/2 left-1/2 transform -translate-x-[50px] translate-y-[50px] 
-                   w-28 h-28 bg-black dark:bg-white opacity-[0.07] rounded-full"
-        />
-      </div>
+      {/* Floating Elements */}
+      <div className="absolute top-24 left-12 w-24 h-24 bg-black dark:bg-white opacity-[0.07] rounded-lg animate-float"></div>
+      <div className="absolute bottom-24 right-12 w-24 h-24 bg-black dark:bg-white opacity-[0.07] rounded-full animate-pulse"></div>
+      <div className="absolute top-12 right-24 w-24 h-24 bg-black dark:bg-white opacity-[0.07] rounded-lg animate-float-reverse"></div>
+      <div className="absolute bottom-12 left-24 w-24 h-24 bg-black dark:bg-white opacity-[0.07] rounded-full animate-pulse-reverse"></div>
 
       {/* Dark Mode Toggle */}
       <button 
@@ -188,24 +137,17 @@ const LoginPage = () => {
         className="fixed top-4 right-4 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 
                  transition-colors focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
       >
-        <motion.div
-          initial={false}
-          animate={{ rotate: isDarkMode ? 180 : 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          {isDarkMode ? (
-            <Sun className="w-6 h-6 text-white" />
-          ) : (
-            <Moon className="w-6 h-6 text-gray-700" />
-          )}
-        </motion.div>
+        {isDarkMode ? (
+          <Sun className="h-6 w-6 text-white" />
+        ) : (
+          <Moon className="h-6 w-6 text-gray-700" />
+        )}
       </button>
 
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="w-96 p-8 rounded-3xl shadow-xl bg-white dark:bg-gray-800 relative z-10"
+        className="w-96 p-8 rounded-3xl shadow-xl bg-white dark:bg-gray-800"
       >
         <div className="flex justify-center mb-6">
           <img 
@@ -215,36 +157,28 @@ const LoginPage = () => {
           />
         </div>
 
-        <motion.h2 
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="text-2xl font-bold text-center text-gray-900 dark:text-white mb-6"
-        >
+        <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-white mb-6">
           Welcome Back
-        </motion.h2>
+        </h2>
         
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 dark:bg-red-900/30 border border-red-400 dark:border-red-800 
-                     text-red-700 dark:text-red-200 px-4 py-3 rounded-lg mb-6"
+          <div className="bg-red-50 dark:bg-red-900/30 border border-red-400 dark:border-red-800 
+                       text-red-700 dark:text-red-200 px-4 py-3 rounded-lg mb-6"
           >
             {error}
-          </motion.div>
+          </div>
         )}
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div className="relative">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <User className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+            <span className="absolute inset-y-0 left-3 flex items-center">
+              <User className="h-5 w-5 text-gray-400 dark:text-gray-500" />
             </span>
             <input 
               type="text" 
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 
+              className="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 
                        bg-white dark:bg-gray-900 text-gray-900 dark:text-white
                        focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white
                        transition-colors duration-200"
@@ -254,14 +188,14 @@ const LoginPage = () => {
           </div>
           
           <div className="relative">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <Lock className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+            <span className="absolute inset-y-0 left-3 flex items-center">
+              <Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />
             </span>
             <input 
               type="password" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 
+              className="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 
                        bg-white dark:bg-gray-900 text-gray-900 dark:text-white
                        focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white
                        transition-colors duration-200"
@@ -282,7 +216,7 @@ const LoginPage = () => {
         </form>
       </motion.div>
 
-      <PasswordChangeModal
+      <PasswordChangeModal 
         isOpen={showPasswordChange}
         onClose={() => setShowPasswordChange(false)}
         onSubmit={handlePasswordChange}
