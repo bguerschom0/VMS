@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { visitorService } from '../../services/visitorService';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -87,120 +87,118 @@ const SearchVisitor = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        {/* Welcome Section - Added to match Dashboard */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl mb-8"
-        >
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Welcome back, {user?.username || 'User'}
-          </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Search for a visitor by ID or Phone Number
-          </p>
-        </motion.div>
+    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+      <div className="container mx-auto px-4 flex-grow flex items-center justify-center">
+        <div className="w-full max-w-xl">
+          {/* Welcome Section */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 text-center"
+          >
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              Welcome back, {user?.username || 'User'}
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              Search for a visitor by ID or Phone Number
+            </p>
+          </motion.div>
 
-        {/* Search Container */}
-        <div className="flex items-center justify-center">
-          <div className="relative w-full max-w-xl">
-            <motion.div
-              className="z-10 w-full"
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", damping: 15 }}
-            >
-              <form onSubmit={handleSearch} className="relative">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  maxLength={16}
-                  className="w-full h-16 px-6 pr-12 text-lg
-                    bg-white dark:bg-gray-800 
-                    text-gray-900 dark:text-white
-                    border-2 border-gray-200 dark:border-gray-700 
-                    rounded-3xl shadow-xl
-                    focus:outline-none focus:border-black dark:focus:border-gray-500 
-                    transition-all duration-300
-                    hover:shadow-2xl
-                    placeholder-gray-400 dark:placeholder-gray-500"
-                  placeholder="Enter ID or Phone Number"
-                  value={searchInput}
-                  onChange={handleInputChange}
-                  disabled={isLoading}
-                  autoFocus
-                />
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="absolute right-4 top-1/2 -translate-y-1/2
-                    w-8 h-8 flex items-center justify-center
-                    text-gray-400 dark:text-gray-500 
-                    hover:text-black dark:hover:text-white 
-                    transition-colors"
-                >
-                  {isLoading ? (
-                    <motion.div
-                      className="w-6 h-6 border-2 border-current border-t-transparent rounded-full"
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    />
-                  ) : (
-                    <motion.svg
-                      className="w-6 h-6"
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <circle cx="11" cy="11" r="8" />
-                      <path d="M21 21l-4.35-4.35" />
-                    </motion.svg>
-                  )}
-                </button>
-
-                {error && (
-                  <motion.p
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="absolute top-full mt-2 text-red-500 dark:text-red-400 text-sm text-center w-full"
-                  >
-                    {error}
-                  </motion.p>
-                )}
-              </form>
-
-              {/* Search Guide */}
-              <motion.div
-                className="mt-8 bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
+          {/* Search Container */}
+          <motion.div
+            className="z-10"
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", damping: 15 }}
+          >
+            <form onSubmit={handleSearch} className="relative mb-8">
+              <input
+                ref={inputRef}
+                type="text"
+                maxLength={16}
+                className="w-full h-16 px-6 pr-12 text-lg
+                  bg-gray-100 dark:bg-gray-800 
+                  text-gray-900 dark:text-white
+                  border-2 border-gray-200 dark:border-gray-700 
+                  rounded-3xl shadow-xl
+                  focus:outline-none focus:border-black dark:focus:border-gray-500 
+                  transition-all duration-300
+                  hover:shadow-2xl
+                  placeholder-gray-500 dark:placeholder-gray-400"
+                placeholder="Enter ID or Phone Number"
+                value={searchInput}
+                onChange={handleInputChange}
+                disabled={isLoading}
+                autoFocus
+              />
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="absolute right-4 top-1/2 -translate-y-1/2
+                  w-8 h-8 flex items-center justify-center
+                  text-gray-400 dark:text-gray-500 
+                  hover:text-black dark:hover:text-white 
+                  transition-colors"
               >
-                <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Search Guide</h3>
-                <div className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
-                  <p className="flex items-center">
-                    <span className="mr-2 text-black dark:text-white">•</span> 
-                    ID: requires 16 digits
-                  </p>
-                  <p className="flex items-center">
-                    <span className="mr-2 text-black dark:text-white">•</span> 
-                    Phone Number: 2507********
-                  </p>
-                  <p className="flex items-center">
-                    <span className="mr-2 text-black dark:text-white">•</span> 
-                    For Passport users: #00
-                  </p>
-                </div>
-              </motion.div>
+                {isLoading ? (
+                  <motion.div
+                    className="w-6 h-6 border-2 border-current border-t-transparent rounded-full"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  />
+                ) : (
+                  <motion.svg
+                    className="w-6 h-6"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="M21 21l-4.35-4.35" />
+                  </motion.svg>
+                )}
+              </button>
+
+              {error && (
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="absolute top-full mt-2 text-red-500 dark:text-red-400 text-sm text-center w-full"
+                >
+                  {error}
+                </motion.p>
+              )}
+            </form>
+
+            {/* Search Guide */}
+            <motion.div
+              className="bg-gray-100 dark:bg-gray-800 rounded-3xl p-6 shadow-xl"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Search Guide</h3>
+              <div className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+                <p className="flex items-center">
+                  <span className="mr-2 text-black dark:text-white">•</span> 
+                  ID: requires 16 digits
+                </p>
+                <p className="flex items-center">
+                  <span className="mr-2 text-black dark:text-white">•</span> 
+                  Phone Number: 2507********
+                </p>
+                <p className="flex items-center">
+                  <span className="mr-2 text-black dark:text-white">•</span> 
+                  For Passport users: #00
+                </p>
+              </div>
             </motion.div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>
