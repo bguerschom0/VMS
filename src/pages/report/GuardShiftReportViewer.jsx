@@ -38,53 +38,56 @@ const GuardShiftReportViewer = () => {
   const [totalPages, setTotalPages] = useState(1);
   const reportsPerPage = 10;
 
+  const [totalCount, setTotalCount] = useState(0);
+
   useEffect(() => {
     fetchReports();
     fetchStats();
   }, [filters, currentPage]);
 
-  const fetchReports = async () => {
-    try {
-      setLoading(true);
-      let query = supabase
-        .from('security_reports')
-        .select('*')
-        .order('submitted_at', { ascending: false });
+const fetchReports = async () => {
+  try {
+    setLoading(true);
+    let query = supabase
+      .from('guard_shift_reports')
+      .select('*', { count: 'exact' }) // Add count option
+      .order('submitted_at', { ascending: false });
 
-      // Apply filters
-      if (filters.startDate) {
-        query = query.gte('submitted_at', filters.startDate);
-      }
-      if (filters.endDate) {
-        query = query.lte('submitted_at', filters.endDate);
-      }
-      if (filters.shiftType) {
-        query = query.eq('shift_type', filters.shiftType);
-      }
-      if (filters.hasIncident !== '') {
-        query = query.eq('incident_occurred', filters.hasIncident === 'true');
-      }
-      if (filters.guard) {
-        query = query.ilike('guard_name', `%${filters.guard}%`);
-      }
-
-      // Calculate pagination
-      const start = (currentPage - 1) * reportsPerPage;
-      const end = start + reportsPerPage - 1;
-
-      query = query.range(start, end);
-
-      const { data, count } = await query;
-      if (data) {
-        setReports(data);
-        setTotalPages(Math.ceil(count / reportsPerPage));
-      }
-    } catch (error) {
-      console.error('Error fetching reports:', error);
-    } finally {
-      setLoading(false);
+    // Apply filters
+    if (filters.startDate) {
+      query = query.gte('submitted_at', filters.startDate);
     }
-  };
+    if (filters.endDate) {
+      query = query.lte('submitted_at', filters.endDate);
+    }
+    if (filters.shiftType) {
+      query = query.eq('shift_type', filters.shiftType);
+    }
+    if (filters.hasIncident !== '') {
+      query = query.eq('incident_occurred', filters.hasIncident === 'true');
+    }
+    if (filters.guard) {
+      query = query.ilike('guard_name', `%${filters.guard}%`);
+    }
+
+    // Calculate pagination
+    const start = (currentPage - 1) * reportsPerPage;
+    const end = start + reportsPerPage - 1;
+
+    query = query.range(start, end);
+
+    const { data, count } = await query;
+    if (data) {
+      setReports(data);
+      setTotalCount(count); // Set the total count
+      setTotalPages(Math.ceil(count / reportsPerPage));
+    }
+  } catch (error) {
+    console.error('Error fetching reports:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const fetchStats = async () => {
     try {
