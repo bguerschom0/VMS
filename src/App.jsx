@@ -20,6 +20,7 @@ import UserManagement from './pages/UserManagement/UserManagement'
 import GuardShiftReport from './pages/security-guard-shift-report/GuardShiftReport'
 import GuardShiftReportViewer from './pages/report/GuardShiftReportViewer'
 import ScheduledVisitorsReport from './pages/report/ScheduledVisitorsReport'
+import Unauthorized from './pages/Unauthorized'
 
 // Protected Route wrapper
 const ProtectedRoute = ({ children }) => {
@@ -241,16 +242,7 @@ const App = () => {
 
       {/* Catch all route */}
       <Route
-        path="*"
-        element={
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="text-center">
-              <h1 className="text-4xl font-bold mb-4">404</h1>
-              <p className="text-gray-600">Page not found</p>
-            </div>
-          </div>
-        }
-      />
+<Route path="/unauthorized" element={<Unauthorized />} />
     </Routes>
   )
 }
