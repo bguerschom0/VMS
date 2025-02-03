@@ -243,6 +243,13 @@ async checkInVisitor(visitorData, username) {
         })
       );
 
+        ...Object.fromEntries(
+    Object.entries(visitorService).filter(
+      ([key]) => 
+        !['searchVisitor', 'getAvailableCards', 'checkInVisitor'].includes(key)
+    )
+  )
+
       return {
         visitors: visitorsWithPhotos,
         total: count
