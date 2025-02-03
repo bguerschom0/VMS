@@ -332,8 +332,11 @@ const GuardShiftReport = () => {
                                 ...formData.buildingAreasChecked[area],
                                 checked: e.target.checked
                               }
+                            }
 
-                
+
+
+            {/* Utility Status */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -533,7 +536,7 @@ const GuardShiftReport = () => {
                            dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black
                            min-h-[100px]"
                 />
-
+ 
                 <div className="flex space-x-4">
                   <label className="flex items-center space-x-2">
                     <input
