@@ -331,10 +331,9 @@ const GuardShiftReport = () => {
                               [area]: {
                                 ...formData.buildingAreasChecked[area],
                                 checked: e.target.checked
-                              }
-                            }
-
-                          }
+                  }
+                }
+              })}
 
             {/* Utility Status */}
             <motion.div
@@ -347,7 +346,7 @@ const GuardShiftReport = () => {
                 <Power className="w-5 h-5 mr-2" />
                 Utility Status
               </h2>
-              
+               
               <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Electricity Status */}
                 <div>
