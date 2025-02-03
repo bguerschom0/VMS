@@ -1,20 +1,20 @@
 
 export const DEPARTMENTS = [
-  { id: 'CEO_OFFICE', name: 'CEOs Office' },
-  { id: 'CONSUMER', name: 'Consumer' },
-  { id: 'CORP_AFF', name: 'Corporate Affairs' },
+  { id: 'CEOs Office', name: 'CEOs Office' },
+  { id: 'Consumer', name: 'Consumer' },
+  { id: 'Corporate Affairs', name: 'Corporate Affairs' },
   { id: 'COPS&CEX', name: 'Customer Operations and Customer Experience' },
   { id: 'EBU', name: 'EBU' },
   { id: 'FINANCE', name: 'Finance' },
   { id: 'HR', name: 'Human Resources' },
-  { id: 'INT_AU_F', name: 'Internal Audit & Forensics' },
+  { id: 'Internal Audit & Forensics', name: 'Internal Audit & Forensics' },
   { id: 'IT', name: 'IT' },
   { id: 'Network', name: 'Network' },
-  { id: 'RISK_COMP', name: 'Risk & Compliance' },
-  { id: 'SALES_D', name: 'Sales & Distribution' },
-  { id: 'PROCUREMENT', name: 'Procurement' },
-  { id: 'SECURITY_OFFICE', name: 'Security & Safety Office' },
-  { id: 'KYC_OFFICE', name: 'KYC_Office' },
+  { id: 'Risk & Compliance', name: 'Risk & Compliance' },
+  { id: 'Sales & Distribution', name: 'Sales & Distribution' },
+  { id: 'Procurement', name: 'Procurement' },
+  { id: 'Security & Safety Office', name: 'Security & Safety Office' },
+  { id: 'KYC Office', name: 'KYC Office' },
 ];
 
 // Generate visitor cards for each department
