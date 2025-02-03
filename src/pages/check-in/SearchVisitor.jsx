@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { visitorService } from '../../services/visitorService';
 import { useAuth } from '../../hooks/useAuth';
 
+
+
 // Alert/Popup Component
 const Alert = ({ message, type = 'error', onClose }) => (
   <motion.div
@@ -104,6 +106,26 @@ const SearchVisitor = () => {
       setIsLoading(false);
     }
   };
+
+    const FloatingCircle = ({ size, initialX, initialY, duration }) => (
+    <motion.div
+      className="absolute rounded-full bg-gray-100/50 dark:bg-gray-800/50"
+      style={{ width: size, height: size }}
+      initial={{ x: initialX, y: initialY }}
+      animate={{
+        x: [initialX - 20, initialX + 20, initialX],
+        y: [initialY - 20, initialY + 20, initialY],
+        scale: [1, 1.1, 1],
+        rotate: [0, 180, 360]
+      }}
+      transition={{
+        duration,
+        repeat: Infinity,
+        repeatType: "reverse",
+        ease: "easeInOut"
+      }}
+    />
+  );
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
