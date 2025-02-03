@@ -79,7 +79,7 @@ const Header = () => {
         <div className="max-w-full px-4 py-2">
           <div className="flex justify-between items-center">
             <img 
-              src="/public/logo.png" 
+              src="logo.png" 
               alt="Logo" 
               className="h-10 w-auto cursor-pointer" 
               onClick={handleLogoClick}
