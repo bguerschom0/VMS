@@ -11,7 +11,6 @@ const SearchVisitor = () => {
   const [showAlert, setShowAlert] = useState(false);
   const inputRef = useRef(null);
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   const handleInputChange = (e) => {
     let value = e.target.value;
@@ -90,7 +89,6 @@ const SearchVisitor = () => {
     <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 flex-grow flex items-center justify-center">
         <div className="w-full max-w-xl">
-
           {/* Search Container */}
           <motion.div
             className="z-10"
