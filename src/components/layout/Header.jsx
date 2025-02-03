@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { Moon, Sun, ChevronDown, LayoutDashboard, LogIn, LogOut, History, Users, Calendar, BarChart, User, Users2, ClipboardList } from 'lucide-react'
+import { roleBasedNavigation } from './navigationConfig';
 
 
 const Header = () => {
@@ -10,6 +11,9 @@ const Header = () => {
   const [openSubmenu, setOpenSubmenu] = useState(null)
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
+
+    // Get navigation items based on user role
+  const navigationItems = user ? roleBasedNavigation[user.role] || [] : []
   
   const handleSignOut = () => {
     signOut()
@@ -20,51 +24,6 @@ const Header = () => {
     navigate('/dashboard')
   }
 
-  const navigation = [
-    { 
-      name: 'Dashboard', 
-      path: '/dashboard', 
-      icon: LayoutDashboard 
-    },
-            { 
-      name: 'Guard Shift Report', 
-      path: '/GuardShiftReport', 
-      icon: ClipboardList
-    },
-        { 
-      name: 'User Management', 
-      path: '/user-management', 
-      icon: Users2 
-    },
-    {
-      name: 'Visitor Management',
-      icon: Users,
-      children: [
-        { name: 'Check In', path: '/check-in', icon: LogIn },
-        { name: 'Check Out', path: '/check-out', icon: LogOut },
-      ]
-    },
-    {
-      name: 'Visitor Scheduling',
-      icon: Calendar,
-      children: [
-        { name: 'Bulk Visitor', path: '/bulkvisitors', icon: Users },
-        { name: 'Scheduled Visitor', path: '/scheduled-visitors', icon: Calendar },
-      ]
-    },
-    {
-      name: 'Reports & History',
-      icon: BarChart,
-      children: [
-        { name: 'Check In & Out Report', path: '/reports', icon: BarChart },
-        { name: 'Guard Shift Report', path: '/GuardShiftReportViewer', icon: BarChart },
-        { name: 'Visitor History', path: '/visitor-history', icon: History },
-        
-      ]
-    },
-
-
-  ]
 
   
 
@@ -88,53 +47,58 @@ const Header = () => {
               onClick={handleLogoClick}
             />
 
-            <div className="flex-1 flex justify-center">
-              <nav className="flex items-center space-x-6">
-                {navigation.map((item) => {
-                  const Icon = item.icon
-                  return item.children ? (
-                    <div 
-                      key={item.name}
-                      className="relative"
-                      onMouseEnter={() => setOpenSubmenu(item.name)}
-                      onMouseLeave={() => setOpenSubmenu(null)}
-                    >
-                      <button className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors whitespace-nowrap">
-                        <Icon className="h-4 w-4 mr-2" />
-                        {item.name}
-                        <ChevronDown className="h-4 w-4 ml-1" />
-                      </button>
-                      {openSubmenu === item.name && (
-                        <div className="absolute left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-10">
-                          {item.children.map((child) => {
-                            const ChildIcon = child.icon
-                            return (
-                              <Link
-                                key={child.path}
-                                to={child.path}
-                                className="flex items-center px-4 py-2 text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700"
-                              >
-                                <ChildIcon className="h-4 w-4 mr-2" />
-                                {child.name}
-                              </Link>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors whitespace-nowrap"
-                    >
+<div className="flex-1 flex justify-center">
+            <nav className="flex items-center space-x-6">
+              {navigationItems.map((item) => {
+                const Icon = item.icon
+                return item.children ? (
+                  <div 
+                    key={item.name}
+                    className="relative"
+                    onMouseEnter={() => setOpenSubmenu(item.name)}
+                    onMouseLeave={() => setOpenSubmenu(null)}
+                  >
+                    <button className="flex items-center px-3 py-2 rounded-md text-sm font-medium 
+                                     text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 
+                                     transition-colors whitespace-nowrap">
                       <Icon className="h-4 w-4 mr-2" />
                       {item.name}
-                    </Link>
-                  )
-                })}
-              </nav>
-            </div>
+                      <ChevronDown className="h-4 w-4 ml-1" />
+                    </button>
+                    {openSubmenu === item.name && (
+                      <div className="absolute left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-10">
+                        {item.children.map((child) => {
+                          const ChildIcon = child.icon
+                          return (
+                            <Link
+                              key={child.path}
+                              to={child.path}
+                              className="flex items-center px-4 py-2 text-sm text-gray-900 dark:text-gray-100 
+                                       hover:bg-gray-100 dark:hover:bg-gray-700"
+                            >
+                              <ChildIcon className="h-4 w-4 mr-2" />
+                              {child.name}
+                            </Link>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className="flex items-center px-3 py-2 rounded-md text-sm font-medium 
+                             text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 
+                             transition-colors whitespace-nowrap"
+                  >
+                    <Icon className="h-4 w-4 mr-2" />
+                    {item.name}
+                  </Link>
+                )
+              })}
+            </nav>
+          </div>
 
             {/* User dropdown remains the same */}
             {user && (
