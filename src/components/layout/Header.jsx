@@ -26,6 +26,16 @@ const Header = () => {
       path: '/dashboard', 
       icon: LayoutDashboard 
     },
+            { 
+      name: 'Guard Shift Report', 
+      path: '/GuardShiftReport', 
+      icon: ClipboardList
+    },
+        { 
+      name: 'User Management', 
+      path: '/user-management', 
+      icon: Users2 
+    },
     {
       name: 'Visitor Management',
       icon: Users,
@@ -46,21 +56,14 @@ const Header = () => {
       name: 'Reports & History',
       icon: BarChart,
       children: [
-        { name: 'Visitor History', path: '/visitor-history', icon: History },
         { name: 'Check In & Out Report', path: '/reports', icon: BarChart },
         { name: 'Guard Shift Report', path: '/GuardShiftReportViewer', icon: BarChart },
+        { name: 'Visitor History', path: '/visitor-history', icon: History },
+        
       ]
     },
-    { 
-      name: 'User Management', 
-      path: '/user-management', 
-      icon: Users2 
-    },
-        { 
-      name: 'Guard Shift Report', 
-      path: '/GuardShiftReport', 
-      icon: ClipboardList
-    }
+
+
   ]
 
   
