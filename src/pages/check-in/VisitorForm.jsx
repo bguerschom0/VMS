@@ -1,3 +1,4 @@
+// src/components/visitor/VisitorForm.jsx
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -5,18 +6,39 @@ import { visitorService } from '../../services/visitorService';
 import { DEPARTMENTS, ERROR_MESSAGES } from '../../utils/constants';
 import { useAuth } from '../../hooks/useAuth';
 
+// Alert/Popup Component
+const Alert = ({ message, type = 'error', onClose }) => (
+  <motion.div
+    initial={{ opacity: 0, y: -50 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -50 }}
+    className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+      type === 'error' ? 'bg-red-500' : 'bg-green-500'
+    } text-white`}
+  >
+    <div className="flex items-center">
+      <span>{message}</span>
+      <button onClick={onClose} className="ml-4 hover:text-gray-200">
+        ✕
+      </button>
+    </div>
+  </motion.div>
+);
 
 const VisitorForm = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
+
+  // States
   const [availableCards, setAvailableCards] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [hasLaptop, setHasLaptop] = useState(false);
   const [photoUrl, setPhotoUrl] = useState(null);
+  const [isEditable, setIsEditable] = useState(true);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
   
   const [formData, setFormData] = useState({
     fullName: '',
@@ -33,58 +55,7 @@ const VisitorForm = () => {
   
   const [errors, setErrors] = useState({});
 
-
-  // Load available cards when department changes
-  useEffect(() => {
-    const loadAvailableCards = async () => {
-      if (!selectedDepartment) return;
-      
-      try {
-        const cards = await visitorService.getAvailableCards(selectedDepartment);
-        setAvailableCards(cards);
-      } catch (error) {
-        console.error('Error loading cards:', error);
-        setErrors(prev => ({
-          ...prev,
-          visitorCard: 'Failed to load available cards'
-        }));
-      }
-    };
-
-    loadAvailableCards();
-  }, [selectedDepartment]);
-
-  const handleDepartmentChange = async (e) => {
-    const deptId = e.target.value;
-    setSelectedDepartment(deptId);
-    setFormData(prev => ({ ...prev, department: deptId, visitorCard: '' }));
-    setErrors(prev => ({ ...prev, department: '', visitorCard: '' }));
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-
-    if (!formData.fullName) newErrors.fullName = ERROR_MESSAGES.REQUIRED;
-    if (!formData.phoneNumber) {
-      newErrors.phoneNumber = ERROR_MESSAGES.REQUIRED;
-    } else if (!formData.phoneNumber.match(/^250\d{9}$/)) {
-      newErrors.phoneNumber = ERROR_MESSAGES.INVALID_PHONE;
-    }
-
-    if (!formData.department) newErrors.department = ERROR_MESSAGES.REQUIRED;
-    if (!formData.visitorCard) newErrors.visitorCard = ERROR_MESSAGES.REQUIRED;
-    if (!formData.purpose) newErrors.purpose = ERROR_MESSAGES.REQUIRED;
-
-    if (hasLaptop) {
-      if (!formData.laptopBrand) newErrors.laptopBrand = ERROR_MESSAGES.REQUIRED;
-      if (!formData.laptopSerial) newErrors.laptopSerial = ERROR_MESSAGES.REQUIRED;
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  // Load visitor data if exists
+  // Load visitor data and handle #00 case
   useEffect(() => {
     const { visitor, isPassport } = location.state || {};
     
@@ -102,34 +73,129 @@ const VisitorForm = () => {
         phoneNumber: visitor.phoneNumber || '',
       }));
       setPhotoUrl(visitor.photoUrl || null);
-      // Disable editing for existing visitor
-      setIsEditable(false);
+      setIsEditable(false); // Disable editing for existing visitor
     } else if (isPassport) {
-      // Enable editing for passport visitors
+      // Enable all fields for passport case (#00)
       setIsEditable(true);
     }
   }, [location.state, navigate]);
 
+  // Load available cards when department changes
+  useEffect(() => {
+    const loadAvailableCards = async () => {
+      if (!selectedDepartment) return;
+      
+      try {
+        const cards = await visitorService.getAvailableCards(selectedDepartment);
+        setAvailableCards(cards);
+      } catch (error) {
+        console.error('Error loading cards:', error);
+        setAlertMessage('Failed to load available cards');
+        setShowAlert(true);
+      }
+    };
+
+    loadAvailableCards();
+  }, [selectedDepartment]);
+
+  // Handle department change
+  const handleDepartmentChange = async (e) => {
+    const deptId = e.target.value;
+    setSelectedDepartment(deptId);
+    setFormData(prev => ({ ...prev, department: deptId, visitorCard: '' }));
+    setErrors(prev => ({ ...prev, department: '', visitorCard: '' }));
+  };
+
+  // Form validation
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Required fields
+    if (!formData.fullName) newErrors.fullName = 'Full name is required';
+    
+    if (!formData.phoneNumber) {
+      newErrors.phoneNumber = 'Phone number is required';
+    } else if (!formData.phoneNumber.match(/^250\d{9}$/)) {
+      newErrors.phoneNumber = 'Phone number must start with 250 followed by 9 digits';
+    }
+
+    // For passport users (#00), require identity number
+    if (location.state?.isPassport && !formData.identityNumber) {
+      newErrors.identityNumber = 'ID or Passport number is required';
+    }
+
+    if (!formData.department) newErrors.department = 'Department is required';
+    if (!formData.visitorCard) newErrors.visitorCard = 'Visitor card is required';
+    if (!formData.purpose) newErrors.purpose = 'Purpose is required';
+
+    // Laptop validation
+    if (hasLaptop) {
+      if (!formData.laptopBrand) newErrors.laptopBrand = 'Laptop brand is required';
+      if (!formData.laptopSerial) newErrors.laptopSerial = 'Serial number is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      setAlertMessage('Please fill in all required fields');
+      setShowAlert(true);
+      return;
+    }
+
+    if (!user?.username) {
+      setAlertMessage('User session expired. Please log in again.');
+      setShowAlert(true);
+      return;
+    }
 
     setIsLoading(true);
     try {
-      const username = user?.username; // Get username from auth context
-      if (!username) {
-        throw new Error('User not logged in');
-      }
-
-      await visitorService.checkInVisitor(formData, username);
-      navigate('/check-in', { state: { success: true }});
+      await visitorService.checkInVisitor({
+        ...formData,
+        isPassport: location.state?.isPassport || false
+      }, user.username);
+      
+      navigate('/check-in', { 
+        state: { 
+          success: true,
+          message: 'Visitor checked in successfully'
+        }
+      });
     } catch (error) {
       console.error('Check-in error:', error);
       setAlertMessage(error.message || 'An error occurred during check-in');
       setShowAlert(true);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Handle input change with phone number formatting
+  const handlePhoneNumberChange = (e) => {
+    let value = e.target.value;
+    
+    // Only allow digits
+    value = value.replace(/\D/g, '');
+    
+    // Ensure starts with 250
+    if (!value.startsWith('250') && value.length > 0) {
+      value = '250' + value;
+    }
+    
+    // Limit to 12 digits (250 + 9 digits)
+    value = value.slice(0, 12);
+    
+    setFormData(prev => ({ ...prev, phoneNumber: value }));
+    
+    // Clear phone number error if valid
+    if (value.match(/^250\d{9}$/)) {
+      setErrors(prev => ({ ...prev, phoneNumber: '' }));
     }
   };
 
