@@ -698,7 +698,7 @@ const BulkVisitorUpload = () => {
             )}
           </motion.div>
         )}
-      </AnimatePresence> */}
+
     </div>
   );
 };
