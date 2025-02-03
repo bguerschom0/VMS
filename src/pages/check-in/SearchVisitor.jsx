@@ -90,19 +90,6 @@ const SearchVisitor = () => {
     <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 flex-grow flex items-center justify-center">
         <div className="w-full max-w-xl">
-          {/* Welcome Section */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-8 text-center"
-          >
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Welcome back, {user?.username || 'User'}
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Search for a visitor by ID or Phone Number
-            </p>
-          </motion.div>
 
           {/* Search Container */}
           <motion.div
