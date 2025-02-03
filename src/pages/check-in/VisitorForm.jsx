@@ -1,377 +1,452 @@
+
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { departmentsDump } from '../../data/visitorsDump';
-import Sidebar from '../../components/layout/Sidebar';
+import { visitorService } from '../../services/visitorService';
+import { DEPARTMENTS, ERROR_MESSAGES } from '../../utils/constants';
 
 const VisitorForm = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [isDark, setIsDark] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return document.documentElement.classList.contains('dark');
-    }
-    return false;
-  });
+  const [availableCards, setAvailableCards] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState('');
   const [hasLaptop, setHasLaptop] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState(null);
+  
   const [formData, setFormData] = useState({
-    // Personal Information
     fullName: '',
     identityNumber: '',
     gender: '',
     phoneNumber: '',
-    otherNumber: '', // This will be user input only
-    // Additional Information
+    visitorCard: '',
     department: '',
     purpose: '',
     items: '',
-    photoUrl: '',
-    // Laptop Information
     laptopBrand: '',
     laptopSerial: ''
   });
+  
   const [errors, setErrors] = useState({});
 
+  // Load visitor data if exists
   useEffect(() => {
-    const { visitor, isNewVisitor } = location.state || {};
+    const { visitor, isPassport } = location.state || {};
     
-    if (!visitor && !isNewVisitor) {
+    if (!visitor && !isPassport) {
       navigate('/check-in');
       return;
     }
 
     if (visitor) {
-      // Don't include otherNumber from visitor data
-      const { otherNumber, ...visitorData } = visitor;
       setFormData(prev => ({
         ...prev,
-        ...visitorData,
-        otherNumber: '', // Keep this empty for user input
+        fullName: visitor.fullName || '',
+        identityNumber: visitor.identityNumber || '',
+        gender: visitor.gender || '',
+        phoneNumber: visitor.phoneNumber || '',
       }));
-      
-      if (visitor.laptopBrand || visitor.laptopSerial) {
-        setHasLaptop(true);
-      }
+      setPhotoUrl(visitor.photoUrl || null);
     }
   }, [location.state, navigate]);
 
-  const toggleDarkMode = () => {
-    setIsDark(!isDark);
-    document.documentElement.classList.toggle('dark');
+  // Load available cards when department changes
+  useEffect(() => {
+    const loadAvailableCards = async () => {
+      if (!selectedDepartment) return;
+      
+      try {
+        const cards = await visitorService.getAvailableCards(selectedDepartment);
+        setAvailableCards(cards);
+        
+        // If no cards available, show error
+        if (cards.length === 0) {
+          setErrors(prev => ({
+            ...prev,
+            visitorCard: ERROR_MESSAGES.NO_CARDS
+          }));
+        }
+      } catch (error) {
+        console.error('Error loading cards:', error);
+        setErrors(prev => ({
+          ...prev,
+          visitorCard: 'Failed to load available cards'
+        }));
+      }
+    };
+
+    loadAvailableCards();
+  }, [selectedDepartment]);
+
+  // Handle department change
+  const handleDepartmentChange = async (e) => {
+    const deptId = e.target.value;
+    setSelectedDepartment(deptId);
+    setFormData(prev => ({ ...prev, department: deptId, visitorCard: '' }));
+    setErrors(prev => ({ ...prev, department: '', visitorCard: '' }));
   };
 
+  // Form validation
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.fullName) newErrors.fullName = ERROR_MESSAGES.REQUIRED;
+    if (!formData.phoneNumber) {
+      newErrors.phoneNumber = ERROR_MESSAGES.REQUIRED;
+    } else if (!ID_FORMATS.PHONE.test(formData.phoneNumber)) {
+      newErrors.phoneNumber = ERROR_MESSAGES.INVALID_PHONE;
+    }
+
+    if (!formData.department) newErrors.department = ERROR_MESSAGES.REQUIRED;
+    if (!formData.visitorCard) newErrors.visitorCard = ERROR_MESSAGES.REQUIRED;
+    if (!formData.purpose) newErrors.purpose = ERROR_MESSAGES.REQUIRED;
+
+    if (hasLaptop) {
+      if (!formData.laptopBrand) newErrors.laptopBrand = ERROR_MESSAGES.REQUIRED;
+      if (!formData.laptopSerial) newErrors.laptopSerial = ERROR_MESSAGES.REQUIRED;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validation
-    const newErrors = {};
-    if (!formData.fullName) newErrors.fullName = 'Full name is required';
-    if (!formData.identityNumber) newErrors.identityNumber = 'ID number is required';
-    if (!formData.phoneNumber) newErrors.phoneNumber = 'Phone number is required';
-    if (!formData.department) newErrors.department = 'Department is required';
-    if (!formData.purpose) newErrors.purpose = 'Purpose is required';
-    
-    // Validate laptop fields if laptop checkbox is checked
-    if (hasLaptop) {
-      if (!formData.laptopBrand) newErrors.laptopBrand = 'Laptop brand is required';
-      if (!formData.laptopSerial) newErrors.laptopSerial = 'Serial number is required';
-    }
+    if (!validateForm()) return;
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
+    setIsLoading(true);
     try {
-      const submitData = {
-        ...formData,
-        dateOfVisit: new Date().toISOString(),
-        timeOfArrival: new Date().toLocaleTimeString('en-US', { 
-          hour: '2-digit', 
-          minute: '2-digit',
-          hour12: false 
-        }),
-        hasLaptop
-      };
-
-      // Here you would send data to your backend
-      console.log('Form submitted:', submitData);
-      navigate('/check-in');
+      const username = 'current-user'; // Replace with actual user management
+      await visitorService.checkInVisitor(formData, username);
+      navigate('/check-in', { state: { success: true }});
     } catch (error) {
-      setErrors({ submit: 'Failed to submit form' });
+      setErrors(prev => ({ ...prev, submit: ERROR_MESSAGES.SERVER_ERROR }));
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200`}>
-      
-      <main>
-        {/* Dark Mode Toggle */}
-        <div className="absolute top-4 right-4 z-10">
-          <button
-            onClick={toggleDarkMode}
-            className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-          >
-            {isDark ? '🌞' : '🌙'}
-          </button>
-        </div>
-
-        <div className="p-8">
-          <form onSubmit={handleSubmit}>
-            <div className="flex gap-8">
-              {/* Left Column - Photo and Personal Info */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="w-80 bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6 space-y-6"
-              >
-                {/* Photo Section */}
-                <div className="flex flex-col items-center">
-                  <div className="w-40 h-40 rounded-full overflow-hidden mb-6">
-                    <img
-                      src={formData.photoUrl}
-                      alt="Visitor"
-                      className="w-full h-full object-cover"
-                    />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <main className="p-6">
+        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
+          <div className="space-y-6">
+            {/* Visitor Photo */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 flex justify-center"
+            >
+              <div className="w-40 h-40 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
+                {photoUrl ? (
+                  <img 
+                    src={photoUrl} 
+                    alt="Visitor" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    <svg
+                      className="w-20 h-20"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
                   </div>
+                )}
+              </div>
+            </motion.div>
+
+            {/* Personal Information */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6"
+            >
+              <h2 className="text-xl font-semibold mb-4 dark:text-white">Personal Information</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Full Name"
+                    value={formData.fullName}
+                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                    className={`w-full px-4 py-2 rounded-lg border 
+                              ${errors.fullName ? 'border-red-500' : 'border-gray-200'}
+                              dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-black`}
+                  />
+                  {errors.fullName && (
+                    <p className="mt-1 text-sm text-red-500">{errors.fullName}</p>
+                  )}
                 </div>
 
-                {/* Personal Information Fields */}
-                <div className="space-y-4">
-                  <div>
-                    <input
-                      type="text"
-                      placeholder="Full Name"
-                      value={formData.fullName}
-                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                      className={`w-full px-4 py-2 rounded-lg border ${errors.fullName ? 'border-red-500' : 'border-gray-200'} 
-                               focus:outline-none focus:ring-2 focus:ring-black dark:bg-gray-700 dark:text-white
-                               dark:border-gray-600 transition-colors duration-200`}
-                    />
-                    {errors.fullName && (
-                      <p className="mt-1 text-sm text-red-500">{errors.fullName}</p>
-                    )}
-                  </div>
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Phone Number (250...)"
+                    value={formData.phoneNumber}
+                    onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                    className={`w-full px-4 py-2 rounded-lg border 
+                              ${errors.phoneNumber ? 'border-red-500' : 'border-gray-200'}
+                              dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-black`}
+                  />
+                  {errors.phoneNumber && (
+                    <p className="mt-1 text-sm text-red-500">{errors.phoneNumber}</p>
+                  )}
+                </div>
 
-                  <div>
-                    <input
-                      type="text"
-                      placeholder="Identity Number"
-                      value={formData.identityNumber}
-                      onChange={(e) => setFormData({ ...formData, identityNumber: e.target.value })}
-                      className={`w-full px-4 py-2 rounded-lg border ${errors.identityNumber ? 'border-red-500' : 'border-gray-200'}
-                               focus:outline-none focus:ring-2 focus:ring-black dark:bg-gray-700 dark:text-white
-                               dark:border-gray-600 transition-colors duration-200`}
-                    />
-                    {errors.identityNumber && (
-                      <p className="mt-1 text-sm text-red-500">{errors.identityNumber}</p>
-                    )}
-                  </div>
-
+                <div>
                   <select
                     value={formData.gender}
                     onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black
-                             dark:bg-gray-700 dark:text-white dark:border-gray-600 transition-colors duration-200"
+                    className="w-full px-4 py-2 rounded-lg border border-gray-200 
+                             dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-black"
                   >
                     <option value="">Select Gender</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                   </select>
+                </div>
 
-                  <div>
-                    <input
-                      type="text"
-                      placeholder="Phone Number"
-                      value={formData.phoneNumber}
-                      onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                      className={`w-full px-4 py-2 rounded-lg border ${errors.phoneNumber ? 'border-red-500' : 'border-gray-200'}
-                               focus:outline-none focus:ring-2 focus:ring-black dark:bg-gray-700 dark:text-white
-                               dark:border-gray-600 transition-colors duration-200`}
-                    />
-                    {errors.phoneNumber && (
-                      <p className="mt-1 text-sm text-red-500">{errors.phoneNumber}</p>
-                    )}
-                  </div>
-
+                <div>
                   <input
                     type="text"
-                    placeholder="Other Contact Number (Optional)"
-                    value={formData.otherNumber}
-                    onChange={(e) => setFormData({ ...formData, otherNumber: e.target.value })}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black
-                             dark:bg-gray-700 dark:text-white dark:border-gray-600 transition-colors duration-200"
+                    value={formData.identityNumber}
+                    readOnly
+                    placeholder="ID Number (Auto-filled)"
+                    className="w-full px-4 py-2 rounded-lg border border-gray-200 
+                             bg-gray-50 dark:bg-gray-600 dark:text-gray-300"
                   />
                 </div>
-              </motion.div>
+              </div>
+            </motion.div>
 
-              {/* Right Column - Additional Information */}
-              <div className="flex-1 space-y-6">
-                {/* Department Selection */}
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6"
-                >
-                  <h3 className="text-lg font-medium mb-4 dark:text-white">Department/Office</h3>
-                  <div>
-                    <select
-                      value={formData.department}
-                      onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                      className={`w-full px-4 py-2 rounded-lg border ${errors.department ? 'border-red-500' : 'border-gray-200'}
-                               focus:outline-none focus:ring-2 focus:ring-black dark:bg-gray-700 dark:text-white
-                               dark:border-gray-600 transition-colors duration-200`}
-                    >
-                      <option value="">Select Department</option>
-                      {departmentsDump.map(dept => (
-                        <option key={dept.id} value={dept.id}>{dept.name}</option>
-                      ))}
-                    </select>
-                    {errors.department && (
-                      <p className="mt-1 text-sm text-red-500">{errors.department}</p>
-                    )}
-                  </div>
-                </motion.div>
+            {/* Department and Card Selection */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6"
+            >
+              <h2 className="text-xl font-semibold mb-4 dark:text-white">Department & Card</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <select
+                    value={formData.department}
+                    onChange={handleDepartmentChange}
+                    className={`w-full px-4 py-2 rounded-lg border 
+                              ${errors.department ? 'border-red-500' : 'border-gray-200'}
+                              dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-black`}
+                  >
+                    <option value="">Select Department</option>
+                    {DEPARTMENTS.map(dept => (
+                      <option key={dept.id} value={dept.id}>{dept.name}</option>
+                    ))}
+                  </select>
+                  {errors.department && (
+                    <p className="mt-1 text-sm text-red-500">{errors.department}</p>
+                  )}
+                </div>
 
-                {/* Purpose of Visit */}
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                  className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6"
-                >
-                  <h3 className="text-lg font-medium mb-4 dark:text-white">Purpose of Visit</h3>
-                  <div>
-                    <textarea
-                      value={formData.purpose}
-                      onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
-                      className={`w-full px-4 py-2 rounded-lg border ${errors.purpose ? 'border-red-500' : 'border-gray-200'}
-                               focus:outline-none focus:ring-2 focus:ring-black min-h-[100px] dark:bg-gray-700 dark:text-white
-                               dark:border-gray-600 transition-colors duration-200`}
-                      placeholder="Enter purpose of visit"
-                    />
-                    {errors.purpose && (
-                      <p className="mt-1 text-sm text-red-500">{errors.purpose}</p>
-                    )}
-                  </div>
-                </motion.div>
+                <div>
+                  <select
+                    value={formData.visitorCard}
+                    onChange={(e) => setFormData({ ...formData, visitorCard: e.target.value })}
+                    disabled={!selectedDepartment || availableCards.length === 0}
+                    className={`w-full px-4 py-2 rounded-lg border 
+                              ${errors.visitorCard ? 'border-red-500' : 'border-gray-200'}
+                              dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-black
+                              disabled:bg-gray-100 disabled:dark:bg-gray-600`}
+                  >
+                    <option value="">Select Visitor Card</option>
+                    {availableCards.map(card => (
+                      <option key={card} value={card}>{card}</option>
+                    ))}
+                  </select>
+                  {errors.visitorCard && (
+                    <p className="mt-1 text-sm text-red-500">{errors.visitorCard}</p>
+                  )}
+                </div>
+              </div>
+            </motion.div>
 
-                {/* Items and Laptop Section */}
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6"
-                >
-                  <h3 className="text-lg font-medium mb-4 dark:text-white">Items Brought</h3>
+            {/* Purpose and Items */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6"
+            >
+              <h2 className="text-xl font-semibold mb-4 dark:text-white">Visit Details</h2>
+              <div className="space-y-4">
+                <div>
                   <textarea
+                    placeholder="Purpose of Visit"
+                    value={formData.purpose}
+                    onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
+                    className={`w-full px-4 py-2 rounded-lg border 
+                              ${errors.purpose ? 'border-red-500' : 'border-gray-200'}
+                              dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-black
+                              min-h-[100px]`}
+                  />
+                  {errors.purpose && (
+                    <p className="mt-1 text-sm text-red-500">{errors.purpose}</p>
+                  )}
+                </div>
+
+                <div>
+                  <textarea
+                    placeholder="Items Brought (Optional)"
                     value={formData.items}
                     onChange={(e) => setFormData({ ...formData, items: e.target.value })}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black
-                             min-h-[100px] mb-4 dark:bg-gray-700 dark:text-white dark:border-gray-600 transition-colors duration-200"
-                    placeholder="List any items brought"
+                    className="w-full px-4 py-2 rounded-lg border border-gray-200 
+                             dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-black
+                             min-h-[100px]"
                   />
-
-                  {/* Laptop Checkbox */}
-                  <div className="mt-4">
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={hasLaptop}
-                        onChange={(e) => {
-                          setHasLaptop(e.target.checked);
-                          if (!e.target.checked) {
-                            setFormData(prev => ({
-                              ...prev,
-                              laptopBrand: '',
-                              laptopSerial: ''
-                            }));
-                          }
-                        }}
-                        className="w-4 h-4 rounded border-gray-300 text-black focus:ring-black
-                                 dark:border-gray-600 dark:bg-gray-700"
-                      />
-                      <span className="text-gray-700 dark:text-gray-200">Visitor has a laptop</span>
-                    </label>
-                  </div>
-
-                  {/* Conditional Laptop Fields */}
-                  <AnimatePresence>
-                    {hasLaptop && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="space-y-4 mt-4"
-                      >
-                        <div>
-                          <input
-                            type="text"
-                            placeholder="Laptop Brand"
-                            value={formData.laptopBrand}
-                            onChange={(e) => setFormData({ ...formData, laptopBrand: e.target.value })}
-                            className={`w-full px-4 py-2 rounded-lg border ${errors.laptopBrand ? 'border-red-500' : 'border-gray-200'}
-                                     focus:outline-none focus:ring-2 focus:ring-black dark:bg-gray-700 dark:text-white
-                                     dark:border-gray-600 transition-colors duration-200`}
-                          />
-                          {errors.laptopBrand && (
-                            <p className="mt-1 text-sm text-red-500">{errors.laptopBrand}</p>
-                          )}
-                        </div>
-
-                        <div>
-                          <input
-                            type="text"
-                            placeholder="Laptop Serial Number"
-                            value={formData.laptopSerial}
-                            onChange={(e) => setFormData({ ...formData, laptopSerial: e.target.value })}
-                            className={`w-full px-4 py-2 rounded-lg border ${errors.laptopSerial ? 'border-red-500' : 'border-gray-200'}
-                                     focus:outline-none focus:ring-2 focus:ring-black
-                                     dark:bg-gray-700 dark:text-white
-                                     dark:border-gray-600 transition-colors duration-200`}
-                          />
-                          {errors.laptopSerial && (
-                            <p className="mt-1 text-sm text-red-500">{errors.laptopSerial}</p>
-                          )}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
+                </div>
               </div>
-            </div>
+            </motion.div>
+
+            {/* Laptop Information */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6"
+            >
+              <div className="flex items-center mb-4">
+                <h2 className="text-xl font-semibold dark:text-white">Laptop Information</h2>
+                <label className="flex items-center ml-4 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={hasLaptop}
+                    onChange={(e) => {
+                      setHasLaptop(e.target.checked);
+                      if (!e.target.checked) {
+                        setFormData(prev => ({
+                          ...prev,
+                          laptopBrand: '',
+                          laptopSerial: ''
+                        }));
+                        setErrors(prev => ({
+                          ...prev,
+                          laptopBrand: '',
+                          laptopSerial: ''
+                        }));
+                      }
+                    }}
+                    className="w-4 h-4 text-black rounded border-gray-300 
+                             focus:ring-black dark:border-gray-600"
+                  />
+                  <span className="ml-2 text-sm text-gray-600 dark:text-gray-300">
+                    Visitor has a laptop
+                  </span>
+                </label>
+              </div>
+
+              <AnimatePresence>
+                {hasLaptop && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-4"
+                  >
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Laptop Brand"
+                        value={formData.laptopBrand}
+                        onChange={(e) => setFormData({ ...formData, laptopBrand: e.target.value })}
+                        className={`w-full px-4 py-2 rounded-lg border 
+                                  ${errors.laptopBrand ? 'border-red-500' : 'border-gray-200'}
+                                  dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-black`}
+                      />
+                      {errors.laptopBrand && (
+                        <p className="mt-1 text-sm text-red-500">{errors.laptopBrand}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Serial Number"
+                        value={formData.laptopSerial}
+                        onChange={(e) => setFormData({ ...formData, laptopSerial: e.target.value })}
+                        className={`w-full px-4 py-2 rounded-lg border 
+                                  ${errors.laptopSerial ? 'border-red-500' : 'border-gray-200'}
+                                  dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-black`}
+                      />
+                      {errors.laptopSerial && (
+                        <p className="mt-1 text-sm text-red-500">{errors.laptopSerial}</p>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
 
             {/* Form Actions */}
-            <div className="mt-8 flex justify-end gap-4 px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex justify-end space-x-4"
+            >
               <button
                 type="button"
                 onClick={() => navigate('/check-in')}
-                className="px-6 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 
-                         dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white 
-                         transition-colors duration-200"
+                disabled={isLoading}
+                className="px-6 py-2 rounded-lg border border-gray-200 
+                         hover:bg-gray-50 dark:border-gray-600 
+                         dark:hover:bg-gray-700 dark:text-white 
+                         transition-colors duration-200
+                         disabled:opacity-50"
               >
                 Cancel
               </button>
+
               <button
                 type="submit"
-                className="px-6 py-2 rounded-lg bg-black text-white hover:bg-gray-800 
-                         transition-colors duration-200"
+                disabled={isLoading}
+                className="px-6 py-2 rounded-lg bg-black text-white 
+                         hover:bg-gray-800 transition-colors duration-200
+                         disabled:opacity-50 flex items-center space-x-2"
               >
-                Complete Check-In
+                {isLoading ? (
+                  <>
+                    <motion.div
+                      className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    />
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <span>Complete Check-In</span>
+                )}
               </button>
-            </div>
+            </motion.div>
 
-            {errors.submit && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="mt-4 text-center text-red-500"
-              >
-                {errors.submit}
-              </motion.p>
-            )}
-          </form>
-        </div>
+            {/* Error Message */}
+            <AnimatePresence>
+              {errors.submit && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg"
+                >
+                  {errors.submit}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </form>
       </main>
     </div>
   );
