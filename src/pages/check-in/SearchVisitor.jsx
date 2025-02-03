@@ -1,20 +1,52 @@
 // src/components/visitor/SearchVisitor.jsx
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { visitorService } from '../../services/visitorService';
+import { useAuth } from '../../hooks/useAuth';
+
+// Alert/Popup Component
+const Alert = ({ message, type = 'error', onClose }) => (
+  <motion.div
+    initial={{ opacity: 0, y: -50 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -50 }}
+    className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+      type === 'error' ? 'bg-red-500' : 'bg-green-500'
+    } text-white`}
+  >
+    <div className="flex items-center">
+      <span>{message}</span>
+      <button onClick={onClose} className="ml-4 hover:text-gray-200">
+        ✕
+      </button>
+    </div>
+  </motion.div>
+);
 
 const SearchVisitor = () => {
   const [searchInput, setSearchInput] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
   const inputRef = useRef(null);
   const navigate = useNavigate();
 
   const handleInputChange = (e) => {
-    const value = e.target.value;
+    let value = e.target.value;
+    
+    // Handle phone number starting with 250
+    if (value.startsWith('250')) {
+      value = value.slice(0, 12);
+    } 
+    // Handle ID number
+    else if (value !== '#00') {
+      value = value.slice(0, 16); 
+    }
+
     setSearchInput(value);
     setError('');
+    setShowAlert(false);
   };
 
   const handleSearch = async (e) => {
@@ -29,15 +61,8 @@ const SearchVisitor = () => {
     setError('');
 
     try {
-      const result = await visitorService.searchVisitor(searchInput);
-      
-      if (!result) {
-        setError('No visitor found');
-        return;
-      }
-
-      if (result.isPassport || searchInput === '#00') {
-        // Passport case - go to form in manual mode
+      // Handle passport case
+      if (searchInput === '#00') {
         navigate('/check-in/form', { 
           state: { 
             isPassport: true,
@@ -47,7 +72,24 @@ const SearchVisitor = () => {
         return;
       }
 
-      // Regular visitor found
+      // Validate input format
+      if (searchInput.startsWith('250') && searchInput.length !== 12) {
+        throw new Error('Phone number must be 12 digits including 250');
+      } else if (!searchInput.startsWith('250') && searchInput.length !== 16) {
+        throw new Error('ID number must be 16 digits');
+      }
+
+      const result = await visitorService.searchVisitor(searchInput);
+      
+      if (!result || result.error) {
+        const message = searchInput.startsWith('250') 
+          ? 'Phone number not found'
+          : 'ID number not found';
+        setShowAlert(true);
+        setError(message);
+        return;
+      }
+
       navigate('/check-in/form', { 
         state: { 
           visitor: result,
@@ -56,37 +98,26 @@ const SearchVisitor = () => {
       });
 
     } catch (error) {
-      console.error('Search error:', error);
-      setError('An error occurred while searching');
+      setError(error.message);
+      setShowAlert(true);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const FloatingCircle = ({ size, initialX, initialY, duration }) => (
-    <motion.div
-      className="absolute rounded-full bg-gray-100/50 dark:bg-gray-800/50"
-      style={{ width: size, height: size }}
-      initial={{ x: initialX, y: initialY }}
-      animate={{
-        x: [initialX - 20, initialX + 20, initialX],
-        y: [initialY - 20, initialY + 20, initialY],
-        scale: [1, 1.1, 1],
-        rotate: [0, 180, 360]
-      }}
-      transition={{
-        duration,
-        repeat: Infinity,
-        repeatType: "reverse",
-        ease: "easeInOut"
-      }}
-    />
-  );
-
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
+      <AnimatePresence>
+        {showAlert && error && (
+          <Alert 
+            message={error} 
+            onClose={() => setShowAlert(false)}
+          />
+        )}
+      </AnimatePresence>
+
       <main>
-        <div className="h-screen flex items-center justify-center">
+      <div className="h-screen flex items-center justify-center">
           <div className="relative w-full max-w-xl h-96 flex items-center justify-center">
             {/* Animated background circles */}
             <FloatingCircle size={120} initialX={-150} initialY={-50} duration={8} />
@@ -102,26 +133,26 @@ const SearchVisitor = () => {
               transition={{ type: "spring", damping: 15 }}
             >
               <form onSubmit={handleSearch} className="relative">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  className="w-full h-16 px-6 pr-12 text-lg
-                           bg-white dark:bg-gray-800 
-                           text-gray-900 dark:text-white
-                           border-2 border-gray-200 dark:border-gray-700 
-                           rounded-full shadow-lg
-                           focus:outline-none focus:border-black dark:focus:border-gray-500 
-                           transition-all duration-300
-                           hover:shadow-xl
-                           placeholder-gray-400 dark:placeholder-gray-500"
-                  placeholder="Enter ID or Phone Number"
-                  value={searchInput}
-                  onChange={handleInputChange}
-                  disabled={isLoading}
-                  autoFocus
-                />
-                
-                <button
+        <input
+          ref={inputRef}
+          type="text"
+          maxLength={16}
+          className="w-full h-16 px-6 pr-12 text-lg
+                   bg-white dark:bg-gray-800 
+                   text-gray-900 dark:text-white
+                   border-2 border-gray-200 dark:border-gray-700 
+                   rounded-full shadow-lg
+                   focus:outline-none focus:border-black dark:focus:border-gray-500 
+                   transition-all duration-300
+                   hover:shadow-xl
+                   placeholder-gray-400 dark:placeholder-gray-500"
+          placeholder="Enter ID or Phone Number"
+          value={searchInput}
+          onChange={handleInputChange}
+          disabled={isLoading}
+          autoFocus
+        />
+         <button
                   type="submit"
                   disabled={isLoading}
                   className="absolute right-4 top-1/2 -translate-y-1/2
