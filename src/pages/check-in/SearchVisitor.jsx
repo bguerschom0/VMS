@@ -1,10 +1,8 @@
-// src/components/visitor/SearchVisitor.jsx
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { visitorService } from '../../services/visitorService';
 import { useAuth } from '../../hooks/useAuth';
-
 
 const SearchVisitor = () => {
   const [searchInput, setSearchInput] = useState('');
@@ -13,6 +11,7 @@ const SearchVisitor = () => {
   const [showAlert, setShowAlert] = useState(false);
   const inputRef = useRef(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleInputChange = (e) => {
     let value = e.target.value;
@@ -87,72 +86,60 @@ const SearchVisitor = () => {
     }
   };
 
-    const FloatingCircle = ({ size, initialX, initialY, duration }) => (
-    <motion.div
-      className="absolute rounded-full bg-gray-100/50 dark:bg-gray-800/50"
-      style={{ width: size, height: size }}
-      initial={{ x: initialX, y: initialY }}
-      animate={{
-        x: [initialX - 20, initialX + 20, initialX],
-        y: [initialY - 20, initialY + 20, initialY],
-        scale: [1, 1.1, 1],
-        rotate: [0, 180, 360]
-      }}
-      transition={{
-        duration,
-        repeat: Infinity,
-        repeatType: "reverse",
-        ease: "easeInOut"
-      }}
-    />
-  );
-
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        {/* Welcome Section - Added to match Dashboard */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl mb-8"
+        >
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Welcome back, {user?.username || 'User'}
+          </h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
+            Search for a visitor by ID or Phone Number
+          </p>
+        </motion.div>
 
-      <div className="h-screen flex items-center justify-center">
-          <div className="relative w-full max-w-xl h-96 flex items-center justify-center">
-            {/* Animated background circles */}
-            <FloatingCircle size={120} initialX={-150} initialY={-50} duration={8} />
-            <FloatingCircle size={100} initialX={150} initialY={-80} duration={10} />
-            <FloatingCircle size={80} initialX={-100} initialY={50} duration={7} />
-            <FloatingCircle size={90} initialX={120} initialY={80} duration={9} />
-
-            {/* Search Form and Guide */}
+        {/* Search Container */}
+        <div className="flex items-center justify-center">
+          <div className="relative w-full max-w-xl">
             <motion.div
-              className="z-10 w-full px-4"
+              className="z-10 w-full"
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", damping: 15 }}
             >
               <form onSubmit={handleSearch} className="relative">
-        <input
-          ref={inputRef}
-          type="text"
-          maxLength={16}
-          className="w-full h-16 px-6 pr-12 text-lg
-                   bg-white dark:bg-gray-800 
-                   text-gray-900 dark:text-white
-                   border-2 border-gray-200 dark:border-gray-700 
-                   rounded-full shadow-lg
-                   focus:outline-none focus:border-black dark:focus:border-gray-500 
-                   transition-all duration-300
-                   hover:shadow-xl
-                   placeholder-gray-400 dark:placeholder-gray-500"
-          placeholder="Enter ID or Phone Number"
-          value={searchInput}
-          onChange={handleInputChange}
-          disabled={isLoading}
-          autoFocus
-        />
-         <button
+                <input
+                  ref={inputRef}
+                  type="text"
+                  maxLength={16}
+                  className="w-full h-16 px-6 pr-12 text-lg
+                    bg-white dark:bg-gray-800 
+                    text-gray-900 dark:text-white
+                    border-2 border-gray-200 dark:border-gray-700 
+                    rounded-3xl shadow-xl
+                    focus:outline-none focus:border-black dark:focus:border-gray-500 
+                    transition-all duration-300
+                    hover:shadow-2xl
+                    placeholder-gray-400 dark:placeholder-gray-500"
+                  placeholder="Enter ID or Phone Number"
+                  value={searchInput}
+                  onChange={handleInputChange}
+                  disabled={isLoading}
+                  autoFocus
+                />
+                <button
                   type="submit"
                   disabled={isLoading}
                   className="absolute right-4 top-1/2 -translate-y-1/2
-                           w-8 h-8 flex items-center justify-center
-                           text-gray-400 dark:text-gray-500 
-                           hover:text-black dark:hover:text-white 
-                           transition-colors"
+                    w-8 h-8 flex items-center justify-center
+                    text-gray-400 dark:text-gray-500 
+                    hover:text-black dark:hover:text-white 
+                    transition-colors"
                 >
                   {isLoading ? (
                     <motion.div
@@ -191,22 +178,31 @@ const SearchVisitor = () => {
 
               {/* Search Guide */}
               <motion.div
-                className="mt-8 text-center"
+                className="mt-8 bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                <h3 className="text-gray-700 dark:text-gray-300 mb-2">Search Guide</h3>
-                <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                  <p>• ID: requires 16 digits</p>
-                  <p>• Phone Number: 2507********</p>
-                  <p>• For Passport users: #00</p>
+                <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Search Guide</h3>
+                <div className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+                  <p className="flex items-center">
+                    <span className="mr-2 text-black dark:text-white">•</span> 
+                    ID: requires 16 digits
+                  </p>
+                  <p className="flex items-center">
+                    <span className="mr-2 text-black dark:text-white">•</span> 
+                    Phone Number: 2507********
+                  </p>
+                  <p className="flex items-center">
+                    <span className="mr-2 text-black dark:text-white">•</span> 
+                    For Passport users: #00
+                  </p>
                 </div>
               </motion.div>
             </motion.div>
           </div>
         </div>
-
+      </div>
     </div>
   );
 };
