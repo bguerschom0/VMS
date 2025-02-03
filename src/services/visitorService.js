@@ -224,6 +224,31 @@ export const visitorService = {
           return visitor;
         })
       );
+        getUsedCards: async (departmentId) => {
+    const { data, error } = await supabase
+      .from('visitors')
+      .select('visitor_card')
+      .eq('department', departmentId)
+      .not('visitor_card', 'is', null);
+
+    if (error) throw error;
+
+    return data.map(item => item.visitor_card);
+  },
+
+  checkInVisitor: async (visitorData, checkedInBy) => {
+    // Existing check-in logic, but now explicitly saving nationality
+    const { data, error } = await supabase
+      .from('visitors')
+      .insert({
+        ...visitorData,
+        checked_in_by: checkedInBy
+      });
+
+    if (error) throw error;
+    return data;
+  }
+      
 
       return {
         visitors: visitorsWithPhotos,
