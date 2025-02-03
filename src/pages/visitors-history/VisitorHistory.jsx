@@ -24,7 +24,7 @@ const VisitorHistory = () => {
       let query = supabase
         .from('visitors')
         .select('*', { count: 'exact' })
-        .order('entry_timestamp', { ascending: false });
+        .order('check_in_time', { ascending: false });
 
       if (searchTerm) {
         query = query.or(
@@ -111,11 +111,11 @@ const VisitorHistory = () => {
                         <td className="p-4 text-gray-800 dark:text-gray-200">{visitor.full_name}</td>
                         <td className="p-4 text-gray-800 dark:text-gray-200">{visitor.department}</td>
                         <td className="p-4 text-gray-800 dark:text-gray-200">
-                          {new Date(visitor.entry_timestamp).toLocaleString()}
+                          {new Date(visitor.check_in_time).toLocaleString()}
                         </td>
                         <td className="p-4 text-gray-800 dark:text-gray-200">
-                          {visitor.exit_timestamp ? 
-                            new Date(visitor.exit_timestamp).toLocaleString() : 
+                          {visitor.check_out_time ? 
+                            new Date(visitor.check_out_time).toLocaleString() : 
                             'Still Active'
                           }
                         </td>
