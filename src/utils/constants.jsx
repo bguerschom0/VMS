@@ -1,6 +1,6 @@
 
 export const DEPARTMENTS = [
-  { id: 'CEO_OFFICE', name: 'CEO's Office' },
+  { id: 'CEO_OFFICE', name: 'CEOs Office' },
   { id: 'CONSUMER', name: 'Consumer' },
   { id: 'CORP_AFF', name: 'Corporate Affairs' },
   { id: 'COPS&CEX', name: 'Customer Operations and Customer Experience' },
