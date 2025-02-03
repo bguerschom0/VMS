@@ -19,6 +19,7 @@ import ActiveScheduledVisitors from './pages/scheduled-visitors/ActiveScheduledV
 import UserManagement from './pages/UserManagement/UserManagement'
 import GuardShiftReport from './pages/security-guard-shift-report/GuardShiftReport'
 import GuardShiftReportViewer from './pages/report/GuardShiftReportViewer'
+import ScheduledVisitorsReport from './pages/report/ScheduledVisitorsReport'
 
 // Protected Route wrapper
 const ProtectedRoute = ({ children }) => {
@@ -214,6 +215,17 @@ const App = () => {
           <ProtectedRoute>
             <AuthenticatedLayout>
               <GuardShiftReportViewer />
+            </AuthenticatedLayout>
+          </ProtectedRoute>
+        }
+      />
+
+                  <Route
+        path="/scheduled-report"
+        element={
+          <ProtectedRoute>
+            <AuthenticatedLayout>
+              <ScheduledVisitorsReport />
             </AuthenticatedLayout>
           </ProtectedRoute>
         }
