@@ -151,276 +151,321 @@ const GuardShiftReport = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
-        >
-          {/* Header */}
-          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Security Shift Report
-                </h1>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  Submit detailed report of your shift observations and any incidents
-                </p>
-              </div>
-              <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
-                <FileClock className="w-4 h-4" />
-                <span>{new Date().toLocaleString()}</span>
-              </div>
+return (
+  <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-6"
+      >
+        {/* Header */}
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Security Shift Report
+              </h1>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Submit detailed report of your shift observations and any incidents
+              </p>
+            </div>
+            <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+              <FileClock className="w-4 h-4" />
+              <span>{new Date().toLocaleString()}</span>
             </div>
           </div>
+        </div>
 
-          {/* Main Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Shift Information */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.1 }}
-              className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6"
-            >
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                <Shield className="w-5 h-5 mr-2" />
-                Shift Information
-              </h2>
-              
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <select
-                  value={formData.shiftType}
-                  onChange={(e) => setFormData({ ...formData, shiftType: e.target.value })}
-                  className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
-                           dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
-                  required
-                >
-                  <option value="">Select Shift</option>
-                  <option value="day">Day Shift</option>
-                  <option value="night">Night Shift</option>
-                </select>
+        {/* Main Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Shift Information */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6"
+          >
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+              <Shield className="w-5 h-5 mr-2" />
+              Shift Information
+            </h2>
+            
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <select
+                value={formData.shiftType}
+                onChange={(e) => setFormData({ ...formData, shiftType: e.target.value })}
+                className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
+                         dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+                required
+              >
+                <option value="">Select Shift</option>
+                <option value="day">Day Shift</option>
+                <option value="night">Night Shift</option>
+              </select>
 
-                <input
-                  type="datetime-local"
-                  value={formData.shiftStartTime}
-                  onChange={(e) => setFormData({ ...formData, shiftStartTime: e.target.value })}
-                  className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
-                           dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
-                  required
-                />
+              <input
+                type="datetime-local"
+                value={formData.shiftStartTime}
+                onChange={(e) => setFormData({ ...formData, shiftStartTime: e.target.value })}
+                className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
+                         dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+                required
+              />
 
-                <input
-                  type="datetime-local"
-                  value={formData.shiftEndTime}
-                  onChange={(e) => setFormData({ ...formData, shiftEndTime: e.target.value })}
-                  className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
-                           dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
-                  required
-                />
-              </div>
-            </motion.div>
+              <input
+                type="datetime-local"
+                value={formData.shiftEndTime}
+                onChange={(e) => setFormData({ ...formData, shiftEndTime: e.target.value })}
+                className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
+                         dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+                required
+              />
+            </div>
+          </motion.div>
 
-            {/* Remote CCTV Monitoring */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6"
-            >
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                <Camera className="w-5 h-5 mr-2" />
-                Remote CCTV Monitoring
-              </h2>
-              
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                {REMOTE_LOCATIONS.map(location => (
-                  <div key={location.id} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={formData.remoteLocationsChecked[location.id].checked}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            remoteLocationsChecked: {
-                              ...formData.remoteLocationsChecked,
-                              [location.id]: {
-                                ...formData.remoteLocationsChecked[location.id],
-                                checked: e.target.checked
-                              }
-                            }
-                          })}
-                          className="rounded border-gray-300 text-black focus:ring-black"
-                        />
-                        <span className="text-gray-700 dark:text-gray-300">{location.name}</span>
-                      </label>
-                      
-                      <select
-                        value={formData.remoteLocationsChecked[location.id].status}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          remoteLocationsChecked: {
-                            ...formData.remoteLocationsChecked,
-                            [location.id]: {
-                              ...formData.remoteLocationsChecked[location.id],
-                              status: e.target.value
-                            }
-                          }
-                        })}
-                        className="px-2 py-1 text-sm rounded border border-gray-200 dark:border-gray-600
-                                 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
-                      >
-                        <option value="normal">Normal</option>
-                        <option value="issues">Issues</option>
-                        <option value="offline">Offline</option>
-                      </select>
-                    </div>
-                    
-                    {formData.remoteLocationsChecked[location.id].status !== 'normal' && (
+          {/* Remote CCTV Monitoring */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6"
+          >
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+              <Camera className="w-5 h-5 mr-2" />
+              Remote CCTV Monitoring
+            </h2>
+            
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {REMOTE_LOCATIONS.map(location => (
+                <div key={location.id} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center space-x-2">
                       <input
-                        type="text"
-                        placeholder="Enter notes about issues..."
-                        value={formData.remoteLocationsChecked[location.id].notes}
+                        type="checkbox"
+                        checked={formData.remoteLocationsChecked[location.id].checked}
                         onChange={(e) => setFormData({
                           ...formData,
                           remoteLocationsChecked: {
                             ...formData.remoteLocationsChecked,
                             [location.id]: {
                               ...formData.remoteLocationsChecked[location.id],
-                              notes: e.target.value
+                              checked: e.target.checked
                             }
                           }
                         })}
-                        className="w-full px-3 py-1 text-sm rounded border border-gray-200 dark:border-gray-600
-                                 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+                        className="rounded border-gray-300 text-black focus:ring-black"
                       />
-                    )}
+                      <span className="text-gray-700 dark:text-gray-300">{location.name}</span>
+                    </label>
+                    
+                    <select
+                      value={formData.remoteLocationsChecked[location.id].status}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        remoteLocationsChecked: {
+                          ...formData.remoteLocationsChecked,
+                          [location.id]: {
+                            ...formData.remoteLocationsChecked[location.id],
+                            status: e.target.value
+                          }
+                        }
+                      })}
+                      className="px-2 py-1 text-sm rounded border border-gray-200 dark:border-gray-600
+                               dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+                    >
+                      <option value="normal">Normal</option>
+                      <option value="issues">Issues</option>
+                      <option value="offline">Offline</option>
+                    </select>
                   </div>
-                ))}
+                  
+                  {formData.remoteLocationsChecked[location.id].status !== 'normal' && (
+                    <input
+                      type="text"
+                      placeholder="Enter notes about issues..."
+                      value={formData.remoteLocationsChecked[location.id].notes}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        remoteLocationsChecked: {
+                          ...formData.remoteLocationsChecked,
+                          [location.id]: {
+                            ...formData.remoteLocationsChecked[location.id],
+                            notes: e.target.value
+                          }
+                        }
+                      })}
+                      className="w-full px-3 py-1 text-sm rounded border border-gray-200 dark:border-gray-600
+                               dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Building Areas Check */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6"
+          >
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+              <Building2 className="w-5 h-5 mr-2" />
+              Building Areas Check
+            </h2>
+            
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+              {BUILDING_AREAS.map(area => (
+                <div key={area} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.buildingAreasChecked[area].checked}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          buildingAreasChecked: {
+                            ...formData.buildingAreasChecked,
+                            [area]: {
+                              ...formData.buildingAreasChecked[area],
+                              checked: e.target.checked
+                            }
+                          }
+                        })}
+                        className="rounded border-gray-300 text-black focus:ring-black"
+                      />
+                      <span className="text-gray-700 dark:text-gray-300">{area}</span>
+                    </label>
+                    
+                    <select
+                      value={formData.buildingAreasChecked[area].status}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        buildingAreasChecked: {
+                          ...formData.buildingAreasChecked,
+                          [area]: {
+                            ...formData.buildingAreasChecked[area],
+                            status: e.target.value
+                          }
+                        }
+                      })}
+                      className="px-2 py-1 text-sm rounded border border-gray-200 dark:border-gray-600
+                               dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+                    >
+                      <option value="normal">Normal</option>
+                      <option value="attention">Needs Attention</option>
+                      <option value="urgent">Urgent Issue</option>
+                    </select>
+                  </div>
+
+                  {formData.buildingAreasChecked[area].status !== 'normal' && (
+                    <input
+                      type="text"
+                      placeholder="Describe the issue..."
+                      value={formData.buildingAreasChecked[area].notes}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        buildingAreasChecked: {
+                          ...formData.buildingAreasChecked,
+                          [area]: {
+                            ...formData.buildingAreasChecked[area],
+                            notes: e.target.value
+                          }
+                        }
+                      })}
+                      className="w-full px-3 py-1 text-sm rounded border border-gray-200 dark:border-gray-600
+                               dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Utility Status */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6"
+          >
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+              <Power className="w-5 h-5 mr-2" />
+              Utility Status
+            </h2>
+            
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Electricity Status */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Electricity Status
+                </label>
+                <select
+                  value={formData.electricityStatus}
+                  onChange={(e) => setFormData({ ...formData, electricityStatus: e.target.value })}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
+                           dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+                >
+                  <option value="normal">Normal</option>
+                  <option value="issues">Issues Present</option>
+                  <option value="outage">Power Outage</option>
+                </select>
               </div>
-            </motion.div>
 
-            {/* Building Areas Check */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6"
-            >
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                <Building2 className="w-5 h-5 mr-2" />
-                Building Areas Check
-              </h2>
-              
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                {BUILDING_AREAS.map(area => (
-                  <div key={area} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={formData.buildingAreasChecked[area].checked}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            buildingAreasChecked: {
-                              ...formData.buildingAreasChecked,
-                              [area]: {
-                                ...formData.buildingAreasChecked[area],
-                                checked: e.target.checked
-                  }
-                }
-              })}
-                                    className="rounded border-gray-300 text-black focus:ring-black"
-            />
-                        <span className="text-gray-700 dark:text-gray-300">{area}</span>
-          </label>
-
-            {/* Utility Status */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6"
-            >
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                <Power className="w-5 h-5 mr-2" />
-                Utility Status
-              </h2>
-               
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Electricity Status */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Electricity Status
-                  </label>
-                  <select
-                    value={formData.electricityStatus}
-                    onChange={(e) => setFormData({ ...formData, electricityStatus: e.target.value })}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
-                             dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
-                  >
-                    <option value="normal">Normal</option>
-                    <option value="issues">Issues Present</option>
-                    <option value="outage">Power Outage</option>
-                  </select>
-                </div> 
-
-                {/* Water Supply */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Water Supply
-                  </label>
-                  <select
-                    value={formData.waterSupplyStatus}
-                    onChange={(e) => setFormData({ ...formData, waterSupplyStatus: e.target.value })}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
-                             dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
-                  >
-                    <option value="normal">Normal</option>
-                    <option value="issues">Issues Present</option>
-                    <option value="outage">No Water Supply</option>
-                  </select>
-                </div>
-
-                {/* Generator Status */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Generator Status
-                  </label>
-                  <select
-                    value={formData.generatorStatus}
-                    onChange={(e) => setFormData({ ...formData, generatorStatus: e.target.value })}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
-                             dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
-                  >
-                    <option value="normal">Operational</option>
-                    <option value="issues">Needs Maintenance</option>
-                    <option value="not-working">Not Working</option>
-                  </select>
-                </div>
-
-                {/* UPS Status */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    UPS Status
-                  </label>
-                  <select
-                    value={formData.upsStatus}
-                    onChange={(e) => setFormData({ ...formData, upsStatus: e.target.value })}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
-                             dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
-                  >
-                    <option value="normal">Operational</option>
-                    <option value="issues">Issues Present</option>
-                    <option value="not-working">Not Working</option>
-                  </select>
-                </div>
+              {/* Water Supply */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Water Supply
+                </label>
+                <select
+                  value={formData.waterSupplyStatus}
+                  onChange={(e) => setFormData({ ...formData, waterSupplyStatus: e.target.value })}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
+                           dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+                >
+                  <option value="normal">Normal</option>
+                  <option value="issues">Issues Present</option>
+                  <option value="outage">No Water Supply</option>
+                </select>
               </div>
-            </motion.div>
+
+              {/* Generator Status */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Generator Status
+                </label>
+                <select
+                  value={formData.generatorStatus}
+                  onChange={(e) => setFormData({ ...formData, generatorStatus: e.target.value })}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
+                           dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+                >
+                  <option value="normal">Operational</option>
+                  <option value="issues">Needs Maintenance</option>
+                  <option value="not-working">Not Working</option>
+                </select>
+              </div>
+
+              {/* UPS Status */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  UPS Status
+                </label>
+                <select
+                  value={formData.upsStatus}
+                  onChange={(e) => setFormData({ ...formData, upsStatus: e.target.value })}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
+                           dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+                >
+                  <option value="normal">Operational</option>
+                  <option value="issues">Issues Present</option>
+                  <option value="not-working">Not Working</option>
+                </select>
+              </div>
+            </div>
+          </motion.div>
 
             {/* Incident Reporting */}
             <motion.div
