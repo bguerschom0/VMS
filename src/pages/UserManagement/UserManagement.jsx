@@ -174,6 +174,11 @@ const UserModal = ({ isOpen, mode, user, onClose, onSubmit }) => {
 
 const UserManagement = () => {
   const { user: currentUser } = useAuth();
+  const isAuthorized = useRoleCheck('/user-management');
+
+   if (!isAuthorized) return null;
+
+  
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
