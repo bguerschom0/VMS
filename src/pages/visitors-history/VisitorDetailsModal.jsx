@@ -80,11 +80,11 @@ const VisitorDetailsModal = ({ isOpen, visitor, onClose }) => {
               <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Visit Timeline</h3>
               <div className="mt-1 space-y-1">
                 <p className="text-gray-900 dark:text-white">
-                  Entered: {new Date(visitor.entry_timestamp).toLocaleString()}
+                  Entered: {new Date(visitor.check_in_time).toLocaleString()}
                 </p>
                 <p className="text-gray-900 dark:text-white">
                   {visitor.exit_timestamp ? 
-                    `Exited: ${new Date(visitor.exit_timestamp).toLocaleString()}` : 
+                    `Exited: ${new Date(visitor.check_out_time).toLocaleString()}` : 
                     'Status: Still Active'
                   }
                 </p>
