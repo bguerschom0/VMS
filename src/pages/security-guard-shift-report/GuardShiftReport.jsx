@@ -17,29 +17,40 @@ import {
 
 // Remote locations to monitor
 const REMOTE_LOCATIONS = [
-  { id: 'loc1', name: 'Branch Office - Nyagatare' },
-  { id: 'loc2', name: 'Branch Office - Huye' },
-  { id: 'loc3', name: 'Branch Office - Musanze' },
-  { id: 'loc4', name: 'Branch Office - Rubavu' },
-  { id: 'loc5', name: 'Storage Facility - Kigali' },
-  // Add more locations as needed
+  { id: 'loc1', name: 'Head Quaters - Nyarutarama' },
+  { id: 'loc2', name: 'Remera Innovation HUB - Remera' },
+  { id: 'loc3', name: 'Kimironko SC - Kigali' },
+  { id: 'loc4', name: 'Kabuga SC - Kigali' },
+  { id: 'loc5', name: 'Kisiment SC - Kigali' },
+  { id: 'loc6', name: 'KCM SC - Kigali' },
+  { id: 'loc7', name: 'CHIC SC - Kigali' },
+  { id: 'loc8', name: 'Kicukiro SC - Kigali' },
+  { id: 'loc9', name: 'Gisozi SC - Kigali' },
+  { id: 'loc10', name: 'Nyabugogo 1 - Kigali' },
+  { id: 'loc11', name: 'Nyabugogo 2 - Kigali' },
+  { id: 'loc12', name: 'Giporoso SC - Kigali' },
+  { id: 'loc13', name: 'Nyarutarama SC - Kigali' },
+  { id: 'loc14', name: 'Nyamirambo - Kigali' },
+  { id: 'loc15', name: 'Muhanga SC - South' },
+  { id: 'loc16', name: 'Huye SC - South' },
+  { id: 'loc17', name: 'Musanze SC - North' },
+  { id: 'loc18', name: 'Gicumbi SC - North' },
+  { id: 'loc19', name: 'Rubavu Petit SC - West' },
+  { id: 'loc20', name: 'Rubavu Town SC - West' },
+  { id: 'loc21', name: 'Karongi SC - West' },
+  { id: 'loc22', name: 'Rusizi SC - West' },
+  { id: 'loc23', name: 'Nyamata SC - East' },
+  { id: 'loc24', name: 'Rwamagana SC - East' },
+  { id: 'loc25', name: 'Kabarore SC - East' },
+  { id: 'loc26', name: 'Nyagatare SC - East' },
+  { id: 'loc27', name: 'Nyakarambi SC - East' },
+  { id: 'loc28', name: 'Ngoma SC - East' },
+  { id: 'loc29', name: 'Nyanza Switch - South' },
+  { id: 'loc30', name: 'Gicumbi Switch - North' },
+  { id: 'loc31', name: 'Gahengeri Switch - East' },
+  { id: 'loc32', name: 'Kibuye Switch - West' },
 ];
 
-// Building areas to check
-const BUILDING_AREAS = [
-  'Main Entrance',
-  'Reception',
-  'Office Floors',
-  'Server Room',
-  'Conference Rooms',
-  'Storage Areas',
-  'Parking Lots',
-  'Loading Dock',
-  'Roof Access',
-  'Emergency Exits',
-  'Stairwells',
-  'Utility Rooms'
-];
 
 const GuardShiftReport = () => {
   const { user } = useAuth();
@@ -70,12 +81,6 @@ const GuardShiftReport = () => {
     waterSupplyStatus: 'normal',
     generatorStatus: 'normal',
     upsStatus: 'normal',
-
-    // Building Areas
-    buildingAreasChecked: BUILDING_AREAS.reduce((acc, area) => ({
-      ...acc,
-      [area]: { checked: false, status: 'normal', notes: '' }
-    }), {}),
 
     // Security Equipment
     securityEquipment: {
@@ -110,8 +115,7 @@ const GuardShiftReport = () => {
     generalObservations: '',
     recommendedActions: '',
     pendingTasks: '',
-    keyHandover: true,
-    radioHandover: true
+
   });
 
   const handleSubmit = async (e) => {
@@ -291,86 +295,6 @@ return (
                           ...formData.remoteLocationsChecked,
                           [location.id]: {
                             ...formData.remoteLocationsChecked[location.id],
-                            notes: e.target.value
-                          }
-                        }
-                      })}
-                      className="w-full px-3 py-1 text-sm rounded border border-gray-200 dark:border-gray-600
-                               dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Building Areas Check */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6"
-          >
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-              <Building2 className="w-5 h-5 mr-2" />
-              Building Areas Check
-            </h2>
-            
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-              {BUILDING_AREAS.map(area => (
-                <div key={area} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={formData.buildingAreasChecked[area].checked}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          buildingAreasChecked: {
-                            ...formData.buildingAreasChecked,
-                            [area]: {
-                              ...formData.buildingAreasChecked[area],
-                              checked: e.target.checked
-                            }
-                          }
-                        })}
-                        className="rounded border-gray-300 text-black focus:ring-black"
-                      />
-                      <span className="text-gray-700 dark:text-gray-300">{area}</span>
-                    </label>
-                    
-                    <select
-                      value={formData.buildingAreasChecked[area].status}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        buildingAreasChecked: {
-                          ...formData.buildingAreasChecked,
-                          [area]: {
-                            ...formData.buildingAreasChecked[area],
-                            status: e.target.value
-                          }
-                        }
-                      })}
-                      className="px-2 py-1 text-sm rounded border border-gray-200 dark:border-gray-600
-                               dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
-                    >
-                      <option value="normal">Normal</option>
-                      <option value="attention">Needs Attention</option>
-                      <option value="urgent">Urgent Issue</option>
-                    </select>
-                  </div>
-
-                  {formData.buildingAreasChecked[area].status !== 'normal' && (
-                    <input
-                      type="text"
-                      placeholder="Describe the issue..."
-                      value={formData.buildingAreasChecked[area].notes}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        buildingAreasChecked: {
-                          ...formData.buildingAreasChecked,
-                          [area]: {
-                            ...formData.buildingAreasChecked[area],
                             notes: e.target.value
                           }
                         }
@@ -585,27 +509,6 @@ return (
                            min-h-[100px]"
                 />
  
-                <div className="flex space-x-4">
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      checked={formData.keyHandover}
-                      onChange={(e) => setFormData({ ...formData, keyHandover: e.target.checked })}
-                      className="rounded border-gray-300 text-black focus:ring-black"
-                    />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">Keys Handed Over</span>
-                  </label>
-
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      checked={formData.radioHandover}
-                      onChange={(e) => setFormData({ ...formData, radioHandover: e.target.checked })}
-                      className="rounded border-gray-300 text-black focus:ring-black"
-                    />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">Radio Handed Over</span>
-                  </label>
-                </div>
               </div>
             </motion.div>
 
