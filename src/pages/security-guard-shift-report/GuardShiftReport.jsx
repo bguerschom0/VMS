@@ -334,6 +334,10 @@ const GuardShiftReport = () => {
                   }
                 }
               })}
+                                    className="rounded border-gray-300 text-black focus:ring-black"
+            />
+                        <span className="text-gray-700 dark:text-gray-300">{area}</span>
+          </label>
 
             {/* Utility Status */}
             <motion.div
@@ -363,7 +367,7 @@ const GuardShiftReport = () => {
                     <option value="issues">Issues Present</option>
                     <option value="outage">Power Outage</option>
                   </select>
-                </div>
+                </div> 
 
                 {/* Water Supply */}
                 <div>
