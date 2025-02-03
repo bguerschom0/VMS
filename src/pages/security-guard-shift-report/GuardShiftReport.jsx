@@ -334,7 +334,6 @@ const GuardShiftReport = () => {
                               }
 
                 
-            {/* Utility Status */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
