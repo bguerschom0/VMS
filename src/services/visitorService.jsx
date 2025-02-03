@@ -75,7 +75,7 @@ export const visitorService = {
     } catch (error) {
       console.error('Error getting available cards:', error);
       throw error;
-    },
+    }
 
   // Get used cards for a department
   async getUsedCards(departmentId) {
