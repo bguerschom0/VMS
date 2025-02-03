@@ -6,26 +6,6 @@ import { visitorService } from '../../services/visitorService';
 import { useAuth } from '../../hooks/useAuth';
 
 
-
-// Alert/Popup Component
-const Alert = ({ message, type = 'error', onClose }) => (
-  <motion.div
-    initial={{ opacity: 0, y: -50 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -50 }}
-    className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
-      type === 'error' ? 'bg-red-500' : 'bg-green-500'
-    } text-white`}
-  >
-    <div className="flex items-center">
-      <span>{message}</span>
-      <button onClick={onClose} className="ml-4 hover:text-gray-200">
-        ✕
-      </button>
-    </div>
-  </motion.div>
-);
-
 const SearchVisitor = () => {
   const [searchInput, setSearchInput] = useState('');
   const [error, setError] = useState('');
@@ -129,14 +109,6 @@ const SearchVisitor = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      <AnimatePresence>
-        {showAlert && error && (
-          <Alert 
-            message={error} 
-            onClose={() => setShowAlert(false)}
-          />
-        )}
-      </AnimatePresence>
 
       <main>
       <div className="h-screen flex items-center justify-center">
