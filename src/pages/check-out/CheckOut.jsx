@@ -113,9 +113,10 @@ const CheckOut = () => {
       exit={{ opacity: 0, y: 50 }}
       className={`fixed bottom-4 right-4 z-50 px-6 py-4 rounded-xl shadow-lg
         ${type === 'success' 
-          ? 'bg-green-500 text-white' 
+          ? 'bg-black text-white dark:bg-white dark:text-black' 
           : 'bg-red-500 text-white'
-        }`}
+        }
+        transition-colors duration-300`}
     >
       {message}
     </motion.div>
