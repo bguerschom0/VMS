@@ -568,4 +568,6 @@ const GuardShiftReportViewer = () => {
 );
 
 
+}
+
   export default GuardShiftReportViewer;                        
