@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }) => {
     }, 5 * 60 * 1000) // 5 minutes (300,000 ms)
   }
 
-  const login = async (email, password) => {
+  const login = async (username, password) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ username, password })
       if (error) throw error
