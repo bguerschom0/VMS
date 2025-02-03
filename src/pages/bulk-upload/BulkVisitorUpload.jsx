@@ -145,66 +145,63 @@ const BulkVisitorUpload = () => {
   };
 
 const handleSubmit = async () => {
-  if (!previewData.length) {
-    setError('Please upload a file first');
-    return;
-  }
-
-  const invalidRows = previewData.filter(row => !row.isValid);
-  if (invalidRows.length > 0) {
-    setError(`Please fix errors in rows: ${invalidRows.map(row => row.rowNumber).join(', ')}`);
-    return;
-  }
-
-  setLoading(true);
-  try {
-    // Get current session using getSession
-    const { data: sessionData } = await supabase.auth.getSession();
-    const session = sessionData?.session;
-
-    if (!session?.user?.id) {
-      throw new Error('Please sign in to upload visitors');
+    if (!previewData.length) {
+      setError('Please upload a file first');
+      return;
     }
 
-    const userId = session.user.id;
-
-    const visitorsToInsert = previewData.map(row => ({
-      full_name: row['Full Name'],
-      identity_number: row['ID/Passport Number'],
-      phone_number: row['Phone Number'],
-      department: row['Department'],
-      purpose: row['Purpose of Visit'],
-      visit_start_date: new Date(row['Visit Start Date']).toISOString(),
-      visit_end_date: new Date(row['Visit End Date']).toISOString(),
-      items: row['Items/Equipment'] || null,
-      laptop_brand: row['Laptop Brand'] || null,
-      laptop_serial: row['Laptop Serial'] || null,
-      status: 'pending',
-      created_by: user?.username,
-      notes: null,
-      arrival_time: null,
-      departure_time: null
-    }));
-
-    const { data, error } = await supabase
-      .from('scheduled_visitors')
-      .insert(visitorsToInsert)
-      .select();
-
-    if (error) {
-      console.error('Detailed error:', error);
-      throw error;
+    // Check for user authentication
+    if (!user?.username) {
+      setError('User session expired. Please log in again.');
+      return;
     }
-    
-    setSuccess(`Successfully uploaded ${previewData.length} visitor${previewData.length > 1 ? 's' : ''}!`);
-    clearData();
-  } catch (error) {
-    console.error('Full error object:', error);
-    setError('Error uploading visitors: ' + error.message);
-  } finally {
-    setLoading(false);
-  }
-};
+
+    const invalidRows = previewData.filter(row => !row.isValid);
+    if (invalidRows.length > 0) {
+      setError(`Please fix errors in rows: ${invalidRows.map(row => row.rowNumber).join(', ')}`);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Modify the visitorsToInsert to include created_by with username
+      const visitorsToInsert = previewData.map(row => ({
+        full_name: row['Full Name'],
+        identity_number: row['ID/Passport Number'],
+        phone_number: row['Phone Number'],
+        department: row['Department'],
+        purpose: row['Purpose of Visit'],
+        visit_start_date: new Date(row['Visit Start Date']).toISOString(),
+        visit_end_date: new Date(row['Visit End Date']).toISOString(),
+        items: row['Items/Equipment'] || null,
+        laptop_brand: row['Laptop Brand'] || null,
+        laptop_serial: row['Laptop Serial'] || null,
+        status: 'pending',
+        created_by: user.username, // Use the username here
+        notes: null,
+        arrival_time: null,
+        departure_time: null
+      }));
+
+      const { data, error } = await supabase
+        .from('scheduled_visitors')
+        .insert(visitorsToInsert)
+        .select();
+
+      if (error) {
+        console.error('Detailed error:', error);
+        throw error;
+      }
+      
+      setSuccess(`Successfully uploaded ${previewData.length} visitor${previewData.length > 1 ? 's' : ''}!`);
+      clearData();
+    } catch (error) {
+      console.error('Full error object:', error);
+      setError('Error uploading visitors: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
