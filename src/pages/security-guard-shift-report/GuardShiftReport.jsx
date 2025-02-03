@@ -334,7 +334,7 @@ const GuardShiftReport = () => {
                               }
                             }
 
-
+                          }
 
             {/* Utility Status */}
             <motion.div
