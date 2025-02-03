@@ -18,6 +18,7 @@ import BulkVisitorUpload from './pages/bulk-upload/BulkVisitorUpload'
 import ActiveScheduledVisitors from './pages/scheduled-visitors/ActiveScheduledVisitors'
 import UserManagement from './pages/UserManagement/UserManagement'
 import GuardShiftReport from './pages/security-guard-shift-report/GuardShiftReport'
+import GuardShiftReportViewer from ./pages/report/GuardShiftReportViewer'
 
 // Protected Route wrapper
 const ProtectedRoute = ({ children }) => {
@@ -200,6 +201,19 @@ const App = () => {
           <ProtectedRoute>
             <AuthenticatedLayout>
               <Report />
+            </AuthenticatedLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      
+
+            <Route
+        path="/GuardShiftReportViewer"
+        element={
+          <ProtectedRoute>
+            <AuthenticatedLayout>
+              <GuardShiftReportViewer />
             </AuthenticatedLayout>
           </ProtectedRoute>
         }
