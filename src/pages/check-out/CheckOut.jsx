@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '../../config/supabase';
-import { useAuth } from '../../hooks/useAuth'; // Import auth hook
+import { useAuth } from '../../hooks/useAuth';
 import CheckoutModal from './CheckoutModal';
 import Sidebar from '../../components/layout/Sidebar';
 
 const CheckOut = () => {
-  const { user } = useAuth(); // Get current user
+  const { user } = useAuth();
   const [visitors, setVisitors] = useState([]);
   const [selectedVisitor, setSelectedVisitor] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -41,8 +41,8 @@ const CheckOut = () => {
       let query = supabase
         .from('visitors')
         .select('*', { count: 'exact' })
-        .is('exit_timestamp', null)
-        .order('entry_timestamp', { ascending: false });
+        .is('check_out_time', null)
+        .order('check_in_time', { ascending: false });
 
       if (searchTerm.trim()) {
         query = query.or(
@@ -73,8 +73,8 @@ const CheckOut = () => {
       const { error } = await supabase
         .from('visitors')
         .update({ 
-          exit_timestamp: new Date().toISOString(),
-          exit_username: user?.email // Use actual logged-in user's email
+          check_out_time: new Date().toISOString(),
+          check_out_by: user?.username
         })
         .eq('id', visitorId);
 
@@ -151,7 +151,7 @@ return (
                         <td className="p-4 text-gray-800 dark:text-gray-200">{visitor.visitor_card}</td>
                         <td className="p-4 text-gray-800 dark:text-gray-200">{visitor.department}</td>
                         <td className="p-4 text-gray-800 dark:text-gray-200">
-                          {new Date(visitor.entry_timestamp).toLocaleString()}
+                          {new Date(visitor.check_in_time).toLocaleString()}
                         </td>
                         <td className="p-4 text-center">
                           <button
