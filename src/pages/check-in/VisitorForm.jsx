@@ -2,27 +2,47 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { visitorService } from '../../services/visitorService';
-import { DEPARTMENTS, ERROR_MESSAGES } from '../../utils/constants';
+import { DEPARTMENTS } from '../../utils/constants';
 import { useAuth } from '../../hooks/useAuth';
 
 // Alert/Popup Component
-const Alert = ({ message, type = 'error', onClose }) => (
+const Alert = ({ message, type = 'error', onClose, onConfirm }) => (
   <motion.div
     initial={{ opacity: 0, scale: 0.75 }}
     animate={{ opacity: 1, scale: 1 }}
     exit={{ opacity: 0, scale: 0.75 }}
-    className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 p-6 rounded-2xl shadow-2xl 
+    className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 
+      w-96 max-w-[90%] p-6 rounded-2xl shadow-2xl 
       ${type === 'error' ? 'bg-red-500' : 'bg-green-500'} 
-      text-white w-96 max-w-[90%]`}
+      text-white`}
   >
     <div className="flex flex-col items-center space-y-4">
       <span className="text-center text-lg">{message}</span>
-      <button 
-        onClick={onClose} 
-        className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
-      >
-        Close
-      </button>
+      <div className="flex space-x-4">
+        {onConfirm ? (
+          <>
+            <button 
+              onClick={onConfirm} 
+              className="px-4 py-2 bg-white/30 hover:bg-white/40 rounded-lg"
+            >
+              Confirm
+            </button>
+            <button 
+              onClick={onClose} 
+              className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg"
+            >
+              Cancel
+            </button>
+          </>
+        ) : (
+          <button 
+            onClick={onClose} 
+            className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg"
+          >
+            Close
+          </button>
+        )}
+      </div>
     </div>
   </motion.div>
 );
@@ -42,6 +62,8 @@ const VisitorForm = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [alertType, setAlertType] = useState('error');
+  const [alertConfirmAction, setAlertConfirmAction] = useState(null);
+  const [isPassportUser, setIsPassportUser] = useState(false);
   
   const [formData, setFormData] = useState({
     fullName: '',
@@ -68,6 +90,9 @@ const VisitorForm = () => {
       return;
     }
 
+    // Set passport user flag
+    setIsPassportUser(isPassport || false);
+
     if (visitor) {
       setFormData(prev => ({
         ...prev,
@@ -82,6 +107,10 @@ const VisitorForm = () => {
     } else if (isPassport) {
       // Enable all fields for passport case (#00)
       setIsEditable(true);
+      setFormData(prev => ({
+        ...prev,
+        nationality: '' // Reset nationality for new passport user
+      }));
     }
   }, [location.state, navigate]);
 
@@ -91,8 +120,18 @@ const VisitorForm = () => {
       if (!selectedDepartment) return;
       
       try {
-        const cards = await visitorService.getAvailableCards(selectedDepartment);
-        setAvailableCards(cards);
+        // Fetch both available and used cards
+        const availableCardsResponse = await visitorService.getAvailableCards(selectedDepartment);
+        
+        // Check for used cards
+        const usedCardsResponse = await visitorService.getUsedCards(selectedDepartment);
+        
+        // Filter out used cards
+        const filteredCards = availableCardsResponse.filter(
+          card => !usedCardsResponse.includes(card)
+        );
+
+        setAvailableCards(filteredCards);
       } catch (error) {
         console.error('Error loading cards:', error);
         showErrorAlert('Failed to load available cards');
@@ -102,18 +141,20 @@ const VisitorForm = () => {
     loadAvailableCards();
   }, [selectedDepartment]);
 
-  // Helper function to show error alert
+  // Show error alert
   const showErrorAlert = (message) => {
     setAlertMessage(message);
     setAlertType('error');
     setShowAlert(true);
+    setAlertConfirmAction(null);
   };
 
-  // Helper function to show success alert
-  const showSuccessAlert = (message) => {
+  // Show success alert
+  const showSuccessAlert = (message, confirmAction = null) => {
     setAlertMessage(message);
     setAlertType('success');
     setShowAlert(true);
+    setAlertConfirmAction(confirmAction);
   };
 
   // Handle department change
@@ -137,13 +178,16 @@ const VisitorForm = () => {
       newErrors.phoneNumber = 'Phone number must start with 250 followed by 9 digits';
     }
 
-    // For passport users (#00), require identity number
-    if (location.state?.isPassport && !formData.identityNumber) {
-      newErrors.identityNumber = 'ID or Passport number is required';
+    // Nationality validation only for passport users
+    if (isPassportUser) {
+      if (!formData.nationality) {
+        newErrors.nationality = 'Nationality is required for passport users';
+      }
     }
-    
-    if (!formData.nationality) {
-      newErrors.nationality = 'Nationality is required';
+
+    // For passport users (#00), require identity number
+    if (isPassportUser && !formData.identityNumber) {
+      newErrors.identityNumber = 'ID or Passport number is required';
     }
 
     if (!formData.department) newErrors.department = 'Department is required';
@@ -178,20 +222,31 @@ const VisitorForm = () => {
     try {
       await visitorService.checkInVisitor({
         ...formData,
-        isPassport: location.state?.isPassport || false
+        isPassport: isPassportUser
       }, user.username);
       
-      navigate('/check-in', { 
-        state: { 
-          success: true,
-          message: 'Visitor checked in successfully'
-        }
+      // Show success alert before navigating
+      showSuccessAlert('Visitor checked in successfully', () => {
+        navigate('/check-in', { 
+          state: { 
+            success: true,
+            message: 'Visitor checked in successfully'
+          }
+        });
       });
     } catch (error) {
       console.error('Check-in error:', error);
       showErrorAlert(error.message || 'An error occurred during check-in');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Close alert handler
+  const handleCloseAlert = () => {
+    setShowAlert(false);
+    if (alertConfirmAction) {
+      alertConfirmAction();
     }
   };
 
@@ -204,7 +259,8 @@ const VisitorForm = () => {
             <Alert 
               message={alertMessage} 
               type={alertType}
-              onClose={() => setShowAlert(false)}
+              onClose={handleCloseAlert}
+              onConfirm={alertConfirmAction ? handleCloseAlert : null}
             />
           )}
         </AnimatePresence>
@@ -263,7 +319,6 @@ const VisitorForm = () => {
                     )}
                   </div>
 
-                  {/* Phone Number Input */}
                   <div>
                     <input
                       type="text"
@@ -289,7 +344,6 @@ const VisitorForm = () => {
                     )}
                   </div>
 
-                  {/* Gender Select */}
                   <select
                     value={formData.gender}
                     onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
@@ -304,7 +358,6 @@ const VisitorForm = () => {
                     <option value="Female">Female</option>
                   </select>
 
-                  {/* Identity Number Input */}
                   <input
                     type="text"
                     placeholder={isEditable ? "Insert ID or Passport" : "ID Number (Auto-filled)"}
@@ -318,24 +371,26 @@ const VisitorForm = () => {
                     readOnly={!isEditable}
                   />
 
-                  {/* Nationality Input */}
-                  <div>
-                    <input
-                      type="text"
-                      placeholder="Nationality"
-                      value={formData.nationality}
-                      onChange={(e) => setFormData({ ...formData, nationality: e.target.value })}
-                      className={`w-full px-4 py-2 rounded-lg border 
-                                ${errors.nationality ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}
-                                bg-white dark:bg-gray-800 dark:text-white
-                                focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent`}
-                    />
-                    {errors.nationality && (
-                      <p className="mt-1 text-sm text-red-500 dark:text-red-400">
-                        {errors.nationality}
-                      </p>
-                    )}
-                  </div>
+                  {/* Nationality - Only show for passport users (#00) */}
+                  {isPassportUser && (
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Nationality"
+                        value={formData.nationality}
+                        onChange={(e) => setFormData({ ...formData, nationality: e.target.value })}
+                        className={`w-full px-4 py-2 rounded-lg border 
+                                  ${errors.nationality ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}
+                                  bg-white dark:bg-gray-800 dark:text-white
+                                  focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent`}
+                      />
+                      {errors.nationality && (
+                        <p className="mt-1 text-sm text-red-500 dark:text-red-400">
+                          {errors.nationality}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </motion.div>
             </div>
