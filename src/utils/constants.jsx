@@ -1,4 +1,4 @@
-// src/utils/constants.js
+
 export const DEPARTMENTS = [
   { id: 'CEO_OFFICE', name: 'CEO's Office' },
   { id: 'CONSUMER', name: 'Consumer' },
