@@ -1,11 +1,10 @@
 
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { useAccess } from '../hooks/useAccess';
+import { roleBasedNavigation } from '../layout/navigationConfig';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  const { hasAccess } = useAccess();
   const location = useLocation();
 
   if (loading) {
@@ -20,7 +19,23 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (!hasAccess(location.pathname)) {
+  // Get all allowed paths for user's role
+  const getAllowedPaths = (navItems) => {
+    let paths = [];
+    navItems.forEach(item => {
+      if (item.path) {
+        paths.push(item.path);
+      }
+      if (item.children) {
+        paths = [...paths, ...item.children.map(child => child.path)];
+      }
+    });
+    return paths;
+  };
+
+  const allowedPaths = getAllowedPaths(roleBasedNavigation[user.role] || []);
+  
+  if (!allowedPaths.includes(location.pathname)) {
     return <Navigate to="/unauthorized" replace />;
   }
 
