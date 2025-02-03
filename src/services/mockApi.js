@@ -9,7 +9,7 @@ const MOCK_USERS = [
   },
   {
     identityNumber: "1199000000000001",
-    phoneNumber: "250700000001",
+    phoneNumber: "250785700813",
     fullName: "Jane Smith",
     gender: "Female",
     photoUrl: "https://randomuser.me/api/portraits/women/1.jpg"
