@@ -166,6 +166,13 @@ const VisitorForm = () => {
     if (!confirmAction) {
       setTimeout(() => {
         setShowAlert(false);
+        // Navigate after the alert is hidden
+        navigate('/check-in', { 
+          state: { 
+            success: true,
+            message: 'Visitor checked in successfully'
+          }
+        });
       }, 3000);
     }
   };
@@ -238,15 +245,8 @@ const VisitorForm = () => {
         isPassport: isPassportUser
       }, user.username);
       
-      // Show success alert before navigating
-      showSuccessAlert('Visitor checked in successfully', () => {
-        navigate('/check-in', { 
-          state: { 
-            success: true,
-            message: 'Visitor checked in successfully'
-          }
-        });
-      });
+      // Show success alert and then navigate
+      showSuccessAlert('Visitor checked in successfully');
     } catch (error) {
       console.error('Check-in error:', error);
       showErrorAlert(error.message || 'An error occurred during check-in');
@@ -260,6 +260,14 @@ const VisitorForm = () => {
     setShowAlert(false);
     if (alertConfirmAction) {
       alertConfirmAction();
+    } else {
+      // If no confirm action, navigate to check-in page
+      navigate('/check-in', { 
+        state: { 
+          success: true,
+          message: 'Visitor checked in successfully'
+        }
+      });
     }
   };
 
