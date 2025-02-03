@@ -241,7 +241,6 @@ const App = () => {
       />
 
       {/* Catch all route */}
-      <Route
 <Route path="/unauthorized" element={<Unauthorized />} />
     </Routes>
   )
