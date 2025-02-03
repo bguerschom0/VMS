@@ -104,8 +104,8 @@ export const visitorService = {
         items: visitorData.items || null,
         laptop_brand: visitorData.laptopBrand || null,
         laptop_serial: visitorData.laptopSerial || null,
-        entry_username: username,
-        photo_url: photoUrl
+        check_in_by: username,
+        has_laptop: visitorData.laptopBrand ? true : false
       };
 
       const { data, error } = await supabase
