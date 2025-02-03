@@ -47,7 +47,8 @@ const Header = () => {
       icon: BarChart,
       children: [
         { name: 'Visitor History', path: '/visitor-history', icon: History },
-        { name: 'Reports', path: '/reports', icon: BarChart },
+        { name: 'Check In & Out Report', path: '/reports', icon: BarChart },
+        { name: 'Guard Shift Report', path: '/GuardShiftReportViewer', icon: BarChart },
       ]
     },
     { 
