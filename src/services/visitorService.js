@@ -1,40 +1,48 @@
 
 import { supabase } from './supabase';
 import { mockIdApi } from './mockApi';
+import { generateDepartmentCards } from '../utils/constants';
 
 export const visitorService = {
   // Search for a visitor
   async searchVisitor(searchTerm) {
     try {
-      // Check if visitor exists in database and hasn't checked out
-      const { data: existingVisitor } = await supabase
+      // Handle passport case
+      if (searchTerm === '#00') {
+        return { isPassport: true };
+      }
+
+      // First check if visitor is already checked in
+      const { data: activeVisitor } = await supabase
         .from('visitors')
         .select('*')
         .or(`identity_number.eq.${searchTerm},phone_number.eq.${searchTerm}`)
         .is('exit_timestamp', null)
         .single();
 
-      if (existingVisitor) {
-        // Get fresh photo from ID API
-        const photoUrl = await mockIdApi.getPhoto(existingVisitor.identity_number);
+      if (activeVisitor) {
         return {
-          ...existingVisitor,
-          photoUrl,
-          isExisting: true
+          error: 'Visitor already has an active check-in',
+          activeVisitor
         };
       }
 
-      // If not in database, check ID API
-      const idApiResponse = await mockIdApi.searchPerson(searchTerm);
+      // Check mock API for visitor info
+      const apiResponse = await mockIdApi.searchPerson(searchTerm);
       
-      if (idApiResponse.isPassport) {
-        return { isPassport: true };
-      }
+      if (apiResponse.success) {
+        // Get visitor history if exists
+        const { data: visitorHistory } = await supabase
+          .from('visitors')
+          .select('*')
+          .or(`identity_number.eq.${searchTerm},phone_number.eq.${searchTerm}`)
+          .order('entry_timestamp', { ascending: false })
+          .limit(1);
 
-      if (idApiResponse.success) {
         return {
-          ...idApiResponse.data,
-          isExisting: false
+          ...apiResponse.data,
+          isNewVisitor: !visitorHistory?.length,
+          lastVisit: visitorHistory?.[0]
         };
       }
 
@@ -45,24 +53,63 @@ export const visitorService = {
     }
   },
 
-  // Create/Update visitor check-in
+  // Get available visitor cards for a department
+  async getAvailableCards(departmentId) {
+    try {
+      // Get all possible cards for the department
+      const allCards = generateDepartmentCards(departmentId);
+      
+      // Get cards currently in use
+      const { data: inUseCards } = await supabase
+        .from('visitors')
+        .select('visitor_card')
+        .eq('department', departmentId)
+        .is('exit_timestamp', null);
+
+      // Filter out cards that are in use
+      const inUseCardSet = new Set(inUseCards?.map(v => v.visitor_card) || []);
+      const availableCards = allCards.filter(card => !inUseCardSet.has(card));
+
+      return availableCards;
+    } catch (error) {
+      console.error('Error getting available cards:', error);
+      throw error;
+    }
+  },
+
+  // Create new visitor check-in
   async checkInVisitor(visitorData, username) {
     try {
+      // Verify card is still available
+      const availableCards = await this.getAvailableCards(visitorData.department);
+      if (!availableCards.includes(visitorData.visitorCard)) {
+        throw new Error('Selected visitor card is no longer available');
+      }
+
+      // If it's a passport visitor or new visitor, get a fresh photo URL
+      let photoUrl = null;
+      if (!visitorData.isPassport && visitorData.identityNumber) {
+        photoUrl = await mockIdApi.getPhoto(visitorData.identityNumber);
+      }
+
+      const checkInData = {
+        full_name: visitorData.fullName,
+        identity_number: visitorData.identityNumber,
+        gender: visitorData.gender,
+        phone_number: visitorData.phoneNumber,
+        visitor_card: visitorData.visitorCard,
+        department: visitorData.department,
+        purpose: visitorData.purpose,
+        items: visitorData.items || null,
+        laptop_brand: visitorData.laptopBrand || null,
+        laptop_serial: visitorData.laptopSerial || null,
+        entry_username: username,
+        photo_url: photoUrl
+      };
+
       const { data, error } = await supabase
         .from('visitors')
-        .insert([{
-          full_name: visitorData.fullName,
-          identity_number: visitorData.identityNumber,
-          gender: visitorData.gender,
-          phone_number: visitorData.phoneNumber,
-          visitor_card: visitorData.visitorCard,
-          department: visitorData.department,
-          purpose: visitorData.purpose,
-          items: visitorData.items,
-          laptop_brand: visitorData.laptopBrand,
-          laptop_serial: visitorData.laptopSerial,
-          entry_username: username
-        }])
+        .insert([checkInData])
         .single();
 
       if (error) throw error;
@@ -104,13 +151,16 @@ export const visitorService = {
         .order('entry_timestamp', { ascending: false });
 
       if (error) throw error;
-      
+
       // Get fresh photos for all visitors
       const visitorsWithPhotos = await Promise.all(
-        data.map(async (visitor) => ({
-          ...visitor,
-          photoUrl: await mockIdApi.getPhoto(visitor.identity_number)
-        }))
+        data.map(async (visitor) => {
+          if (visitor.identity_number) {
+            const photoUrl = await mockIdApi.getPhoto(visitor.identity_number);
+            return { ...visitor, photoUrl };
+          }
+          return visitor;
+        })
       );
 
       return visitorsWithPhotos;
@@ -120,28 +170,66 @@ export const visitorService = {
     }
   },
 
-  // Get visitor by ID or phone
-  async getVisitorByIdOrPhone(searchTerm) {
+  // Get visitor history
+  async getVisitorHistory(searchParams) {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('visitors')
         .select('*')
-        .or(`identity_number.eq.${searchTerm},phone_number.eq.${searchTerm}`)
-        .order('entry_timestamp', { ascending: false })
-        .limit(1)
-        .single();
+        .order('entry_timestamp', { ascending: false });
+
+      // Apply filters
+      if (searchParams.department) {
+        query = query.eq('department', searchParams.department);
+      }
+
+      if (searchParams.dateRange) {
+        const now = new Date();
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        switch (searchParams.dateRange) {
+          case 'today':
+            query = query.gte('entry_timestamp', startOfDay.toISOString());
+            break;
+          case 'week':
+            const startOfWeek = new Date(startOfDay);
+            startOfWeek.setDate(startOfDay.getDate() - startOfDay.getDay());
+            query = query.gte('entry_timestamp', startOfWeek.toISOString());
+            break;
+          case 'month':
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            query = query.gte('entry_timestamp', startOfMonth.toISOString());
+            break;
+        }
+      }
+
+      // Add pagination
+      if (searchParams.page && searchParams.limit) {
+        const from = searchParams.page * searchParams.limit;
+        query = query.range(from, from + searchParams.limit - 1);
+      }
+
+      const { data, error, count } = await query;
 
       if (error) throw error;
 
-      // Get fresh photo
-      if (data) {
-        const photoUrl = await mockIdApi.getPhoto(data.identity_number);
-        return { ...data, photoUrl };
-      }
+      // Get fresh photos for visitors with ID numbers
+      const visitorsWithPhotos = await Promise.all(
+        data.map(async (visitor) => {
+          if (visitor.identity_number) {
+            const photoUrl = await mockIdApi.getPhoto(visitor.identity_number);
+            return { ...visitor, photoUrl };
+          }
+          return visitor;
+        })
+      );
 
-      return null;
+      return {
+        visitors: visitorsWithPhotos,
+        total: count
+      };
     } catch (error) {
-      console.error('Error getting visitor:', error);
+      console.error('Error getting visitor history:', error);
       throw error;
     }
   }
