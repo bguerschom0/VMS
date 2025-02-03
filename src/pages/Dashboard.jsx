@@ -82,7 +82,7 @@ const Dashboard = () => {
       const { count: activeVisitors } = await supabase
         .from('visitors')
         .select('*', { count: 'exact' })
-        .is('exit_timestamp', null);
+        .is('check_out_time', null);
 
       // Fetch scheduled visits
       const { count: scheduledVisits } = await supabase
@@ -96,15 +96,15 @@ const Dashboard = () => {
       
       const { data: monthlyData, error: monthlyError } = await supabase
         .from('visitors')
-        .select('entry_timestamp')
-        .gte('entry_timestamp', sixMonthsAgo.toISOString())
-        .order('entry_timestamp', { ascending: true });
+        .select('check_in_time')
+        .gte('check_in_time', sixMonthsAgo.toISOString())
+        .order('check_in_time', { ascending: true });
 
       if (monthlyError) throw monthlyError;
 
       // Process monthly data
       const monthlyVisits = monthlyData.reduce((acc, visit) => {
-        const month = new Date(visit.entry_timestamp).toLocaleString('default', { month: 'short' });
+        const month = new Date(visit.check_in_time).toLocaleString('default', { month: 'short' });
         acc[month] = (acc[month] || 0) + 1;
         return acc;
       }, {});
