@@ -1,13 +1,17 @@
-// src/components/visitor/VisitorForm.jsx
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { visitorService } from '../../services/visitorService';
 import { DEPARTMENTS, ERROR_MESSAGES } from '../../utils/constants';
+import { useAuth } from '../../hooks/useAuth';
+
 
 const VisitorForm = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
   const [availableCards, setAvailableCards] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState('');
@@ -29,30 +33,6 @@ const VisitorForm = () => {
   
   const [errors, setErrors] = useState({});
 
-  // Load visitor data and department cards
-  useEffect(() => {
-    const initializeForm = async () => {
-      const { visitor, isPassport } = location.state || {};
-      
-      if (!visitor && !isPassport) {
-        navigate('/check-in');
-        return;
-      }
-
-      if (visitor) {
-        setFormData(prev => ({
-          ...prev,
-          fullName: visitor.fullName || '',
-          identityNumber: visitor.identityNumber || '',
-          gender: visitor.gender || '',
-          phoneNumber: visitor.phoneNumber || '',
-        }));
-        setPhotoUrl(visitor.photoUrl || null);
-      }
-    };
-
-    initializeForm();
-  }, [location.state, navigate]);
 
   // Load available cards when department changes
   useEffect(() => {
@@ -104,6 +84,32 @@ const VisitorForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Load visitor data if exists
+  useEffect(() => {
+    const { visitor, isPassport } = location.state || {};
+    
+    if (!visitor && !isPassport) {
+      navigate('/check-in');
+      return;
+    }
+
+    if (visitor) {
+      setFormData(prev => ({
+        ...prev,
+        fullName: visitor.fullName || '',
+        identityNumber: visitor.identityNumber || '',
+        gender: visitor.gender || '',
+        phoneNumber: visitor.phoneNumber || '',
+      }));
+      setPhotoUrl(visitor.photoUrl || null);
+      // Disable editing for existing visitor
+      setIsEditable(false);
+    } else if (isPassport) {
+      // Enable editing for passport visitors
+      setIsEditable(true);
+    }
+  }, [location.state, navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -111,11 +117,17 @@ const VisitorForm = () => {
 
     setIsLoading(true);
     try {
-      const username = 'current-user'; // Replace with actual user management
+      const username = user?.username; // Get username from auth context
+      if (!username) {
+        throw new Error('User not logged in');
+      }
+
       await visitorService.checkInVisitor(formData, username);
       navigate('/check-in', { state: { success: true }});
     } catch (error) {
-      setErrors(prev => ({ ...prev, submit: ERROR_MESSAGES.SERVER_ERROR }));
+      console.error('Check-in error:', error);
+      setAlertMessage(error.message || 'An error occurred during check-in');
+      setShowAlert(true);
     } finally {
       setIsLoading(false);
     }
@@ -124,6 +136,16 @@ const VisitorForm = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        {/* Alert Popup */}
+        <AnimatePresence>
+          {showAlert && (
+            <Alert 
+              message={alertMessage} 
+              onClose={() => setShowAlert(false)}
+            />
+          )}
+        </AnimatePresence>
+
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
             {/* Left Panel - Photo and Personal Info */}
@@ -168,7 +190,9 @@ const VisitorForm = () => {
                       onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                       className={`w-full px-4 py-2 rounded-lg border 
                                 ${errors.fullName ? 'border-red-500' : 'border-gray-200'}
+                                ${!isEditable ? 'bg-gray-50' : 'bg-white'}
                                 focus:ring-2 focus:ring-black focus:border-transparent`}
+                      readOnly={!isEditable}
                     />
                     {errors.fullName && (
                       <p className="mt-1 text-sm text-red-500">{errors.fullName}</p>
@@ -180,10 +204,23 @@ const VisitorForm = () => {
                       type="text"
                       placeholder="Phone Number (250...)"
                       value={formData.phoneNumber}
-                      onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value.startsWith('250')) {
+                          setFormData({ 
+                            ...formData, 
+                            phoneNumber: value.slice(0, 12) 
+                          });
+                        } else {
+                          setFormData({ ...formData, phoneNumber: value });
+                        }
+                      }}
+                      maxLength={12}
                       className={`w-full px-4 py-2 rounded-lg border 
                                 ${errors.phoneNumber ? 'border-red-500' : 'border-gray-200'}
+                                ${!isEditable ? 'bg-gray-50' : 'bg-white'}
                                 focus:ring-2 focus:ring-black focus:border-transparent`}
+                      readOnly={!isEditable}
                     />
                     {errors.phoneNumber && (
                       <p className="mt-1 text-sm text-red-500">{errors.phoneNumber}</p>
@@ -193,8 +230,10 @@ const VisitorForm = () => {
                   <select
                     value={formData.gender}
                     onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-200 
-                             focus:ring-2 focus:ring-black focus:border-transparent"
+                    className={`w-full px-4 py-2 rounded-lg border border-gray-200 
+                              ${!isEditable ? 'bg-gray-50' : 'bg-white'}
+                              focus:ring-2 focus:ring-black focus:border-transparent`}
+                    disabled={!isEditable}
                   >
                     <option value="">Select Gender</option>
                     <option value="Male">Male</option>
@@ -203,11 +242,14 @@ const VisitorForm = () => {
 
                   <input
                     type="text"
+                    placeholder={isEditable ? "Insert ID or Passport" : "ID Number (Auto-filled)"}
                     value={formData.identityNumber}
-                    readOnly
-                    placeholder="ID Number (Auto-filled)"
-                    className="w-full px-4 py-2 rounded-lg border border-gray-200 
-                             bg-gray-50 text-gray-500"
+                    onChange={(e) => setFormData({ ...formData, identityNumber: e.target.value })}
+                    maxLength={16}
+                    className={`w-full px-4 py-2 rounded-lg border border-gray-200 
+                              ${!isEditable ? 'bg-gray-50' : 'bg-white'}
+                              text-gray-700 focus:ring-2 focus:ring-black focus:border-transparent`}
+                    readOnly={!isEditable}
                   />
                 </div>
               </motion.div>
@@ -420,23 +462,9 @@ const VisitorForm = () => {
             </div>
           </div>
         </form>
-
-        {/* Error Toast */}
-        <AnimatePresence>
-          {errors.submit && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg"
-            >
-              {errors.submit}
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </div>
   );
-};
+  };
 
 export default VisitorForm;
