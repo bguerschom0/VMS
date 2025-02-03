@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      const { data, error } = await supabase.auth.signInWithPassword({ username, password })
       if (error) throw error
       setUser(data.user)
       localStorage.setItem('user', JSON.stringify(data.user))
