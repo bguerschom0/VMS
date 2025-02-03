@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { Moon, Sun, ChevronDown, LayoutDashboard, LogIn, LogOut, History, Users, Calendar, BarChart, User, Users2 } from 'lucide-react'
+import { Moon, Sun, ChevronDown, LayoutDashboard, LogIn, LogOut, History, Users, Calendar, BarChart, User, Users2, ClipboardList } from 'lucide-react'
 
 
 const Header = () => {
@@ -55,7 +55,14 @@ const Header = () => {
       path: '/user-management', 
       icon: Users2 
     },
+        { 
+      name: 'Guard Shift Report', 
+      path: '/GuardShiftReport', 
+      icon: ClipboardList
+    }
   ]
+
+  
 
   useEffect(() => {
     if (isDarkMode) {
