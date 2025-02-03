@@ -182,7 +182,7 @@ const LoginPage = () => {
                        bg-white dark:bg-gray-900 text-gray-900 dark:text-white
                        focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white
                        transition-colors duration-200"
-              placeholder="Username"
+              placeholder="   Username"
               required
             />
           </div>
@@ -199,7 +199,7 @@ const LoginPage = () => {
                        bg-white dark:bg-gray-900 text-gray-900 dark:text-white
                        focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white
                        transition-colors duration-200"
-              placeholder="Password"
+              placeholder="   Password"
               required
             />
           </div>
