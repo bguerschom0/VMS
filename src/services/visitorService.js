@@ -1,5 +1,6 @@
 
-import { supabase } from './supabase';
+
+import { supabase } from '../config/supabase';
 import { mockIdApi } from './mockApi';
 import { generateDepartmentCards } from '../utils/constants';
 
