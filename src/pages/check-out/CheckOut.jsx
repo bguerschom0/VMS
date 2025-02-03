@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../config/supabase';
 import { useAuth } from '../../hooks/useAuth';
 import CheckoutModal from './CheckoutModal';
@@ -15,13 +15,12 @@ const CheckOut = () => {
   const [limit, setLimit] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
-
+  const [toast, setToast] = useState(null);
 
   const handleCheckout = (visitor) => {
     setSelectedVisitor(visitor);
     setShowModal(true);
   };
-
 
   useEffect(() => {
     if (searchTerm) {
@@ -83,15 +82,54 @@ const CheckOut = () => {
       setShowModal(false);
       setSelectedVisitor(null);
       fetchVisitors();
+      
+      // Show success toast
+      setToast({
+        message: 'Visitor checked out successfully!',
+        type: 'success'
+      });
+
+      // Automatically remove toast after 3 seconds
+      setTimeout(() => setToast(null), 3000);
     } catch (error) {
       console.error('Error checking out visitor:', error);
-      alert('Failed to check out visitor');
+      
+      // Show error toast
+      setToast({
+        message: 'Failed to check out visitor',
+        type: 'error'
+      });
+
+      // Automatically remove toast after 3 seconds
+      setTimeout(() => setToast(null), 3000);
     }
   };
 
-return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+  // Toast Component
+  const Toast = ({ message, type }) => (
+    <motion.div
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 50 }}
+      className={`fixed bottom-4 right-4 z-50 px-6 py-4 rounded-xl shadow-lg
+        ${type === 'success' 
+          ? 'bg-green-500 text-white' 
+          : 'bg-red-500 text-white'
+        }`}
+    >
+      {message}
+    </motion.div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 relative">
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {toast && <Toast message={toast.message} type={toast.type} />}
+      </AnimatePresence>
+      
+      <main>
+        <div className="p-4 sm:p-16">
           <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl">
             {/* Search Bar */}
             <div className="p-6 border-b border-gray-200 dark:border-gray-700">
@@ -219,7 +257,7 @@ return (
             </div>
           </div>
         </div>
-
+      </main>
 
       <CheckoutModal
         isOpen={showModal}
