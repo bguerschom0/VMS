@@ -1,4 +1,3 @@
-// src/components/visitor/VisitorForm.jsx
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,17 +8,20 @@ import { useAuth } from '../../hooks/useAuth';
 // Alert/Popup Component
 const Alert = ({ message, type = 'error', onClose }) => (
   <motion.div
-    initial={{ opacity: 0, y: -50 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -50 }}
-    className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
-      type === 'error' ? 'bg-red-500' : 'bg-green-500'
-    } text-white`}
+    initial={{ opacity: 0, scale: 0.75 }}
+    animate={{ opacity: 1, scale: 1 }}
+    exit={{ opacity: 0, scale: 0.75 }}
+    className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 p-6 rounded-2xl shadow-2xl 
+      ${type === 'error' ? 'bg-red-500' : 'bg-green-500'} 
+      text-white w-96 max-w-[90%]`}
   >
-    <div className="flex items-center">
-      <span>{message}</span>
-      <button onClick={onClose} className="ml-4 hover:text-gray-200">
-        ✕
+    <div className="flex flex-col items-center space-y-4">
+      <span className="text-center text-lg">{message}</span>
+      <button 
+        onClick={onClose} 
+        className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+      >
+        Close
       </button>
     </div>
   </motion.div>
@@ -39,6 +41,7 @@ const VisitorForm = () => {
   const [isEditable, setIsEditable] = useState(true);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
+  const [alertType, setAlertType] = useState('error');
   
   const [formData, setFormData] = useState({
     fullName: '',
@@ -72,6 +75,7 @@ const VisitorForm = () => {
         identityNumber: visitor.identityNumber || '',
         gender: visitor.gender || '',
         phoneNumber: visitor.phoneNumber || '',
+        nationality: visitor.nationality || '',
       }));
       setPhotoUrl(visitor.photoUrl || null);
       setIsEditable(false); // Disable editing for existing visitor
@@ -91,13 +95,26 @@ const VisitorForm = () => {
         setAvailableCards(cards);
       } catch (error) {
         console.error('Error loading cards:', error);
-        setAlertMessage('Failed to load available cards');
-        setShowAlert(true);
+        showErrorAlert('Failed to load available cards');
       }
     };
 
     loadAvailableCards();
   }, [selectedDepartment]);
+
+  // Helper function to show error alert
+  const showErrorAlert = (message) => {
+    setAlertMessage(message);
+    setAlertType('error');
+    setShowAlert(true);
+  };
+
+  // Helper function to show success alert
+  const showSuccessAlert = (message) => {
+    setAlertMessage(message);
+    setAlertType('success');
+    setShowAlert(true);
+  };
 
   // Handle department change
   const handleDepartmentChange = async (e) => {
@@ -124,9 +141,10 @@ const VisitorForm = () => {
     if (location.state?.isPassport && !formData.identityNumber) {
       newErrors.identityNumber = 'ID or Passport number is required';
     }
+    
     if (!formData.nationality) {
-        newErrors.nationality = 'Nationality is required';
-      }
+      newErrors.nationality = 'Nationality is required';
+    }
 
     if (!formData.department) newErrors.department = 'Department is required';
     if (!formData.visitorCard) newErrors.visitorCard = 'Visitor card is required';
@@ -147,14 +165,12 @@ const VisitorForm = () => {
     e.preventDefault();
     
     if (!validateForm()) {
-      setAlertMessage('Please fill in all required fields');
-      setShowAlert(true);
+      showErrorAlert('Please fill in all required fields');
       return;
     }
 
     if (!user?.username) {
-      setAlertMessage('User session expired. Please log in again.');
-      setShowAlert(true);
+      showErrorAlert('User session expired. Please log in again.');
       return;
     }
 
@@ -173,44 +189,21 @@ const VisitorForm = () => {
       });
     } catch (error) {
       console.error('Check-in error:', error);
-      setAlertMessage(error.message || 'An error occurred during check-in');
-      setShowAlert(true);
+      showErrorAlert(error.message || 'An error occurred during check-in');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle input change with phone number formatting
-  const handlePhoneNumberChange = (e) => {
-    let value = e.target.value;
-    
-    // Only allow digits
-    value = value.replace(/\D/g, '');
-    
-    // Ensure starts with 250
-    if (!value.startsWith('250') && value.length > 0) {
-      value = '250' + value;
-    }
-    
-    // Limit to 12 digits (250 + 9 digits)
-    value = value.slice(0, 12);
-    
-    setFormData(prev => ({ ...prev, phoneNumber: value }));
-    
-    // Clear phone number error if valid
-    if (value.match(/^250\d{9}$/)) {
-      setErrors(prev => ({ ...prev, phoneNumber: '' }));
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
       <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {/* Alert Popup */}
         <AnimatePresence>
           {showAlert && (
             <Alert 
               message={alertMessage} 
+              type={alertType}
               onClose={() => setShowAlert(false)}
             />
           )}
@@ -223,11 +216,11 @@ const VisitorForm = () => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-2xl shadow-md p-6 space-y-6"
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 space-y-6"
               >
                 {/* Photo Section */}
                 <div className="flex flex-col items-center">
-                  <div className="w-40 h-40 rounded-full overflow-hidden bg-gray-100">
+                  <div className="w-40 h-40 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700">
                     {photoUrl ? (
                       <img 
                         src={photoUrl} 
@@ -235,7 +228,7 @@ const VisitorForm = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
                         <svg
                           className="w-20 h-20"
                           fill="none"
@@ -259,50 +252,51 @@ const VisitorForm = () => {
                       value={formData.fullName}
                       onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                       className={`w-full px-4 py-2 rounded-lg border 
-                                ${errors.fullName ? 'border-red-500' : 'border-gray-200'}
-                                ${!isEditable ? 'bg-gray-50' : 'bg-white'}
-                                focus:ring-2 focus:ring-black focus:border-transparent`}
+                                ${errors.fullName ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}
+                                ${!isEditable ? 'bg-gray-50 dark:bg-gray-700' : 'bg-white dark:bg-gray-800'}
+                                dark:text-white
+                                focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent`}
                       readOnly={!isEditable}
                     />
                     {errors.fullName && (
-                      <p className="mt-1 text-sm text-red-500">{errors.fullName}</p>
+                      <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.fullName}</p>
                     )}
                   </div>
 
+                  {/* Phone Number Input */}
                   <div>
                     <input
                       type="text"
                       placeholder="Phone Number (250...)"
                       value={formData.phoneNumber}
                       onChange={(e) => {
-                        const value = e.target.value;
-                        if (value.startsWith('250')) {
-                          setFormData({ 
-                            ...formData, 
-                            phoneNumber: value.slice(0, 12) 
-                          });
-                        } else {
-                          setFormData({ ...formData, phoneNumber: value });
-                        }
+                        const value = e.target.value.replace(/\D/g, '');
+                        const formattedValue = value.startsWith('250') 
+                          ? value.slice(0, 12) 
+                          : `250${value}`.slice(0, 12);
+                        setFormData({ ...formData, phoneNumber: formattedValue });
                       }}
                       maxLength={12}
                       className={`w-full px-4 py-2 rounded-lg border 
-                                ${errors.phoneNumber ? 'border-red-500' : 'border-gray-200'}
-                                ${!isEditable ? 'bg-gray-50' : 'bg-white'}
-                                focus:ring-2 focus:ring-black focus:border-transparent`}
+                                ${errors.phoneNumber ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}
+                                ${!isEditable ? 'bg-gray-50 dark:bg-gray-700' : 'bg-white dark:bg-gray-800'}
+                                dark:text-white
+                                focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent`}
                       readOnly={!isEditable}
                     />
                     {errors.phoneNumber && (
-                      <p className="mt-1 text-sm text-red-500">{errors.phoneNumber}</p>
+                      <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.phoneNumber}</p>
                     )}
                   </div>
 
+                  {/* Gender Select */}
                   <select
                     value={formData.gender}
                     onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                    className={`w-full px-4 py-2 rounded-lg border border-gray-200 
-                              ${!isEditable ? 'bg-gray-50' : 'bg-white'}
-                              focus:ring-2 focus:ring-black focus:border-transparent`}
+                    className={`w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
+                              ${!isEditable ? 'bg-gray-50 dark:bg-gray-700' : 'bg-white dark:bg-gray-800'}
+                              dark:text-white
+                              focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent`}
                     disabled={!isEditable}
                   >
                     <option value="">Select Gender</option>
@@ -310,34 +304,38 @@ const VisitorForm = () => {
                     <option value="Female">Female</option>
                   </select>
 
+                  {/* Identity Number Input */}
                   <input
                     type="text"
                     placeholder={isEditable ? "Insert ID or Passport" : "ID Number (Auto-filled)"}
                     value={formData.identityNumber}
                     onChange={(e) => setFormData({ ...formData, identityNumber: e.target.value })}
                     maxLength={16}
-                    className={`w-full px-4 py-2 rounded-lg border border-gray-200 
-                              ${!isEditable ? 'bg-gray-50' : 'bg-white'}
-                              text-gray-700 focus:ring-2 focus:ring-black focus:border-transparent`}
+                    className={`w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
+                              ${!isEditable ? 'bg-gray-50 dark:bg-gray-700' : 'bg-white dark:bg-gray-800'}
+                              dark:text-white
+                              focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent`}
                     readOnly={!isEditable}
                   />
 
-                   <input
-                type="text"
-                placeholder="Nationality"
-                value={formData.nationality}
-                onChange={(e) => setFormData({ ...formData, nationality: e.target.value })}
-                className={`w-full px-4 py-2 rounded-lg border 
-                          ${errors.nationality ? 'border-red-500' : 'border-gray-200'}
-                          dark:bg-gray-700 dark:text-white
-                          focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent`}
-              />
-              {errors.nationality && (
-                <p className="mt-1 text-sm text-red-500 dark:text-red-400">
-                  {errors.nationality}
-                </p>
-              )}
-                  
+                  {/* Nationality Input */}
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Nationality"
+                      value={formData.nationality}
+                      onChange={(e) => setFormData({ ...formData, nationality: e.target.value })}
+                      className={`w-full px-4 py-2 rounded-lg border 
+                                ${errors.nationality ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}
+                                bg-white dark:bg-gray-800 dark:text-white
+                                focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent`}
+                    />
+                    {errors.nationality && (
+                      <p className="mt-1 text-sm text-red-500 dark:text-red-400">
+                        {errors.nationality}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             </div>
@@ -348,17 +346,18 @@ const VisitorForm = () => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-2xl shadow-md p-6"
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6"
               >
-                <h2 className="text-xl font-semibold mb-4">Department & Card</h2>
+                <h2 className="text-xl font-semibold mb-4 dark:text-white">Department & Card</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <select
                       value={formData.department}
                       onChange={handleDepartmentChange}
                       className={`w-full px-4 py-2 rounded-lg border 
-                                ${errors.department ? 'border-red-500' : 'border-gray-200'}
-                                focus:ring-2 focus:ring-black focus:border-transparent`}
+                                ${errors.department ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}
+                                bg-white dark:bg-gray-800 dark:text-white
+                                focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent`}
                     >
                       <option value="">Select Department</option>
                       {DEPARTMENTS.map(dept => (
@@ -366,7 +365,7 @@ const VisitorForm = () => {
                       ))}
                     </select>
                     {errors.department && (
-                      <p className="mt-1 text-sm text-red-500">{errors.department}</p>
+                      <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.department}</p>
                     )}
                   </div>
 
@@ -376,9 +375,10 @@ const VisitorForm = () => {
                       onChange={(e) => setFormData({ ...formData, visitorCard: e.target.value })}
                       disabled={!selectedDepartment || availableCards.length === 0}
                       className={`w-full px-4 py-2 rounded-lg border 
-                                ${errors.visitorCard ? 'border-red-500' : 'border-gray-200'}
-                                focus:ring-2 focus:ring-black focus:border-transparent
-                                disabled:bg-gray-50 disabled:text-gray-500`}
+                                ${errors.visitorCard ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}
+                                bg-white dark:bg-gray-800 dark:text-white
+                                focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent
+                                disabled:bg-gray-50 dark:disabled:bg-gray-700 disabled:text-gray-500`}
                     >
                       <option value="">Select Visitor Card</option>
                       {availableCards.map(card => (
@@ -386,7 +386,7 @@ const VisitorForm = () => {
                       ))}
                     </select>
                     {errors.visitorCard && (
-                      <p className="mt-1 text-sm text-red-500">{errors.visitorCard}</p>
+                      <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.visitorCard}</p>
                     )}
                   </div>
                 </div>
@@ -396,9 +396,9 @@ const VisitorForm = () => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-2xl shadow-md p-6"
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6"
               >
-                <h2 className="text-xl font-semibold mb-4">Visit Details</h2>
+                <h2 className="text-xl font-semibold mb-4 dark:text-white">Visit Details</h2>
                 <div className="space-y-4">
                   <div>
                     <textarea
@@ -406,12 +406,13 @@ const VisitorForm = () => {
                       value={formData.purpose}
                       onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
                       className={`w-full px-4 py-2 rounded-lg border 
-                                ${errors.purpose ? 'border-red-500' : 'border-gray-200'}
-                                focus:ring-2 focus:ring-black focus:border-transparent
+                                ${errors.purpose ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}
+                                bg-white dark:bg-gray-800 dark:text-white
+                                focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent
                                 min-h-[100px]`}
                     />
                     {errors.purpose && (
-                      <p className="mt-1 text-sm text-red-500">{errors.purpose}</p>
+                      <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.purpose}</p>
                     )}
                   </div>
 
@@ -420,8 +421,9 @@ const VisitorForm = () => {
                       placeholder="Items Brought (Optional)"
                       value={formData.items}
                       onChange={(e) => setFormData({ ...formData, items: e.target.value })}
-                      className="w-full px-4 py-2 rounded-lg border border-gray-200 
-                               focus:ring-2 focus:ring-black focus:border-transparent
+                      className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
+                               bg-white dark:bg-gray-800 dark:text-white
+                               focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent
                                min-h-[100px]"
                     />
                   </div>
@@ -432,10 +434,10 @@ const VisitorForm = () => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-2xl shadow-md p-6"
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6"
               >
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold">Laptop Information</h2>
+                  <h2 className="text-xl font-semibold dark:text-white">Laptop Information</h2>
                   <label className="flex items-center space-x-2 cursor-pointer">
                     <input
                       type="checkbox"
@@ -455,10 +457,11 @@ const VisitorForm = () => {
                           }));
                         }
                       }}
-                      className="w-4 h-4 rounded border-gray-300 text-black 
-                               focus:ring-black"
+                      className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 
+                               text-black dark:text-white
+                               focus:ring-black dark:focus:ring-white"
                     />
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-gray-600 dark:text-gray-300">
                       Visitor has a laptop
                     </span>
                   </label>
@@ -479,11 +482,12 @@ const VisitorForm = () => {
                           value={formData.laptopBrand}
                           onChange={(e) => setFormData({ ...formData, laptopBrand: e.target.value })}
                           className={`w-full px-4 py-2 rounded-lg border 
-                                    ${errors.laptopBrand ? 'border-red-500' : 'border-gray-200'}
-                                    focus:ring-2 focus:ring-black focus:border-transparent`}
+                                    ${errors.laptopBrand ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}
+                                    bg-white dark:bg-gray-800 dark:text-white
+                                    focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent`}
                         />
                         {errors.laptopBrand && (
-                          <p className="mt-1 text-sm text-red-500">{errors.laptopBrand}</p>
+                          <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.laptopBrand}</p>
                         )}
                       </div>
 
@@ -494,11 +498,12 @@ const VisitorForm = () => {
                           value={formData.laptopSerial}
                           onChange={(e) => setFormData({ ...formData, laptopSerial: e.target.value })}
                           className={`w-full px-4 py-2 rounded-lg border 
-                                    ${errors.laptopSerial ? 'border-red-500' : 'border-gray-200'}
-                                    focus:ring-2 focus:ring-black focus:border-transparent`}
+                                    ${errors.laptopSerial ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}
+                                    bg-white dark:bg-gray-800 dark:text-white
+                                    focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent`}
                         />
                         {errors.laptopSerial && (
-                          <p className="mt-1 text-sm text-red-500">{errors.laptopSerial}</p>
+                          <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.laptopSerial}</p>
                         )}
                       </div>
                     </motion.div>
@@ -516,8 +521,8 @@ const VisitorForm = () => {
                   type="button"
                   onClick={() => navigate('/check-in')}
                   disabled={isLoading}
-                  className="px-6 py-2 rounded-lg border border-gray-200 
-                           text-gray-700 hover:bg-gray-50
+                  className="px-6 py-2 rounded-lg border border-gray-200 dark:border-gray-700
+                           text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700
                            transition-colors duration-200
                            disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -527,15 +532,17 @@ const VisitorForm = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="px-6 py-2 rounded-lg bg-black text-white 
-                           hover:bg-gray-800 transition-colors duration-200
+                  className="px-6 py-2 rounded-lg bg-black dark:bg-white 
+                           text-white dark:text-black
+                           hover:bg-gray-800 dark:hover:bg-gray-200 
+                           transition-colors duration-200
                            disabled:opacity-50 disabled:cursor-not-allowed
                            flex items-center space-x-2"
                 >
                   {isLoading ? (
                     <>
                       <motion.div
-                        className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                        className="w-4 h-4 border-2 border-white dark:border-black border-t-transparent rounded-full"
                         animate={{ rotate: 360 }}
                         transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                       />
@@ -552,6 +559,6 @@ const VisitorForm = () => {
       </div>
     </div>
   );
-  };
+};
 
 export default VisitorForm;
