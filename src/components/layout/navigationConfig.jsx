@@ -1,3 +1,4 @@
+import { Moon, Sun, ChevronDown, LayoutDashboard, LogIn, LogOut, History, Users, Calendar, BarChart, User, Users2, ClipboardList } from 'lucide-react'
 
 export const roleBasedNavigation = {
   admin: [
