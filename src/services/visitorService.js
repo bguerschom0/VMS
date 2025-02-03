@@ -18,7 +18,7 @@ export const visitorService = {
         .from('visitors')
         .select('*')
         .or(`identity_number.eq.${searchTerm},phone_number.eq.${searchTerm}`)
-        .is('exit_timestamp', null)
+        .is('check_out_time', null)
         .single();
 
       if (activeVisitor) {
@@ -37,7 +37,7 @@ export const visitorService = {
           .from('visitors')
           .select('*')
           .or(`identity_number.eq.${searchTerm},phone_number.eq.${searchTerm}`)
-          .order('entry_timestamp', { ascending: false })
+          .order('check_in_time', { ascending: false })
           .limit(1);
 
         return {
@@ -65,7 +65,7 @@ export const visitorService = {
         .from('visitors')
         .select('visitor_card')
         .eq('department', departmentId)
-        .is('exit_timestamp', null);
+        .is('check_out_time', null);
 
       // Filter out cards that are in use
       const inUseCardSet = new Set(inUseCards?.map(v => v.visitor_card) || []);
@@ -75,11 +75,28 @@ export const visitorService = {
     } catch (error) {
       console.error('Error getting available cards:', error);
       throw error;
+    },
+
+  // Get used cards for a department
+  async getUsedCards(departmentId) {
+    try {
+      const { data: inUseCards, error } = await supabase
+        .from('visitors')
+        .select('visitor_card')
+        .eq('department', departmentId)
+        .is('check_out_time', null);
+
+      if (error) throw error;
+
+      return inUseCards?.map(v => v.visitor_card) || [];
+    } catch (error) {
+      console.error('Error getting used cards:', error);
+      throw error;
     }
   },
 
   // Create new visitor check-in
-  async checkInVisitor(visitorData, username) {
+async checkInVisitor(visitorData, username) {
     try {
       // Verify card is still available
       const availableCards = await this.getAvailableCards(visitorData.department);
@@ -98,6 +115,7 @@ export const visitorService = {
         identity_number: visitorData.identityNumber,
         gender: visitorData.gender,
         phone_number: visitorData.phoneNumber,
+        nationality: visitorData.isPassport ? visitorData.nationality : null,
         visitor_card: visitorData.visitorCard,
         department: visitorData.department,
         purpose: visitorData.purpose,
@@ -105,7 +123,8 @@ export const visitorService = {
         laptop_brand: visitorData.laptopBrand || null,
         laptop_serial: visitorData.laptopSerial || null,
         check_in_by: username,
-        has_laptop: visitorData.laptopBrand ? true : false
+        has_laptop: !!visitorData.laptopBrand,
+        is_passport: visitorData.isPassport || false
       };
 
       const { data, error } = await supabase
@@ -120,18 +139,17 @@ export const visitorService = {
       throw error;
     }
   },
-
   // Check out visitor
   async checkOutVisitor(visitorId, username) {
     try {
       const { data, error } = await supabase
         .from('visitors')
         .update({
-          exit_timestamp: new Date().toISOString(),
-          exit_username: username
+          check_out_time: new Date().toISOString(),
+          check_out_by: username
         })
         .eq('id', visitorId)
-        .is('exit_timestamp', null)
+        .is('check_out_time', null)
         .single();
 
       if (error) throw error;
@@ -148,8 +166,8 @@ export const visitorService = {
       const { data, error } = await supabase
         .from('visitors')
         .select('*')
-        .is('exit_timestamp', null)
-        .order('entry_timestamp', { ascending: false });
+        .is('check_out_time', null)
+        .order('check_in_time', { ascending: false });
 
       if (error) throw error;
 
@@ -177,7 +195,7 @@ export const visitorService = {
       let query = supabase
         .from('visitors')
         .select('*')
-        .order('entry_timestamp', { ascending: false });
+        .order('check_in_time', { ascending: false });
 
       // Apply filters
       if (searchParams.department) {
@@ -190,16 +208,16 @@ export const visitorService = {
         
         switch (searchParams.dateRange) {
           case 'today':
-            query = query.gte('entry_timestamp', startOfDay.toISOString());
+            query = query.gte('check_in_time', startOfDay.toISOString());
             break;
           case 'week':
             const startOfWeek = new Date(startOfDay);
             startOfWeek.setDate(startOfDay.getDate() - startOfDay.getDay());
-            query = query.gte('entry_timestamp', startOfWeek.toISOString());
+            query = query.gte('check_in_time', startOfWeek.toISOString());
             break;
           case 'month':
             const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-            query = query.gte('entry_timestamp', startOfMonth.toISOString());
+            query = query.gte('check_in_time', startOfMonth.toISOString());
             break;
         }
       }
@@ -224,31 +242,6 @@ export const visitorService = {
           return visitor;
         })
       );
-        getUsedCards: async (departmentId) => {
-    const { data, error } = await supabase
-      .from('visitors')
-      .select('visitor_card')
-      .eq('department', departmentId)
-      .not('visitor_card', 'is', null);
-
-    if (error) throw error;
-
-    return data.map(item => item.visitor_card);
-  },
-
-  checkInVisitor: async (visitorData, checkedInBy) => {
-    // Existing check-in logic, but now explicitly saving nationality
-    const { data, error } = await supabase
-      .from('visitors')
-      .insert({
-        ...visitorData,
-        checked_in_by: checkedInBy
-      });
-
-    if (error) throw error;
-    return data;
-  }
-      
 
       return {
         visitors: visitorsWithPhotos,
