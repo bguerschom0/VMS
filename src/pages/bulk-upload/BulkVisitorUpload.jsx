@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as XLSX from 'xlsx';
+import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../config/supabase';
 import Sidebar from '../../components/layout/Sidebar';
 
@@ -43,6 +44,7 @@ const UploadCard = ({ title, icon, description, onClick, buttonText }) => (
 );
 
 const BulkVisitorUpload = () => {
+  const { user } = useAuth();
   const [previewData, setPreviewData] = useState([]);
   const [fileName, setFileName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -178,7 +180,7 @@ const handleSubmit = async () => {
       laptop_brand: row['Laptop Brand'] || null,
       laptop_serial: row['Laptop Serial'] || null,
       status: 'pending',
-      created_by: userId,  // Using the session user's UUID
+      created_by: user?.username,
       notes: null,
       arrival_time: null,
       departure_time: null
