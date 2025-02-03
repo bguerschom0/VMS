@@ -1,12 +1,13 @@
+// src/components/visitor/SearchVisitor.jsx
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { visitorsDump } from '../../data/visitorsDump';
-import Sidebar from '../../components/layout/Sidebar';
+import { visitorService } from '../../services/visitorService';
 
 const SearchVisitor = () => {
   const [searchInput, setSearchInput] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef(null);
   const navigate = useNavigate();
 
@@ -16,7 +17,7 @@ const SearchVisitor = () => {
     setError('');
   };
 
-  const handleSearch = (e) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
     
     if (searchInput.trim() === '') {
@@ -24,20 +25,41 @@ const SearchVisitor = () => {
       return;
     }
 
-    if (searchInput === '#00') {
-      navigate('/check-in/form', { state: { isNewVisitor: true } });
-      return;
-    }
+    setIsLoading(true);
+    setError('');
 
-    const visitor = visitorsDump.find(v => 
-      v.identityNumber === searchInput || 
-      v.phoneNumber === searchInput
-    );
+    try {
+      const result = await visitorService.searchVisitor(searchInput);
+      
+      if (!result) {
+        setError('No visitor found');
+        return;
+      }
 
-    if (visitor) {
-      navigate('/check-in/form', { state: { visitor } });
-    } else {
-      setError('No visitor found');
+      if (result.isPassport || searchInput === '#00') {
+        // Passport case - go to form in manual mode
+        navigate('/check-in/form', { 
+          state: { 
+            isPassport: true,
+            isNewVisitor: true 
+          } 
+        });
+        return;
+      }
+
+      // Regular visitor found
+      navigate('/check-in/form', { 
+        state: { 
+          visitor: result,
+          isNewVisitor: !result.isExisting 
+        } 
+      });
+
+    } catch (error) {
+      console.error('Search error:', error);
+      setError('An error occurred while searching');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -63,7 +85,6 @@ const SearchVisitor = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      
       <main>
         <div className="h-screen flex items-center justify-center">
           <div className="relative w-full max-w-xl h-96 flex items-center justify-center">
@@ -96,35 +117,43 @@ const SearchVisitor = () => {
                   placeholder="Enter ID or Phone Number"
                   value={searchInput}
                   onChange={handleInputChange}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch(e)}
+                  disabled={isLoading}
                   autoFocus
                 />
                 
                 <button
                   type="submit"
+                  disabled={isLoading}
                   className="absolute right-4 top-1/2 -translate-y-1/2
                            w-8 h-8 flex items-center justify-center
                            text-gray-400 dark:text-gray-500 
                            hover:text-black dark:hover:text-white 
                            transition-colors"
                 >
-                  <motion.svg
-                    className="w-6 h-6"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <circle cx="11" cy="11" r="8" />
-                    <path d="M21 21l-4.35-4.35" />
-                  </motion.svg>
+                  {isLoading ? (
+                    <motion.div
+                      className="w-6 h-6 border-2 border-current border-t-transparent rounded-full"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    />
+                  ) : (
+                    <motion.svg
+                      className="w-6 h-6"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="M21 21l-4.35-4.35" />
+                    </motion.svg>
+                  )}
                 </button>
 
-                {/* Error Message */}
                 {error && (
                   <motion.p
                     initial={{ opacity: 0, y: 10 }}
@@ -154,7 +183,6 @@ const SearchVisitor = () => {
           </div>
         </div>
       </main>
-      
     </div>
   );
 };
