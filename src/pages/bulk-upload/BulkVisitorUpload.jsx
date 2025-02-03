@@ -5,40 +5,45 @@ import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../config/supabase';
 import { DEPARTMENTS } from '../../utils/constants';
 
-const UploadCard = ({ title, icon, description, onClick, buttonText }) => (
+// Alert/Toast Component
+const Alert = ({ message, type = 'error', onClose, onConfirm }) => (
   <motion.div
-    whileHover={{ scale: 1.02 }}
-    whileTap={{ scale: 0.98 }}
-    className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 cursor-pointer
-             hover:shadow-2xl transition-all duration-300"
-    onClick={onClick}
+    initial={{ opacity: 0, y: 50 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: 50 }}
+    className={`fixed bottom-4 right-4 z-50 px-6 py-4 rounded-xl shadow-lg
+      ${type === 'success' 
+        ? 'bg-black text-white dark:bg-white dark:text-black' 
+        : 'bg-red-500 text-white'
+      }
+      transition-colors duration-300`}
   >
-    <div className="flex flex-col items-center text-center space-y-6">
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: "spring", stiffness: 300, damping: 20 }}
-        className="w-24 h-24 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center"
-      >
-        {icon}
-      </motion.div>
-
-      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-        {title}
-      </h3>
-
-      <p className="text-gray-600 dark:text-gray-400 max-w-sm">
-        {description}
-      </p>
-
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="px-6 py-3 bg-black text-white rounded-full hover:bg-gray-800
-                 transition-colors duration-200 font-medium"
-      >
-        {buttonText}
-      </motion.button>
+    <div className="flex items-center space-x-4">
+      <span>{message}</span>
+      {onConfirm && (
+        <div className="flex space-x-2">
+          <button 
+            onClick={onConfirm} 
+            className="px-3 py-1 bg-white/30 hover:bg-white/40 rounded-lg"
+          >
+            Confirm
+          </button>
+          <button 
+            onClick={onClose} 
+            className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded-lg"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+      {!onConfirm && (
+        <button 
+          onClick={onClose} 
+          className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded-lg"
+        >
+          Close
+        </button>
+      )}
     </div>
   </motion.div>
 );
@@ -48,8 +53,10 @@ const BulkVisitorUpload = () => {
   const [previewData, setPreviewData] = useState([]);
   const [fileName, setFileName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertType, setAlertType] = useState('error');
+  const [alertConfirmAction, setAlertConfirmAction] = useState(null);
   
   // Manual Entry States
   const [showManualEntry, setShowManualEntry] = useState(false);
@@ -65,6 +72,42 @@ const BulkVisitorUpload = () => {
     laptopBrand: '',
     laptopSerial: ''
   });
+
+  // Show error alert
+  const showErrorAlert = (message) => {
+    setAlertMessage(message);
+    setAlertType('error');
+    setShowAlert(true);
+    setAlertConfirmAction(null);
+
+    // Automatically remove alert after 3 seconds
+    setTimeout(() => {
+      setShowAlert(false);
+    }, 3000);
+  };
+
+  // Show success alert
+  const showSuccessAlert = (message, confirmAction = null) => {
+    setAlertMessage(message);
+    setAlertType('success');
+    setShowAlert(true);
+    setAlertConfirmAction(confirmAction);
+
+    // Automatically remove alert after 3 seconds if no confirm action
+    if (!confirmAction) {
+      setTimeout(() => {
+        setShowAlert(false);
+      }, 3000);
+    }
+  };
+
+  // Close alert handler
+  const handleCloseAlert = () => {
+    setShowAlert(false);
+    if (alertConfirmAction) {
+      alertConfirmAction();
+    }
+  };
 
   // Download Template Function
   const downloadTemplate = () => {
@@ -105,8 +148,6 @@ const BulkVisitorUpload = () => {
   const clearData = () => {
     setPreviewData([]);
     setFileName('');
-    setError('');
-    setSuccess('');
     const fileInput = document.getElementById('file-upload');
     if (fileInput) fileInput.value = '';
   };
@@ -117,8 +158,6 @@ const BulkVisitorUpload = () => {
     if (!file) return;
     
     setFileName(file.name);
-    setError('');
-    setSuccess('');
 
     try {
       const reader = new FileReader();
@@ -153,30 +192,30 @@ const BulkVisitorUpload = () => {
 
           setPreviewData(validatedData);
         } catch (error) {
-          setError('Error reading Excel file. Please ensure it follows the template format.');
+          showErrorAlert('Error reading Excel file. Please ensure it follows the template format.');
         }
       };
       reader.readAsArrayBuffer(file);
     } catch (error) {
-      setError('Error processing file');
+      showErrorAlert('Error processing file');
     }
   };
 
   // Bulk Submit Handler
   const handleBulkSubmit = async () => {
     if (!previewData.length) {
-      setError('Please upload a file first');
+      showErrorAlert('Please upload a file first');
       return;
     }
 
     if (!user?.username) {
-      setError('User session expired. Please log in again.');
+      showErrorAlert('User session expired. Please log in again.');
       return;
     }
 
     const invalidRows = previewData.filter(row => !row.isValid);
     if (invalidRows.length > 0) {
-      setError(`Please fix errors in rows: ${invalidRows.map(row => row.rowNumber).join(', ')}`);
+      showErrorAlert(`Please fix errors in rows: ${invalidRows.map(row => row.rowNumber).join(', ')}`);
       return;
     }
 
@@ -215,11 +254,11 @@ const BulkVisitorUpload = () => {
         }
       }
       
-      setSuccess(`Successfully uploaded ${previewData.length} visitor${previewData.length > 1 ? 's' : ''}!`);
+      showSuccessAlert(`Successfully uploaded ${previewData.length} visitor${previewData.length > 1 ? 's' : ''}!`);
       clearData();
     } catch (error) {
       console.error('Full error object:', error);
-      setError(`Error uploading visitors: ${error.message}`);
+      showErrorAlert(`Error uploading visitors: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -246,12 +285,12 @@ const BulkVisitorUpload = () => {
     const missingFields = requiredFields.filter(field => !manualVisitor[field]);
     
     if (missingFields.length > 0) {
-      setError(`Please fill in all required fields: ${missingFields.join(', ')}`);
+      showErrorAlert(`Please fill in all required fields: ${missingFields.join(', ')}`);
       return;
     }
 
     if (!user?.username) {
-      setError('User session expired. Please log in again.');
+      showErrorAlert('User session expired. Please log in again.');
       return;
     }
 
@@ -280,7 +319,8 @@ const BulkVisitorUpload = () => {
 
       if (error) throw error;
 
-      setSuccess('Visitor added successfully!');
+      showSuccessAlert('Visitor added successfully!');
+      
       // Reset form
       setManualVisitor({
         fullName: '',
@@ -297,14 +337,27 @@ const BulkVisitorUpload = () => {
       setShowManualEntry(false);
     } catch (error) {
       console.error('Error inserting visitor:', error);
-      setError(`Error adding visitor: ${error.message}`);
+      showErrorAlert(`Error adding visitor: ${error.message}`);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8 relative">
+      {/* Alert/Toast Popup */}
+      <AnimatePresence>
+        {showAlert && (
+          <Alert 
+            message={alertMessage} 
+            type={alertType}
+            onClose={handleCloseAlert}
+            onConfirm={alertConfirmAction ? handleCloseAlert : null}
+          />
+        )}
+      </AnimatePresence>
+
+          
       {/* Bulk Upload Section */}
       <AnimatePresence mode="wait">
         {!previewData.length && (
@@ -626,9 +679,7 @@ const BulkVisitorUpload = () => {
         )}
       </AnimatePresence>
 
-      {/* Error and Success Alerts */}
-      <AnimatePresence>
-        {(error || success) && (
+    {(error || success) && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -647,7 +698,7 @@ const BulkVisitorUpload = () => {
             )}
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence> */}
     </div>
   );
 };
