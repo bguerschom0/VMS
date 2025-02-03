@@ -12,7 +12,7 @@ const MOCK_USERS = [
     phoneNumber: "250785700813",
     fullName: "Jane Smith",
     gender: "Female",
-    photoUrl: "https://randomuser.me/api/portraits/women/1.jpg"
+    photoUrl: "https://randomuser.me/api/portraits/women/68.jpg"
   }
 ];
 
