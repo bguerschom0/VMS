@@ -11,70 +11,59 @@ const AuthContext = createContext(null)
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
-  const logoutTimer = useRef(null) // Ref to hold logout timer
+  const logoutTimer = useRef(null) // Holds the logout timer
 
   useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession()
-      if (data.session) {
-        setUser(data.session.user)
-        localStorage.setItem('user', JSON.stringify(data.session.user))
+    const checkUser = async () => {
+      const storedUser = localStorage.getItem('user')
+      if (storedUser) {
+        setUser(JSON.parse(storedUser))
         resetLogoutTimer() // Start inactivity timer
-      } else {
-        setUser(null)
-        localStorage.removeItem('user')
       }
       setLoading(false)
     }
 
-    checkSession()
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null)
-      if (session?.user) {
-        localStorage.setItem('user', JSON.stringify(session.user))
-        resetLogoutTimer() // Restart inactivity timer
-      } else {
-        localStorage.removeItem('user')
-        clearTimeout(logoutTimer.current)
-      }
-    })
-
-    return () => {
-      authListener?.subscription?.unsubscribe()
-    }
+    checkUser()
   }, [])
 
-  // Reset inactivity logout timer
+  // Reset inactivity timer
   const resetLogoutTimer = () => {
-    clearTimeout(logoutTimer.current) // Clear existing timer
+    clearTimeout(logoutTimer.current)
     logoutTimer.current = setTimeout(() => {
-      logout() // Auto logout after 5 minutes
+      logout()
     }, 5 * 60 * 1000) // 5 minutes (300,000 ms)
   }
 
   const login = async (username, password) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ username, password })
-      if (error) throw error
-      setUser(data.user)
-      localStorage.setItem('user', JSON.stringify(data.user))
-      resetLogoutTimer() // Start inactivity timer after login
-      return { user: data.user, error: null }
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('username', username)
+        .eq('password_hash', password) // Assuming password is stored as a hash
+        .single()
+
+      if (error || !data) {
+        throw new Error('Invalid credentials')
+      }
+
+      setUser(data)
+      localStorage.setItem('user', JSON.stringify(data)) // Store user in local storage
+      resetLogoutTimer() // Start inactivity timer
+      return { user: data, error: null }
     } catch (error) {
-      console.error('Login error:', error)
+      console.error('Login error:', error.message)
       return { user: null, error: error.message }
     }
   }
 
-  const logout = async () => {
-    await supabase.auth.signOut()
+  const logout = () => {
     setUser(null)
     localStorage.removeItem('user')
-    clearTimeout(logoutTimer.current) // Clear logout timer
+    clearTimeout(logoutTimer.current)
   }
 
-  // Listen for user activity to reset the logout timer
+  // Reset logout timer on user activity
   useEffect(() => {
     const resetTimerOnActivity = () => resetLogoutTimer()
 
