@@ -17,6 +17,7 @@ import VisitorHistory from './pages/visitors-history/VisitorHistory'
 import BulkVisitorUpload from './pages/bulk-upload/BulkVisitorUpload'
 import ActiveScheduledVisitors from './pages/scheduled-visitors/ActiveScheduledVisitors'
 import UserManagement from './pages/UserManagement/UserManagement'
+import GuardShiftReport from './pages/security-guard-shift-report/GuardShiftReport'
 
 // Protected Route wrapper
 const ProtectedRoute = ({ children }) => {
@@ -176,6 +177,18 @@ const App = () => {
           <ProtectedRoute>
             <AuthenticatedLayout>
               <UserManagement />
+            </AuthenticatedLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* GuardShiftReport routes */}
+            <Route
+        path="/GuardShiftReport"
+        element={
+          <ProtectedRoute>
+            <AuthenticatedLayout>
+              <GuardShiftReport />
             </AuthenticatedLayout>
           </ProtectedRoute>
         }
