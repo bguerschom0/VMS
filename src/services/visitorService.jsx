@@ -1,5 +1,3 @@
-
-
 import { supabase } from '../config/supabase';
 import { mockIdApi } from './mockApi';
 import { generateDepartmentCards } from '../utils/constants';
@@ -76,6 +74,7 @@ export const visitorService = {
       console.error('Error getting available cards:', error);
       throw error;
     }
+  },
 
   // Get used cards for a department
   async getUsedCards(departmentId) {
@@ -96,7 +95,7 @@ export const visitorService = {
   },
 
   // Create new visitor check-in
-async checkInVisitor(visitorData, username) {
+  async checkInVisitor(visitorData, username) {
     try {
       // Verify card is still available
       const availableCards = await this.getAvailableCards(visitorData.department);
@@ -139,6 +138,7 @@ async checkInVisitor(visitorData, username) {
       throw error;
     }
   },
+
   // Check out visitor
   async checkOutVisitor(visitorId, username) {
     try {
@@ -242,13 +242,6 @@ async checkInVisitor(visitorData, username) {
           return visitor;
         })
       );
-
-        ...Object.fromEntries(
-    Object.entries(visitorService).filter(
-      ([key]) => 
-        !['searchVisitor', 'getAvailableCards', 'checkInVisitor'].includes(key)
-    )
-  )
 
       return {
         visitors: visitorsWithPhotos,
