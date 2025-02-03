@@ -154,13 +154,6 @@ const GuardShiftReportViewer = () => {
   );
 
 
-  const exportSingleReport = (report) => {
-  const ws = XLSX.utils.json_to_sheet([report]);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Report');
-  XLSX.writeFile(wb, `security_report_${report.id}.xlsx`);
-};
-
   const printReport = (report) => {
   const printWindow = window.open('', '_blank');
   const content = `
