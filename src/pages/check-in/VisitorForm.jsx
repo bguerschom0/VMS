@@ -45,6 +45,7 @@ const VisitorForm = () => {
     identityNumber: '',
     gender: '',
     phoneNumber: '',
+    nationality: '', 
     visitorCard: '',
     department: '',
     purpose: '',
@@ -123,6 +124,9 @@ const VisitorForm = () => {
     if (location.state?.isPassport && !formData.identityNumber) {
       newErrors.identityNumber = 'ID or Passport number is required';
     }
+    if (!formData.nationality) {
+        newErrors.nationality = 'Nationality is required';
+      }
 
     if (!formData.department) newErrors.department = 'Department is required';
     if (!formData.visitorCard) newErrors.visitorCard = 'Visitor card is required';
@@ -317,6 +321,23 @@ const VisitorForm = () => {
                               text-gray-700 focus:ring-2 focus:ring-black focus:border-transparent`}
                     readOnly={!isEditable}
                   />
+
+                   <input
+                type="text"
+                placeholder="Nationality"
+                value={formData.nationality}
+                onChange={(e) => setFormData({ ...formData, nationality: e.target.value })}
+                className={`w-full px-4 py-2 rounded-lg border 
+                          ${errors.nationality ? 'border-red-500' : 'border-gray-200'}
+                          dark:bg-gray-700 dark:text-white
+                          focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent`}
+              />
+              {errors.nationality && (
+                <p className="mt-1 text-sm text-red-500 dark:text-red-400">
+                  {errors.nationality}
+                </p>
+              )}
+                  
                 </div>
               </motion.div>
             </div>
