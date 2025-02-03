@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
         .from('users')
         .select('*')
         .eq('username', username)
-        .eq('password_hash', password) // Assuming password is stored as a hash
+        .eq('password', password)
         .single()
 
       if (error || !data) {
