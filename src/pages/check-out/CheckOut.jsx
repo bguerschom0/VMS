@@ -92,7 +92,8 @@ const CheckOut = () => {
 return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       
-          <div className="px-16 py-4">
+      <main>
+        <div className="p-4 sm:p-16">
           <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl">
             {/* Search Bar */}
             <div className="p-6 border-b border-gray-200 dark:border-gray-700">
@@ -220,6 +221,7 @@ return (
             </div>
           </div>
         </div>
+      </main>
 
       <CheckoutModal
         isOpen={showModal}
