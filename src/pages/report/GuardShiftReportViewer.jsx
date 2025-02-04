@@ -47,7 +47,7 @@ const GuardShiftReportViewer = () => {
       let query = supabase
         .from('guard_shift_reports')
         .select('*', { count: 'exact' })
-        .order('submitted_at', { ascending: false });
+        .order('created_at', { ascending: false });
 
       // Apply filters
       if (filters.startDate) {
