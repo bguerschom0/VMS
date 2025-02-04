@@ -48,23 +48,106 @@ const ActiveScheduledVisitors = () => {
     }
   };
 
-  const handleArrival = async (visitorId) => {
-    try {
-      const { error } = await supabase
-        .from('scheduled_visitors')
-        .update({
-          status: 'arrived',
-          arrival_time: new Date().toISOString()
-        })
-        .eq('id', visitorId);
+// Modified handleArrival function
+const handleArrival = async (visitorId) => {
+  try {
+    // Start a Supabase transaction
+    const { data: visitor, error: fetchError } = await supabase
+      .from('scheduled_visitors')
+      .select('*')
+      .eq('id', visitorId)
+      .single();
 
-      if (error) throw error;
+    if (fetchError) throw fetchError;
 
-      fetchActiveVisitors();
-    } catch (error) {
-      console.error('Error updating visitor status:', error);
-    }
+    // 1. Log the arrival in visit_history
+    const { error: historyError } = await supabase
+      .from('visit_history')
+      .insert({
+        visitor_id: visitorId,
+        arrival_date: new Date().toISOString(),
+        visit_date: new Date().toLocaleDateString(),
+        department: visitor.department,
+        full_name: visitor.full_name
+      });
+
+    if (historyError) throw historyError;
+
+    // 2. Update current status
+    const { error: updateError } = await supabase
+      .from('scheduled_visitors')
+      .update({
+        status: 'arrived',
+        arrival_time: new Date().toISOString(),
+        last_visit_date: new Date().toISOString()
+      })
+      .eq('id', visitorId);
+
+    if (updateError) throw updateError;
+
+    // 3. Refresh the visitor list
+    fetchActiveVisitors();
+  } catch (error) {
+    console.error('Error updating visitor status:', error);
+  }
+};
+
+// Add this function to reset status at midnight
+const resetDailyStatus = async () => {
+  try {
+    const { error } = await supabase
+      .from('scheduled_visitors')
+      .update({
+        status: 'pending',
+        arrival_time: null
+      })
+      .eq('status', 'arrived')
+      .gte('visit_end_date', new Date().toISOString());
+
+    if (error) throw error;
+    
+    fetchActiveVisitors();
+  } catch (error) {
+    console.error('Error resetting visitor status:', error);
+  }
+};
+
+// Add this useEffect to handle daily reset
+useEffect(() => {
+  // Calculate time until next midnight
+  const now = new Date();
+  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const timeUntilMidnight = tomorrow - now;
+
+  // Set up the daily reset
+  const resetTimer = setTimeout(() => {
+    resetDailyStatus();
+    // Recursively set up the next day's reset
+    setInterval(resetDailyStatus, 24 * 60 * 60 * 1000);
+  }, timeUntilMidnight);
+
+  // Cleanup
+  return () => {
+    clearTimeout(resetTimer);
   };
+}, []);
+
+// Add a function to view visit history
+const getVisitHistory = async (visitorId) => {
+  try {
+    const { data, error } = await supabase
+      .from('visit_history')
+      .select('*')
+      .eq('visitor_id', visitorId)
+      .order('arrival_date', { ascending: false });
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error fetching visit history:', error);
+    return [];
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
