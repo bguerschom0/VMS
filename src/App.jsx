@@ -1,71 +1,71 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import { useAuth } from './hooks/useAuth'
+import { Routes, Route, Navigate, useLocation, BrowserRouter } from 'react-router-dom';
+import { useAuth } from './hooks/useAuth';
+import { ThemeProvider } from './contexts/ThemeContext';
+
 // Layout Components
-import Header from './components/layout/Header'
-import Sidebar from './components/layout/Sidebar'
-import Footer from './components/layout/Footer'
+import Header from './components/layout/Header';
+import Sidebar from './components/layout/Sidebar';
+import Footer from './components/layout/Footer';
+
 // Pages
-import LoginPage from './pages/Login/Login'
-import Dashboard from './pages/Dashboard'
-import Report from './pages/VisitorReport'
-import SearchVisitor from './pages/check-in/SearchVisitor'
-import VisitorForm from './pages/check-in/VisitorForm'
-import CheckOut from './pages/check-out/CheckOut'
-import CheckoutModal from './pages/check-out/CheckoutModal'
-import VisitorDetailsModal from './pages/visitors-history/VisitorDetailsModal'
-import VisitorHistory from './pages/visitors-history/VisitorHistory'
-import BulkVisitorUpload from './pages/bulk-upload/BulkVisitorUpload'
-import ActiveScheduledVisitors from './pages/scheduled-visitors/ActiveScheduledVisitors'
-import UserManagement from './pages/UserManagement/UserManagement'
-import GuardShiftReport from './pages/security-guard-shift-report/GuardShiftReport'
-import GuardShiftReportViewer from './pages/report/GuardShiftReportViewer'
-import ScheduledVisitorsReport from './pages/report/ScheduledVisitorsReport'
-import Unauthorized from './pages/Unauthorized'
+import LoginPage from './pages/Login/Login';
+import Dashboard from './pages/Dashboard';
+import Report from './pages/VisitorReport';
+import SearchVisitor from './pages/check-in/SearchVisitor';
+import VisitorForm from './pages/check-in/VisitorForm';
+import CheckOut from './pages/check-out/CheckOut';
+import CheckoutModal from './pages/check-out/CheckoutModal';
+import VisitorDetailsModal from './pages/visitors-history/VisitorDetailsModal';
+import VisitorHistory from './pages/visitors-history/VisitorHistory';
+import BulkVisitorUpload from './pages/bulk-upload/BulkVisitorUpload';
+import ActiveScheduledVisitors from './pages/scheduled-visitors/ActiveScheduledVisitors';
+import UserManagement from './pages/UserManagement/UserManagement';
+import GuardShiftReport from './pages/security-guard-shift-report/GuardShiftReport';
+import GuardShiftReportViewer from './pages/report/GuardShiftReportViewer';
+import ScheduledVisitorsReport from './pages/report/ScheduledVisitorsReport';
+import Unauthorized from './pages/Unauthorized';
 
 // Protected Route wrapper
 const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth()
-  const location = useLocation()
+  const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-black"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-black dark:border-white"></div>
       </div>
-    )
+    );
   }
 
   if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  return children
-}
+  return children;
+};
 
 // Layout wrapper for authenticated pages
 const AuthenticatedLayout = ({ children }) => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
-      <main className="pt-10 pb-10">
-        {children}
-      </main>
+      <main className="pt-10 pb-10">{children}</main>
       <Footer />
     </div>
-  )
-}
+  );
+};
 
-const App = () => {
-  const { user } = useAuth()
+// Main content component containing all routes
+const AppContent = () => {
+  const { user } = useAuth();
 
   return (
     <Routes>
       {/* Public route */}
       <Route 
         path="/login" 
-        element={
-          user ? <Navigate to="/dashboard" replace /> : <LoginPage />
-        } 
+        element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} 
       />
 
       {/* Protected routes */}
@@ -81,7 +81,7 @@ const App = () => {
       />
 
       {/* Check-in routes */}
-            <Route
+      <Route
         path="/check-in"
         element={
           <ProtectedRoute>
@@ -91,7 +91,6 @@ const App = () => {
           </ProtectedRoute>
         }
       />
-      
 
       <Route
         path="/check-in/form"
@@ -127,7 +126,7 @@ const App = () => {
         }
       />
 
-      {/* visitors-history routes */}
+      {/* Visitor history routes */}
       <Route
         path="/visitor-history"
         element={
@@ -138,6 +137,7 @@ const App = () => {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/visitor-history/form"
         element={
@@ -149,7 +149,7 @@ const App = () => {
         }
       />
 
-      {/* Bulk-visitors routes */}
+      {/* Bulk visitors routes */}
       <Route
         path="/bulkvisitors"
         element={
@@ -161,7 +161,7 @@ const App = () => {
         }
       />
 
-      {/* Scheduled-visitors routes */}
+      {/* Scheduled visitors routes */}
       <Route
         path="/scheduled-visitors"
         element={
@@ -173,7 +173,7 @@ const App = () => {
         }
       />
 
-        {/* User Management routes */}
+      {/* User Management routes */}
       <Route
         path="/user-management"
         element={
@@ -186,7 +186,7 @@ const App = () => {
       />
 
       {/* GuardShiftReport routes */}
-            <Route
+      <Route
         path="/GuardShiftReport"
         element={
           <ProtectedRoute>
@@ -196,7 +196,7 @@ const App = () => {
           </ProtectedRoute>
         }
       />
-      
+
       <Route
         path="/reports"
         element={
@@ -208,9 +208,7 @@ const App = () => {
         }
       />
 
-      
-
-            <Route
+      <Route
         path="/GuardShiftReportViewer"
         element={
           <ProtectedRoute>
@@ -221,7 +219,7 @@ const App = () => {
         }
       />
 
-                  <Route
+      <Route
         path="/scheduled-report"
         element={
           <ProtectedRoute>
@@ -232,18 +230,28 @@ const App = () => {
         }
       />
 
-      {/* Redirect root to dashboard or login */}
+      {/* Root route redirect */}
       <Route
         path="/"
-        element={
-          <Navigate to={user ? "/dashboard" : "/login"} replace />
-        }
+        element={<Navigate to={user ? "/dashboard" : "/login"} replace />}
       />
 
-      {/* Catch all route */}
-<Route path="/unauthorized" element={<Unauthorized />} />
+      {/* Unauthorized and catch-all routes */}
+      <Route path="/unauthorized" element={<Unauthorized />} />
+      <Route path="*" element={<Navigate to="/unauthorized" replace />} />
     </Routes>
-  )
-}
+  );
+};
 
-export default App
+// Main App component
+const App = () => {
+  return (
+    <ThemeProvider>
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
+    </ThemeProvider>
+  );
+};
+
+export default App;
