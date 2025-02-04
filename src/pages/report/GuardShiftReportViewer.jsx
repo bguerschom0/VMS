@@ -170,6 +170,19 @@ const GuardShiftReportViewer = () => {
     }
   };
 
+    const StatCard = ({ title, value, icon }) => (
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
+          <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">{value}</p>
+        </div>
+        <div className="p-3 bg-black bg-opacity-5 dark:bg-opacity-10 rounded-full">
+          {icon}
+        </div>
+      </div>
+    </div>
+  );
   // Report Modal Component
   const ReportModal = ({ report, onClose }) => (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
