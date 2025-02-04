@@ -1,39 +1,70 @@
-import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { useAuth } from '../../hooks/useAuth'
-import { Moon, Sun, ChevronDown, User, LogOut } from 'lucide-react'
-import { roleBasedNavigation } from './navigationConfig'
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+import { Moon, Sun, ChevronDown, User, LogOut } from 'lucide-react';
+import { roleBasedNavigation } from './navigationConfig';
 
 const Header = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false)
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const [openSubmenu, setOpenSubmenu] = useState(null)
-  const { user, logout } = useAuth() 
-  const navigate = useNavigate()
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [openSubmenu, setOpenSubmenu] = useState(null);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
-  const navigationItems = user ? roleBasedNavigation[user.role] || [] : []
+  // Initialize dark mode from localStorage
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('darkMode');
+    if (savedTheme !== null) {
+      return savedTheme === 'true';
+    }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
+  const navigationItems = user ? roleBasedNavigation[user.role] || [] : [];
 
   const handleSignOut = () => {
     try {
-      logout()
-      setIsDropdownOpen(false)
-      navigate('/login', { replace: true })
+      logout();
+      setIsDropdownOpen(false);
+      navigate('/login', { replace: true });
     } catch (error) {
-      console.error('Error signing out:', error)
+      console.error('Error signing out:', error);
     }
-  }
+  };
 
   const handleLogoClick = () => {
-    navigate('/dashboard')
-  }
+    navigate('/dashboard');
+  };
 
+  // Effect for handling dark mode
   useEffect(() => {
+    // Update localStorage when theme changes
+    localStorage.setItem('darkMode', isDarkMode);
+
     if (isDarkMode) {
-      document.documentElement.classList.add('dark')
+      document.documentElement.classList.add('dark');
     } else {
-      document.documentElement.classList.remove('dark')
+      document.documentElement.classList.remove('dark');
     }
-  }, [isDarkMode])
+  }, [isDarkMode]);
+
+  // Listen for system theme changes
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e) => {
+      // Only update if there's no saved preference
+      if (localStorage.getItem('darkMode') === null) {
+        setIsDarkMode(e.matches);
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  // Toggle theme handler
+  const toggleDarkMode = () => {
+    setIsDarkMode(prev => !prev);
+  };
 
   return (
     <header className="bg-gray-50 dark:bg-gray-900 shadow-sm mt-0">
@@ -49,7 +80,7 @@ const Header = () => {
           <div className="flex-1 flex justify-center">
             <nav className="flex items-center space-x-6">
               {navigationItems.map((item) => {
-                const Icon = item.icon
+                const Icon = item.icon;
                 return item.children ? (
                   <div 
                     key={item.name}
@@ -67,7 +98,7 @@ const Header = () => {
                     {openSubmenu === item.name && (
                       <div className="absolute left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-10">
                         {item.children.map((child) => {
-                          const ChildIcon = child.icon
+                          const ChildIcon = child.icon;
                           return (
                             <Link
                               key={child.path}
@@ -78,7 +109,7 @@ const Header = () => {
                               <ChildIcon className="h-4 w-4 mr-2" />
                               {child.name}
                             </Link>
-                          )
+                          );
                         })}
                       </div>
                     )}
@@ -94,7 +125,7 @@ const Header = () => {
                     <Icon className="h-4 w-4 mr-2" />
                     {item.name}
                   </Link>
-                )
+                );
               })}
             </nav>
           </div>
@@ -129,7 +160,7 @@ const Header = () => {
                   </div>
                   <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
                     <button
-                      onClick={() => setIsDarkMode(!isDarkMode)}
+                      onClick={toggleDarkMode}
                       className="flex items-center w-full text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md px-2 py-2"
                     >
                       {isDarkMode ? (
@@ -154,7 +185,7 @@ const Header = () => {
         </div>
       </div>
     </header>
-  )
-}
+  );
+};
 
-export default Header
+export default Header;
