@@ -45,7 +45,7 @@ const GuardShiftReportViewer = () => {
     try {
       setLoading(true);
       let query = supabase
-        .from('security_reports')
+        .from('guard_shift_reports')
         .select('*', { count: 'exact' })
         .order('submitted_at', { ascending: false });
 
@@ -91,18 +91,18 @@ const GuardShiftReportViewer = () => {
     try {
       // Get total reports
       const { count: totalCount } = await supabase
-        .from('security_reports')
+        .from('guard_shift_reports')
         .select('*', { count: 'exact' });
 
       // Get incident reports
       const { count: incidentCount } = await supabase
-        .from('security_reports')
+        .from('guard_shift_reports')
         .select('*', { count: 'exact' })
         .eq('incident_occurred', true);
 
       // Get unique guards
       const { data: guards } = await supabase
-        .from('security_reports')
+        .from('guard_shift_reports')
         .select('submitted_by')
         .distinct();
 
@@ -122,7 +122,7 @@ const GuardShiftReportViewer = () => {
       
       // Fetch all reports without pagination
       const { data, error } = await supabase
-        .from('security_reports')
+        .from('guard_shift_reports')
         .select('*')
         .order('submitted_at', { ascending: false });
 
@@ -154,14 +154,14 @@ const GuardShiftReportViewer = () => {
         // Create workbook
         const ws = XLSX.utils.json_to_sheet(formattedData);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Security Reports');
+        XLSX.utils.book_append_sheet(wb, ws, 'Guard Shift Reports');
 
         // Adjust column widths
         const cols = Object.keys(formattedData[0]).map(() => ({ wch: 20 }));
         ws['!cols'] = cols;
 
         // Save file
-        XLSX.writeFile(wb, `security_reports_${new Date().toISOString().split('T')[0]}.xlsx`);
+        XLSX.writeFile(wb, `guard_shift_report_${new Date().toISOString().split('T')[0]}.xlsx`);
       }
     } catch (error) {
       console.error('Error exporting reports:', error);
