@@ -8,19 +8,18 @@ const Header = () => {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [openSubmenu, setOpenSubmenu] = useState(null)
-  const { user, signOut } = useAuth()
+  const { user, logout } = useAuth() 
   const navigate = useNavigate()
 
   const navigationItems = user ? roleBasedNavigation[user.role] || [] : []
 
-  const handleSignOut = async () => {
+  const handleSignOut = () => {
     try {
-      await signOut() // Make sure to await the signOut function
-      setIsDropdownOpen(false) // Close the dropdown
-      navigate('/login', { replace: true }) // Use replace to prevent going back
+      logout()
+      setIsDropdownOpen(false)
+      navigate('/login', { replace: true })
     } catch (error) {
       console.error('Error signing out:', error)
-      // Optionally handle error - show message to user
     }
   }
 
@@ -142,7 +141,7 @@ const Header = () => {
                     </button>
                   </div>
                   <button
-                    onClick={handleSignOut} // Changed to use the async handleSignOut function
+                    onClick={handleSignOut}
                     className="flex items-center w-full text-left px-6 py-2 text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
                     <LogOut className="h-4 w-4 mr-2" />
