@@ -9,7 +9,7 @@ import Footer from './components/layout/Footer';
 // Pages
 import LoginPage from './pages/Login/Login';
 import Dashboard from './pages/Dashboard';
-import Report from './pages/VisitorReport';
+import CheckInOutReport from './pages/report/CheckInOutReport';
 import SearchVisitor from './pages/check-in/SearchVisitor';
 import VisitorForm from './pages/check-in/VisitorForm';
 import CheckOut from './pages/check-out/CheckOut';
@@ -200,7 +200,7 @@ const App = () => {
         element={
           <ProtectedRoute>
             <AuthenticatedLayout>
-              <Report />
+              <CheckInOutReport />
             </AuthenticatedLayout>
           </ProtectedRoute>
         }
