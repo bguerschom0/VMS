@@ -97,10 +97,10 @@ const handleSubmit = async (e) => {
   try {
 
     const submissionData = {
-      submitted_by: user?.email || 'Anonymous',
+      submitted_by: user?.username,
       shift_type: formData.shiftType,
-      shift_start_time: formData.shiftStartTime || null,
-      shift_end_time: formData.shiftEndTime || null,
+      shift_start_time: formData.shiftStartTime,
+      shift_end_time: formData.shiftEndTime,
       team_members: formData.teamMembers,
       monitoring_location: selectedLocation,
       remote_locations_checked: formData.remoteLocationsChecked,
@@ -118,7 +118,7 @@ const handleSubmit = async (e) => {
     };
 
     const { error: submitError } = await supabase
-      .from('security_reports')
+      .from('guard_shift_reports')
       .insert([submissionData]);
 
     if (submitError) throw submitError;
