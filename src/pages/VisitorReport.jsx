@@ -15,7 +15,7 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 const Report = () => {
   const [loading, setLoading] = useState(true);
-  const [dateRange, setDateRange] = useState('week'); // week, month, year
+  const [dateRange, setDateRange] = useState('week');
   const [visitorStats, setVisitorStats] = useState([]);
   const [departmentStats, setDepartmentStats] = useState([]);
   const [timeStats, setTimeStats] = useState([]);
@@ -47,7 +47,7 @@ const Report = () => {
       const { data: visitors } = await supabase
         .from('visitors')
         .select('*')
-        .gte('entry_timestamp', startDate.toISOString());
+        .gte('check_in_time', startDate.toISOString());
 
       if (!visitors) return;
 
@@ -64,7 +64,7 @@ const Report = () => {
   const processVisitorData = (visitors) => {
     // Daily/Monthly visitor count
     const visitorCount = visitors.reduce((acc, visitor) => {
-      const date = new Date(visitor.entry_timestamp).toLocaleDateString();
+      const date = new Date(visitor.check_in_time).toLocaleDateString();
       acc[date] = (acc[date] || 0) + 1;
       return acc;
     }, {});
@@ -87,7 +87,7 @@ const Report = () => {
 
     // Time of day statistics
     const timeCount = visitors.reduce((acc, visitor) => {
-      const hour = new Date(visitor.entry_timestamp).getHours();
+      const hour = new Date(visitor.check_in_time).getHours();
       acc[hour] = (acc[hour] || 0) + 1;
       return acc;
     }, {});
