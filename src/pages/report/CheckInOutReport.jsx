@@ -324,11 +324,12 @@ return (
                       <XAxis 
                         dataKey="hour" 
                         tick={{ fill: 'currentColor' }}
-                        tickFormatter={(hour) => `${hourdataKey="hour" }
-                        tick={{ fill: 'currentColor' }}
                         tickFormatter={(hour) => `${hour}:00`}
                         className="text-gray-600 dark:text-gray-300"
                       />
+                      />
+           
+                      
                       <YAxis 
                         tick={{ fill: 'currentColor' }} 
                         width={30}
