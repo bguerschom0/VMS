@@ -353,53 +353,54 @@ const GuardShiftReport = () => {
                 {selectedLocation && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {LOCATION_GROUPS[selectedLocation].map(location => (
-                      <div key={location.id} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-700 dark:text-gray-300">{location.name}</span>
-                          <select
-                            value={formData.remoteLocationsChecked[location.id]?.status || 'normal'}
-                            onChange={(e) => setFormData({
-                              ...formData,
-                              remoteLocationsChecked: {
-                                ...formData.remoteLocationsChecked,
-                                [location.id]: {
-                                  ...formData.remoteLocationsChecked[location.id],
-                                  status: e.target.value
-                                }
-                              }
-                            })}
-                            className="px-2 py-1 text-sm rounded border border-gray-200 dark:border-gray-600
-                                     dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
-                            required
-                          >
-                            <option value="normal">Normal</option>
-                            <option value="issues">Issues</option>
-                            <option value="offline">Offline</option>
-                          </select>
-                        </div>
-                        
-                        {formData.remoteLocationsChecked[location.id]?.status !== 'normal' && (
-                          <input
-                            type="text"
-                            placeholder="Enter notes about issues..."
-                            value={formData.remoteLocationsChecked[location.id]?.notes || ''}
-                            onChange={(e) => setFormData({
-                              ...formData,
-                              remoteLocationsChecked: {
-                                ...formData.remoteLocationsChecked,
-                                [location.id]: {
-                                  ...formData.remoteLocationsChecked[location.id],
-                                  notes: e.target.value
-                                }
-                              }
-                            })}
-                            className="w-full px-3 py-1 text-sm rounded border border-gray-200 dark:border-gray-600
-                                     dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
-                            required
-                          />
-                        )}
-                      </div>
-                    ))}
+  <div key={location.id} className="space-y-2">
+    <div className="flex items-center justify-between">
+      <span className="text-gray-700 dark:text-gray-300">{location.name}</span>
+      <select
+        value={formData.remoteLocationsChecked[location.id]?.status || 'normal'}
+        onChange={(e) => setFormData({
+          ...formData,
+          remoteLocationsChecked: {
+            ...formData.remoteLocationsChecked,
+            [location.id]: {
+              ...formData.remoteLocationsChecked[location.id],
+              status: e.target.value
+            }
+          }
+        })}
+        className="px-2 py-1 text-sm rounded border border-gray-200 dark:border-gray-600
+                 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+        required
+      >
+        <option value="normal">Normal</option>
+        <option value="issues">Issues</option>
+        <option value="offline">Offline</option>
+      </select>
+    </div>
+    
+    {/* Only show notes input when 'issues' is specifically selected */}
+    {formData.remoteLocationsChecked[location.id]?.status === 'issues' && (
+      <input
+        type="text"
+        placeholder="Enter notes about issues..."
+        value={formData.remoteLocationsChecked[location.id]?.notes || ''}
+        onChange={(e) => setFormData({
+          ...formData,
+          remoteLocationsChecked: {
+            ...formData.remoteLocationsChecked,
+            [location.id]: {
+              ...formData.remoteLocationsChecked[location.id],
+              notes: e.target.value
+            }
+          }
+        })}
+        className="w-full px-3 py-1 text-sm rounded border border-gray-200 dark:border-gray-600
+                 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+        required
+      />
+    )}
+  </div>
+))}
                   </div>
                 )}
               </div>
