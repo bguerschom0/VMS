@@ -1,6 +1,5 @@
-import { Routes, Route, Navigate, useLocation, BrowserRouter } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
-import { ThemeProvider } from './contexts/ThemeContext';
 
 // Layout Components
 import Header from './components/layout/Header';
@@ -56,8 +55,7 @@ const AuthenticatedLayout = ({ children }) => {
   );
 };
 
-// Main content component containing all routes
-const AppContent = () => {
+const App = () => {
   const { user } = useAuth();
 
   return (
@@ -240,17 +238,6 @@ const AppContent = () => {
       <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="*" element={<Navigate to="/unauthorized" replace />} />
     </Routes>
-  );
-};
-
-// Main App component
-const App = () => {
-  return (
-    <ThemeProvider>
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
-    </ThemeProvider>
   );
 };
 
