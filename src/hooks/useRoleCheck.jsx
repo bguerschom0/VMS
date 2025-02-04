@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './useAuth';
-import { roleBasedNavigation } from '../layout/navigationConfig';
+import { roleBasedNavigation } from './navigationConfig';
  
 export const useRoleCheck = (requiredPath) => {
   const { user } = useAuth();
