@@ -122,15 +122,15 @@ const fetchVisitors = async () => {
     </motion.div>
   );
 
-return (
+ return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 relative">
       <AnimatePresence>
         {toast && <Toast message={toast.message} type={toast.type} />}
       </AnimatePresence>
       
       <main>
-        <div className="p-8">
-          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl max-w-6xl mx-auto">
+        <div className="p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl">
             {/* Search Bar */}
             <div className="p-5 border-b border-gray-200 dark:border-gray-700">
               <div className="max-w-md">
@@ -147,16 +147,16 @@ return (
 
             {/* Table */}
             <div className="overflow-x-auto">
-              <table className="w-full table-auto">
+              <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50 dark:bg-gray-700">
-                    <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-200">Full Name</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-200">ID/Passport</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-200">Phone Number</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-200">Visitor Card</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-200">Visit Reason</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-200">Entry Time</th>
-                    <th className="px-4 py-3 text-center font-medium text-gray-600 dark:text-gray-200">Action</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-200 w-40">Full Name</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-200 w-32">ID/Passport</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-200 w-32">Phone Number</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-200 w-28">Visitor Card</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-200 w-64">Visit Reason</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-200 w-40">Entry Time</th>
+                    <th className="px-4 py-3 text-center font-medium text-gray-600 dark:text-gray-200 w-32">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -181,19 +181,19 @@ return (
                         exit={{ opacity: 0 }}
                         className="border-t border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
                       >
-                        <td className="px-4 py-3 text-gray-800 dark:text-gray-200">{visitor.full_name}</td>
-                        <td className="px-4 py-3 text-gray-800 dark:text-gray-200">{visitor.identity_number}</td>
-                        <td className="px-4 py-3 text-gray-800 dark:text-gray-200">{visitor.phone_number}</td>
-                        <td className="px-4 py-3 text-gray-800 dark:text-gray-200">{visitor.visitor_card}</td>
+                        <td className="px-4 py-3 text-gray-800 dark:text-gray-200 truncate">{visitor.full_name}</td>
+                        <td className="px-4 py-3 text-gray-800 dark:text-gray-200 truncate">{visitor.identity_number}</td>
+                        <td className="px-4 py-3 text-gray-800 dark:text-gray-200 truncate">{visitor.phone_number}</td>
+                        <td className="px-4 py-3 text-gray-800 dark:text-gray-200 truncate">{visitor.visitor_card}</td>
                         <td className="px-4 py-3 text-gray-800 dark:text-gray-200">{visitor.purpose}</td>
-                        <td className="px-4 py-3 text-gray-800 dark:text-gray-200">
+                        <td className="px-4 py-3 text-gray-800 dark:text-gray-200 whitespace-nowrap">
                           {new Date(visitor.check_in_time).toLocaleString()}
                         </td>
                         <td className="px-4 py-3 text-center">
                           <button
                             onClick={() => handleCheckout(visitor)}
                             className="px-4 py-2 rounded-lg bg-black text-white hover:bg-gray-800 
-                                     transition-colors duration-200"
+                                     transition-colors duration-200 whitespace-nowrap"
                           >
                             Check-out
                           </button>
