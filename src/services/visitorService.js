@@ -4,7 +4,7 @@ import { generateDepartmentCards } from '../utils/constants';
 
 export const visitorService = {
   // Search for a visitor
-  async searchVisitor(searchTerm) {
+  searchVisitor: async (searchTerm) => {
     try {
       // Handle passport case
       if (searchTerm === '#00') {
@@ -26,11 +26,12 @@ export const visitorService = {
         };
       }
 
-      // Check mock API for visitor info
+      // Search in mock API
       const apiResponse = await mockIdApi.searchPerson(searchTerm);
-      
+      console.log('API Response:', apiResponse); // Debug log
+
       if (apiResponse.success) {
-        // Get visitor history if exists
+        // Get visitor history
         const { data: visitorHistory } = await supabase
           .from('visitors')
           .select('*')
@@ -47,7 +48,7 @@ export const visitorService = {
 
       return null;
     } catch (error) {
-      console.error('Error searching visitor:', error);
+      console.error('Visitor search error:', error);
       throw error;
     }
   },
