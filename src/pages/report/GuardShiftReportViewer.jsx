@@ -182,6 +182,7 @@ const GuardShiftReportViewer = () => {
         </div>
       </div>
     </div>
+    );
 
   // Report Modal Component
   const ReportModal = ({ report, onClose }) => (
