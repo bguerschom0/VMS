@@ -29,7 +29,7 @@ const SearchVisitor = () => {
     setShowAlert(false);
   };
 
-  const handleSearch = async (e) => {
+const handleSearch = async (e) => {
     e.preventDefault();
     
     if (searchInput.trim() === '') {
@@ -59,9 +59,11 @@ const SearchVisitor = () => {
         throw new Error('ID number must be 16 digits');
       }
 
+      console.log('Searching for visitor with input:', searchInput);
       const result = await visitorService.searchVisitor(searchInput);
+      console.log('Search result:', result);
       
-      if (!result || result.error) {
+      if (!result) {
         const message = searchInput.startsWith('250') 
           ? 'Phone number not found'
           : 'ID number not found';
@@ -70,15 +72,22 @@ const SearchVisitor = () => {
         return;
       }
 
+      if (result.error) {
+        setShowAlert(true);
+        setError(result.error);
+        return;
+      }
+
       navigate('/check-in/form', { 
         state: { 
           visitor: result,
-          isNewVisitor: !result.isExisting 
+          isNewVisitor: result.isNewVisitor 
         } 
       });
 
     } catch (error) {
-      setError(error.message);
+      console.error('Search error:', error);
+      setError(error.message || 'An error occurred during search');
       setShowAlert(true);
     } finally {
       setIsLoading(false);
