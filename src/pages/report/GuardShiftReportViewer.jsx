@@ -140,10 +140,15 @@ const GuardShiftReportViewer = () => {
         .eq('incident_occurred', true);
 
       // Get unique guards
-      const { data: guards } = await supabase
-        .from('guard_shift_reports')
-        .select('submitted_by')
-        .distinct();
+const { data: guards } = await supabase
+  .from('guard_shift_reports')
+  .select('submitted_by', { count: 'exact' });
+
+setStats({
+  totalReports: totalCount || 0,
+  incidentReports: incidentCount || 0,
+  uniqueGuards: guards?.length || 0
+});
 
       setStats({
         totalReports: totalCount || 0,
@@ -407,7 +412,7 @@ const ReportModal = ({ report, onClose, onPrint, onExport }) => (
         {/* Header */}
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Security Reports
+            Guard Shift Report
           </h1>
           
           <div className="flex items-center space-x-3">
