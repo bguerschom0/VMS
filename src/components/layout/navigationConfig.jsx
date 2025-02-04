@@ -23,6 +23,7 @@ export const roleBasedNavigation = {
       children: [
         { name: 'Check In', path: '/check-in', icon: LogIn },
         { name: 'Check Out', path: '/check-out', icon: LogOut },
+        { name: 'Visitor History', path: '/visitor-history', icon: History },
       ]
     },
     {
@@ -39,7 +40,6 @@ export const roleBasedNavigation = {
       children: [
         { name: 'Check In & Out Report', path: '/reports', icon: BarChart },
         { name: 'Guard Shift Report', path: '/GuardShiftReportViewer', icon: BarChart },
-        { name: 'Visitor History', path: '/visitor-history', icon: History },
         { name: 'Scheduled Visitor Report', path: '/scheduled-report', icon: BarChart },
       ]
     },
@@ -50,29 +50,26 @@ export const roleBasedNavigation = {
       path: '/dashboard', 
       icon: LayoutDashboard 
     },
+    { 
+      name: 'Guard Shift Report', 
+      path: '/GuardShiftReport', 
+      icon: ClipboardList
+    },
     {
       name: 'Visitor Management',
       icon: Users,
       children: [
         { name: 'Check In', path: '/check-in', icon: LogIn },
         { name: 'Check Out', path: '/check-out', icon: LogOut },
-      ]
-    },
-    {
-      name: 'Visitor Scheduling',
-      icon: Calendar,
-      children: [
-        { name: 'Scheduled Visitor', path: '/scheduled-visitors', icon: Calendar },
-      ]
-    },
-    {
-      name: 'Reports & History',
-      icon: BarChart,
-      children: [
-        { name: 'Check In & Out Report', path: '/reports', icon: BarChart },
         { name: 'Visitor History', path: '/visitor-history', icon: History },
       ]
     },
+    {
+      name: 'Scheduled Visitors',
+      path: '/scheduled-visitors',
+      icon: Calendar,
+    },
+
   ],
   security_guard: [
     { 
@@ -86,12 +83,8 @@ export const roleBasedNavigation = {
       children: [
         { name: 'Check In', path: '/check-in', icon: LogIn },
         { name: 'Check Out', path: '/check-out', icon: LogOut },
+        { name: 'Visitor History', path: '/visitor-history', icon: History },
       ]
-    },
-    { 
-      name: 'Guard Shift Report', 
-      path: '/GuardShiftReport', 
-      icon: ClipboardList
     },
     {
       name: 'Scheduled Visitors',
@@ -100,10 +93,36 @@ export const roleBasedNavigation = {
     },
   ],
   user: [
-    { 
+ { 
       name: 'Dashboard', 
       path: '/dashboard', 
       icon: LayoutDashboard 
+    },
+    {
+      name: 'Visitor Management',
+      icon: Users,
+      children: [
+        { name: 'Check In', path: '/check-in', icon: LogIn },
+        { name: 'Check Out', path: '/check-out', icon: LogOut },
+        { name: 'Visitor History', path: '/visitor-history', icon: History },
+      ]
+    },
+    {
+      name: 'Visitor Scheduling',
+      icon: Calendar,
+      children: [
+        { name: 'Bulk Visitor', path: '/bulkvisitors', icon: Users },
+        { name: 'Scheduled Visitor', path: '/scheduled-visitors', icon: Calendar },
+      ]
+    },
+    {
+      name: 'Reports & History',
+      icon: BarChart,
+      children: [
+        { name: 'Check In & Out Report', path: '/reports', icon: BarChart },
+        { name: 'Guard Shift Report', path: '/GuardShiftReportViewer', icon: BarChart },
+        { name: 'Scheduled Visitor Report', path: '/scheduled-report', icon: BarChart },
+      ]
     },
   ]
 };
