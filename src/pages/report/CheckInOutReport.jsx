@@ -113,55 +113,63 @@ const CheckInOutReport = () => {
   };
 
   const exportToExcel = () => {
-    // Prepare data for Excel export
-    const excelData = allVisitorData.map(visitor => ({
-      'Full Name': visitor.full_name,
-      'ID/Passport': visitor.identity_number,
-      'Phone Number': visitor.phone_number,
-      'Visitor Card': visitor.visitor_card,
-      'Purpose': visitor.purpose,
-      'Check In Time': new Date(visitor.check_in_time).toLocaleString(),
-      'Check Out Time': visitor.check_out_time ? new Date(visitor.check_out_time).toLocaleString() : 'Not checked out',
-      'Checked In By': visitor.check_in_by,
-      'Checked Out By': visitor.check_out_by || 'N/A'
-    }));
+  // Prepare data for Excel export with all columns
+  const excelData = allVisitorData.map(visitor => ({
+    'Full Name': visitor.full_name,
+    'ID Number': visitor.is_passport ? '-' : visitor.identity_number,
+    'Passport Number': visitor.is_passport ? visitor.passport_number : '-',
+    'Phone Number': visitor.phone_number,
+    'Gender': visitor.gender || '-',
+    'Nationality': visitor.nationality || '-',
+    'Department': visitor.department,
+    'Visitor Card': visitor.visitor_card,
+    'Purpose': visitor.purpose,
+    'Items Carried': visitor.items || '-',
+    'Has Laptop': visitor.has_laptop ? 'Yes' : 'No',
+    'Laptop Brand': visitor.laptop_brand || '-',
+    'Laptop Serial': visitor.laptop_serial || '-',
+    'Check In Time': new Date(visitor.check_in_time).toLocaleString(),
+    'Check Out Time': visitor.check_out_time ? new Date(visitor.check_out_time).toLocaleString() : 'Not checked out',
+    'Checked In By': visitor.check_in_by,
+    'Checked Out By': visitor.check_out_by || '-',
+    'Status': visitor.status,
+    'Created At': new Date(visitor.created_at).toLocaleString(),
+    'Updated At': new Date(visitor.updated_at).toLocaleString()
+  }));
 
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(excelData);
-    
-    // Add column widths
-    const colWidths = [
-      { wch: 20 }, // Full Name
-      { wch: 15 }, // ID/Passport
-      { wch: 15 }, // Phone Number
-      { wch: 12 }, // Visitor Card
-      { wch: 30 }, // Purpose
-      { wch: 20 }, // Check In Time
-      { wch: 20 }, // Check Out Time
-      { wch: 15 }, // Checked In By
-      { wch: 15 }, // Checked Out By
-    ];
-    ws['!cols'] = colWidths;
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(excelData);
+  
+  // Add column widths
+  const colWidths = [
+    { wch: 20 }, // Full Name
+    { wch: 15 }, // ID Number
+    { wch: 15 }, // Passport Number
+    { wch: 15 }, // Phone Number
+    { wch: 10 }, // Gender
+    { wch: 15 }, // Nationality
+    { wch: 20 }, // Department
+    { wch: 12 }, // Visitor Card
+    { wch: 30 }, // Purpose
+    { wch: 30 }, // Items
+    { wch: 10 }, // Has Laptop
+    { wch: 15 }, // Laptop Brand
+    { wch: 15 }, // Laptop Serial
+    { wch: 20 }, // Check In Time
+    { wch: 20 }, // Check Out Time
+    { wch: 15 }, // Checked In By
+    { wch: 15 }, // Checked Out By
+    { wch: 12 }, // Status
+    { wch: 20 }, // Created At
+    { wch: 20 }, // Updated At
+  ];
+  ws['!cols'] = colWidths;
 
-    XLSX.utils.book_append_sheet(wb, ws, "Visitor Data");
-    XLSX.writeFile(wb, `visitor_report_${dateRange}.xlsx`);
-  };
+  XLSX.utils.book_append_sheet(wb, ws, "Visitor Data");
+  XLSX.writeFile(wb, `visitor_report_${dateRange}.xlsx`);
+};
 
-  const exportToPDF = async () => {
-    try {
-      const canvas = await html2canvas(chartRef.current);
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('l', 'mm', 'a4');
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`visitor_report_${dateRange}.pdf`);
-    } catch (error) {
-      console.error('Error exporting to PDF:', error);
-    }
-  };
+
 return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -172,12 +180,12 @@ return (
               Visitor Reports
             </h1>
             
-            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <div className="flex items-center space-x-4">
               {/* Date Range Selector */}
               <select
                 value={dateRange}
                 onChange={(e) => setDateRange(e.target.value)}
-                className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
+                className="h-9 px-4 rounded-lg border border-gray-200 dark:border-gray-600
                          dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
               >
                 <option value="3months">Last 3 Months</option>
@@ -194,7 +202,7 @@ return (
                     type="date"
                     value={customStartDate}
                     onChange={(e) => setCustomStartDate(e.target.value)}
-                    className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600
+                    className="h-9 px-3 rounded-lg border border-gray-200 dark:border-gray-600
                              dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
                   />
                   <span className="text-gray-600 dark:text-gray-300">to</span>
@@ -202,34 +210,25 @@ return (
                     type="date"
                     value={customEndDate}
                     onChange={(e) => setCustomEndDate(e.target.value)}
-                    className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600
+                    className="h-9 px-3 rounded-lg border border-gray-200 dark:border-gray-600
                              dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
                   />
                 </div>
               )}
 
-              {/* Export Buttons */}
+              {/* Export Button */}
               <button
                 onClick={exportToExcel}
-                className="flex items-center px-4 py-2 space-x-2 bg-black text-white rounded-lg
+                className="h-9 flex items-center px-4 whitespace-nowrap bg-black text-white rounded-lg
                          hover:bg-gray-800 transition-colors dark:bg-white dark:text-black dark:hover:bg-gray-200"
               >
-                <FileSpreadsheet size={18} />
-                <span>Export Excel</span>
-              </button>
-
-              <button
-                onClick={exportToPDF}
-                className="flex items-center px-4 py-2 space-x-2 bg-black text-white rounded-lg
-                         hover:bg-gray-800 transition-colors dark:bg-white dark:text-black dark:hover:bg-gray-200"
-              >
-                <FileText size={18} />
-                <span>Export PDF</span>
+                <FileSpreadsheet size={16} className="mr-2" />
+                Export
               </button>
             </div>
           </div>
 
-          <div ref={chartRef} className="space-y-8">
+          <div className="space-y-8">
             {/* Visitor Trend Chart */}
             <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl">
               <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
@@ -265,6 +264,7 @@ return (
                       stroke="currentColor"
                       strokeWidth={2} 
                       dot={{ fill: 'currentColor' }}
+                      name="Visitors"
                       className="text-black dark:text-white"
                     />
                   </LineChart>
@@ -273,10 +273,10 @@ return (
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Purpose Distribution */}
+              {/* Department Distribution */}
               <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl">
                 <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-                  Visits by Purpose
+                  Visits by Department
                 </h3>
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
@@ -327,9 +327,6 @@ return (
                         tickFormatter={(hour) => `${hour}:00`}
                         className="text-gray-600 dark:text-gray-300"
                       />
-                      />
-           
-                      
                       <YAxis 
                         tick={{ fill: 'currentColor' }} 
                         width={30}
@@ -383,6 +380,5 @@ return (
       `}</style>
     </div>
   );
-};
 
 export default CheckInOutReport;
