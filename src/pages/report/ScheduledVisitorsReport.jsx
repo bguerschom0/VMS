@@ -94,44 +94,89 @@ const ScheduledVisitorsReport = () => {
     );
   };
 
-  const exportData = (format) => {
-    if (format === 'excel') {
-      // Get all columns dynamically from the first row
-      const formatValue = (key, value) => {
-        // Format dates if the column name contains 'date' or 'time'
-        if (value && (key.toLowerCase().includes('date') || key.toLowerCase().includes('time'))) {
-          return new Date(value).toLocaleString();
-        }
-        return value || '-';
-      };
+const exportData = async (format) => {
+  if (format === 'excel') {
+    try {
+      // Fetch visit history for all visitors
+      const { data: visitHistory } = await supabase
+        .from('visit_history')
+        .select('*')
+        .order('arrival_date', { descending: true });
 
-      // Transform raw data for export using all available columns
+      // Group visit history by visitor_id
+      const visitorHistory = {};
+      visitHistory?.forEach(record => {
+        if (!visitorHistory[record.visitor_id]) {
+          visitorHistory[record.visitor_id] = [];
+        }
+        visitorHistory[record.visitor_id].push(record);
+      });
+
+      // Transform raw data with visit history
       const exportData = rawData.map(visitor => {
-        const formattedRow = {};
-        Object.keys(visitor).forEach(key => {
-          // Convert snake_case to Title Case for headers
-          const headerName = key
-            .split('_')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
-          formattedRow[headerName] = formatValue(key, visitor[key]);
+        const visitorHistoryData = visitorHistory[visitor.id] || [];
+        const lastFiveVisits = visitorHistoryData.slice(0, 5); // Get last 5 visits
+
+        const formattedRow = {
+          // Visitor Information
+          'Full Name': visitor.full_name || '-',
+          'Identity Number': visitor.identity_number || '-',
+          'Phone Number': visitor.phone_number || '-',
+          'Department': visitor.department || '-',
+          'Items': visitor.items || '-',
+          'Purpose': visitor.purpose || '-',
+          'Visit Start Date': visitor.visit_start_date ? new Date(visitor.visit_start_date).toLocaleString() : '-',
+          'Visit End Date': visitor.visit_end_date ? new Date(visitor.visit_end_date).toLocaleString() : '-',
+          'Current Status': visitor.status ? visitor.status.charAt(0).toUpperCase() + visitor.status.slice(1) : '-',
+          'Last Visit Date': visitor.last_visit_date ? new Date(visitor.last_visit_date).toLocaleString() : '-',
+        };
+
+        // Add visit history
+        lastFiveVisits.forEach((visit, index) => {
+          formattedRow[`Visit ${index + 1} Date`] = visit.arrival_date ? new Date(visit.arrival_date).toLocaleString() : '-';
+          formattedRow[`Visit ${index + 1} Status`] = visit.status || '-';
         });
+
+        // Fill empty visit history slots with '-'
+        for (let i = lastFiveVisits.length + 1; i <= 5; i++) {
+          formattedRow[`Visit ${i} Date`] = '-';
+          formattedRow[`Visit ${i} Status`] = '-';
+        }
+
         return formattedRow;
       });
 
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.json_to_sheet(exportData);
-      
-      // Add some styling to the header
+
+      // Add styling to the header
       const range = XLSX.utils.decode_range(ws['!ref']);
       for (let C = range.s.c; C <= range.e.c; ++C) {
         const address = XLSX.utils.encode_col(C) + "1";
         if (!ws[address]) continue;
-        ws[address].s = { font: { bold: true } };
+        ws[address].s = { 
+          font: { bold: true },
+          fill: { fgColor: { rgb: "EFEFEF" } }
+        };
       }
 
+      // Adjust column widths
+      const maxWidth = 50;
+      const colWidths = {};
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        let maxColWidth = 10; // minimum width
+        for (let R = range.s.r; R <= range.e.r; ++R) {
+          const address = XLSX.utils.encode_cell({ r: R, c: C });
+          if (!ws[address]) continue;
+          const value = String(ws[address].v);
+          maxColWidth = Math.min(maxWidth, Math.max(maxColWidth, value.length + 2));
+        }
+        colWidths[XLSX.utils.encode_col(C)] = maxColWidth;
+      }
+      ws['!cols'] = Object.values(colWidths).map(width => ({ width }));
+
       XLSX.utils.book_append_sheet(wb, ws, 'Visitor Data');
-      
+
       // Generate filename based on date range
       let filename = 'visitor_data';
       if (dateRange === 'custom' && customStartDate && customEndDate) {
@@ -139,9 +184,15 @@ const ScheduledVisitorsReport = () => {
       } else {
         filename += `_${dateRange}`;
       }
+      filename += `_exported_${new Date().toISOString().split('T')[0]}`;
+      
       XLSX.writeFile(wb, `${filename}.xlsx`);
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      // You might want to add some user notification here
     }
-  };
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
@@ -149,7 +200,7 @@ const ScheduledVisitorsReport = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Visitors Report
+            Scheduled Visit Report
           </h1>
           
           <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
