@@ -1,61 +1,70 @@
-
 const MOCK_USERS = [
   {
     identityNumber: "1199000000000000",
     phoneNumber: "250788315218",
     fullName: "John Doe",
     gender: "Male",
-    photoUrl: "https://randomuser.me/api/portraits/men/1.jpg"
+    photoUrl: "https://randomuser.me/api/portraits/men/1.jpg",
+    nationality: "Rwandan"
   },
   {
     identityNumber: "1199000000000001",
     phoneNumber: "250785700813",
     fullName: "Jane Smith",
     gender: "Female",
-    photoUrl: "https://randomuser.me/api/portraits/women/68.jpg"
+    photoUrl: "https://randomuser.me/api/portraits/women/68.jpg",
+    nationality: "Rwandan"
   }
 ];
 
 export const mockIdApi = {
-  // Search by ID or phone number
-  async searchPerson(searchTerm) {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+  searchPerson: async (searchTerm) => {
+    try {
+      // Handle passport case
+      if (searchTerm === '#00') {
+        return {
+          success: true,
+          data: null,
+          isPassport: true
+        };
+      }
 
-    // Handle passport case (#00)
-    if (searchTerm === "#00") {
+      // Clean the search term
+      const cleanSearchTerm = searchTerm.toString().trim();
+
+      const person = MOCK_USERS.find(user => 
+        user.identityNumber === cleanSearchTerm || 
+        user.phoneNumber === cleanSearchTerm
+      );
+
+      if (person) {
+        return {
+          success: true,
+          data: { ...person },
+          isPassport: false
+        };
+      }
+
       return {
-        success: true,
-        data: null,
-        isPassport: true
+        success: false,
+        error: "Person not found"
+      };
+    } catch (error) {
+      console.error('Search error:', error);
+      return {
+        success: false,
+        error: error.message
       };
     }
-
-    // Search in mock data
-    const person = MOCK_USERS.find(user => 
-      user.identityNumber === searchTerm || 
-      user.phoneNumber === searchTerm
-    );
-
-    if (person) {
-      return {
-        success: true,
-        data: person,
-        isPassport: false
-      };
-    }
-
-    return {
-      success: false,
-      error: "Person not found"
-    };
   },
 
-  // Get photo URL
-  async getPhoto(identityNumber) {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const person = MOCK_USERS.find(user => user.identityNumber === identityNumber);
-    return person ? person.photoUrl : null;
+  getPhoto: async (identityNumber) => {
+    try {
+      const person = MOCK_USERS.find(user => user.identityNumber === identityNumber);
+      return person?.photoUrl || null;
+    } catch (error) {
+      console.error('Photo fetch error:', error);
+      return null;
+    }
   }
 };
