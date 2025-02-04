@@ -89,67 +89,69 @@ const GuardShiftReport = () => {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  
+  try {
+
+    const submissionData = {
+      submitted_by: user?.email || 'Anonymous',
+      shift_type: formData.shiftType,
+      shift_start_time: formData.shiftStartTime || null,
+      shift_end_time: formData.shiftEndTime || null,
+      team_members: formData.teamMembers,
+      monitoring_location: selectedLocation,
+      remote_locations_checked: formData.remoteLocationsChecked,
+      electricity_status: formData.electricityStatus,
+      water_supply_status: formData.waterSupplyStatus,
+      generator_status: formData.generatorStatus,
+      ups_status: formData.upsStatus,
+      incident_occurred: formData.incidentOccurred,
+      incident_type: formData.incidentType || null,
+      incident_time: formData.incidentOccurred && formData.incidentTime ? formData.incidentTime : null,
+      incident_location: formData.incidentLocation || null,
+      incident_description: formData.incidentDescription || null,
+      action_taken: formData.actionTaken || null,
+      notes: formData.notes || null
+    };
+
+    const { error: submitError } = await supabase
+      .from('security_reports')
+      .insert([submissionData]);
+
+    if (submitError) throw submitError;
     
-    try {
-      const { error: submitError } = await supabase
-        .from('guard_shift_reports')
-        .insert([
-          {
-            submitted_by: user?.email || 'Anonymous',
-            shift_type: formData.shiftType,
-            shift_start_time: formData.shiftStartTime,
-            shift_end_time: formData.shiftEndTime,
-            team_members: formData.teamMembers,
-            monitoring_location: selectedLocation,
-            remote_locations_checked: formData.remoteLocationsChecked,
-            electricity_status: formData.electricityStatus,
-            water_supply_status: formData.waterSupplyStatus,
-            generator_status: formData.generatorStatus,
-            ups_status: formData.upsStatus,
-            incident_occurred: formData.incidentOccurred,
-            incident_type: formData.incidentType,
-            incident_time: formData.incidentTime,
-            incident_location: formData.incidentLocation,
-            incident_description: formData.incidentDescription,
-            action_taken: formData.actionTaken,
-            notes: formData.notes
-          }
-        ]);
+    showToast('Report submitted successfully!', 'success');
 
-      if (submitError) throw submitError;
-      
-      showToast('Report submitted successfully!', 'success');
 
-      // Reset form
-      setFormData({
-        shiftType: '',
-        shiftStartTime: '',
-        shiftEndTime: '',
-        teamMembers: [],
-        remoteLocationsChecked: {},
-        electricityStatus: 'normal',
-        waterSupplyStatus: 'normal',
-        generatorStatus: 'normal',
-        upsStatus: 'normal',
-        incidentOccurred: false,
-        incidentType: '',
-        incidentTime: '',
-        incidentLocation: '',
-        incidentDescription: '',
-        actionTaken: '',
-        notes: ''
-      });
-      setSelectedLocation('');
-    } catch (error) {
-      console.error('Error submitting report:', error);
-      showToast('Failed to submit report. Please try again.', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
+    setFormData({
+      shiftType: '',
+      shiftStartTime: '',
+      shiftEndTime: '',
+      teamMembers: [],
+      remoteLocationsChecked: {},
+      electricityStatus: 'normal',
+      waterSupplyStatus: 'normal',
+      generatorStatus: 'normal',
+      upsStatus: 'normal',
+      incidentOccurred: false,
+      incidentType: '',
+      incidentTime: '',
+      incidentLocation: '',
+      incidentDescription: '',
+      actionTaken: '',
+      notes: ''
+    });
+    setSelectedLocation('');
+  } catch (error) {
+    console.error('Error submitting report:', error);
+    showToast('Failed to submit report. Please try again.', 'error');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
