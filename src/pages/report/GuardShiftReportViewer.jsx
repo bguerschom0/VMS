@@ -19,13 +19,13 @@ const GuardShiftReportViewer = () => {
   const [reports, setReports] = useState([]);
   const [selectedReport, setSelectedReport] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
-  const [filters, setFilters] = useState({
-    startDate: '',
-    endDate: '',
-    shiftType: '',
-    hasIncident: '',
-    guard: ''
-  });
+const [filters, setFilters] = useState({
+  startDate: getFiveDaysAgo(),
+  endDate: new Date().toISOString().split('T')[0], 
+  shiftType: '',
+  hasIncident: '',
+  guard: ''
+});
   const [stats, setStats] = useState({
     totalReports: 0,
     incidentReports: 0,
@@ -40,6 +40,13 @@ const GuardShiftReportViewer = () => {
     fetchReports();
     fetchStats();
   }, [filters, currentPage, reportsPerPage]);
+
+
+  const getFiveDaysAgo = () => {
+  const date = new Date();
+  date.setDate(date.getDate() - 5);
+  return date.toISOString().split('T')[0];
+};
 
   const fetchReports = async () => {
     try {
@@ -288,6 +295,66 @@ const GuardShiftReportViewer = () => {
       </div>
     </div>
   );
+
+
+  const ViewModal = ({ report, onClose }) => (
+  <div className="fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full p-6">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Report Details</h3>
+        <button 
+          onClick={onClose}
+          className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+        >
+          <X size={24} />
+        </button>
+      </div>
+      
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Date</label>
+            <p className="text-gray-900 dark:text-white">
+              {new Date(report.submitted_at).toLocaleDateString()}
+            </p>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Shift Type</label>
+            <p className="text-gray-900 dark:text-white capitalize">{report.shift_type}</p>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Location</label>
+            <p className="text-gray-900 dark:text-white">{report.monitoring_location}</p>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Status</label>
+            <p className="text-gray-900 dark:text-white">
+              {report.incident_occurred ? 'Incident Reported' : 'Normal'}
+            </p>
+          </div>
+        </div>
+
+        {report.incident_occurred && (
+          <div>
+            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Incident Details</label>
+            <p className="text-gray-900 dark:text-white mt-1">
+              Type: {report.incident_type}<br />
+              Description: {report.incident_description}
+            </p>
+          </div>
+        )}
+
+        <div>
+          <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Notes</label>
+          <p className="text-gray-900 dark:text-white mt-1 whitespace-pre-wrap">
+            {report.notes || 'No notes provided'}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+  
   return (
   <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -410,98 +477,96 @@ const GuardShiftReportViewer = () => {
         {/* Reports Table */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50 dark:bg-gray-700">
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">Date</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">Guard</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">Shift</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">Status</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">Incidents</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 dark:text-gray-300">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {loading ? (
-                  <tr>
-                    <td colSpan="6" className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-                      <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black dark:border-white"></div>
-                      </div>
-                    </td>
-                  </tr>
-                ) : reports.length === 0 ? (
-                  <tr>
-                    <td colSpan="6" className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-                      No reports found
-                    </td>
-                  </tr>
-                ) : (
-                  reports.map((report) => (
-                    <tr 
-                      key={report.id}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                    >
-                      <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
-                        {new Date(report.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
-                        {report.guard_name}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-900 dark:text-white capitalize">
-                        {report.shift_type}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium
-                          ${report.incident_occurred 
-                            ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200'
-                            : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200'
-                          }`}
-                        >
-                          {report.incident_occurred ? 'Incident Reported' : 'Normal'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
-                        {report.incident_occurred ? report.incident_type : 'None'}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <div className="flex items-center justify-end space-x-2">
-                          <button
-                            onClick={() => {
-                              setSelectedReport(report);
-                              setShowReportModal(true);
-                            }}
-                            className="text-gray-600 dark:text-gray-400 hover:text-black 
-                                     dark:hover:text-white transition-colors"
-                            title="View Details"
-                          >
-                            <Eye size={18} />
-                          </button>
-                          
-                          <button
-                            onClick={() => exportSingleReport(report)}
-                            className="text-gray-600 dark:text-gray-400 hover:text-black 
-                                     dark:hover:text-white transition-colors"
-                            title="Export Report"
-                          >
-                            <Download size={18} />
-                          </button>
-                          
-                          <button
-                            onClick={() => printReport(report)}
-                            className="text-gray-600 dark:text-gray-400 hover:text-black 
-                                     dark:hover:text-white transition-colors"
-                            title="Print Report"
-                          >
-                            <Printer size={18} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+<table className="w-full">
+  <thead>
+    <tr className="bg-gray-50 dark:bg-gray-700">
+      <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">Date</th>
+      <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">Location</th>
+      <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">Shift</th>
+      <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">Status</th>
+      <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">Notes</th>
+      <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 dark:text-gray-300">Actions</th>
+    </tr>
+  </thead>
+  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+    {loading ? (
+      <tr>
+        <td colSpan="6" className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black dark:border-white"></div>
+          </div>
+        </td>
+      </tr>
+    ) : reports.length === 0 ? (
+      <tr>
+        <td colSpan="6" className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+          No reports found
+        </td>
+      </tr>
+    ) : (
+      reports.map((report) => (
+        <tr 
+          key={report.id}
+          className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        >
+          <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+            {new Date(report.submitted_at).toLocaleDateString()}
+          </td>
+          <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+            {report.monitoring_location}
+          </td>
+          <td className="px-4 py-3 text-sm text-gray-900 dark:text-white capitalize">
+            {report.shift_type}
+          </td>
+          <td className="px-4 py-3 text-sm">
+            <span className={`px-2 py-1 rounded-full text-xs font-medium
+              ${report.incident_occurred 
+                ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200'
+                : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200'
+              }`}
+            >
+              {report.incident_occurred ? 'Incident Reported' : 'Normal'}
+            </span>
+          </td>
+          <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+            {report.notes ? report.notes.substring(0, 50) + '...' : 'No notes'}
+          </td>
+          <td className="px-4 py-3 text-sm">
+            <div className="flex items-center justify-end space-x-2">
+              <button
+                onClick={() => {
+                  setSelectedReport(report);
+                  setShowReportModal(true);
+                }}
+                className="text-gray-600 dark:text-gray-400 hover:text-black 
+                         dark:hover:text-white transition-colors"
+                title="View Details"
+              >
+                <Eye size={18} />
+              </button>
+              <button
+                onClick={() => exportSingleReport(report)}
+                className="text-gray-600 dark:text-gray-400 hover:text-black 
+                         dark:hover:text-white transition-colors"
+                title="Export Report"
+              >
+                <Download size={18} />
+              </button>
+              <button
+                onClick={() => printReport(report)}
+                className="text-gray-600 dark:text-gray-400 hover:text-black 
+                         dark:hover:text-white transition-colors"
+                title="Print Report"
+              >
+                <Printer size={18} />
+              </button>
+            </div>
+          </td>
+        </tr>
+      ))
+    )}
+  </tbody>
+</table>
           </div>
 
           {/* Pagination */}
@@ -562,6 +627,16 @@ const GuardShiftReportViewer = () => {
         onExport={exportSingleReport}
       />
     )}
+
+    {showReportModal && selectedReport && (
+  <ViewModal 
+    report={selectedReport}
+    onClose={() => {
+      setShowReportModal(false);
+      setSelectedReport(null);
+    }}
+  />
+)}
   </div>
 );
 
