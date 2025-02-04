@@ -74,7 +74,7 @@ export const visitorService = {
       console.error('Visitor search error:', error);
       throw new Error(`Search failed: ${error.message}`);
     }
-  }
+  },
 
   // Get available visitor cards for a department
   async getAvailableCards(departmentId) {
