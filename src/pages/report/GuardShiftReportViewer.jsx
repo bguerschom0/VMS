@@ -20,13 +20,16 @@ const GuardShiftReportViewer = () => {
   const [reports, setReports] = useState([]);
   const [selectedReport, setSelectedReport] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
-  const [filters, setFilters] = useState({
-    startDate: getFiveDaysAgo(),
-    endDate: new Date().toISOString().split('T')[0], 
-    shiftType: '',
-    hasIncident: '',
-    guard: ''
-  });
+const [filters, setFilters] = useState({
+  startDate: getFiveDaysAgo(),
+  endDate: new Date().toISOString().split('T')[0],
+  startTime: '00:00',
+  endTime: '23:59',
+  shiftType: '',
+  hasIncident: '',
+  guard: '',
+  checkDateTime: null
+});
   const [stats, setStats] = useState({
     totalReports: 0,
     incidentReports: 0,
@@ -80,31 +83,32 @@ const GuardShiftReportViewer = () => {
     fetchStats();
   }, [filters, currentPage, reportsPerPage]);
 
-  const fetchReports = async () => {
-    try {
-      setLoading(true);
-      let query = supabase
-        .from('guard_shift_reports')
-        .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false });
+const fetchReports = async () => {
+  try {
+    setLoading(true);
+    let query = supabase
+      .from('guard_shift_reports')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false });
 
-      // Apply filters
-      if (filters.startDate) {
-        query = query.gte('created_at', filters.startDate);
-      }
-      if (filters.endDate) {
-        query = query.lte('created_at', filters.endDate);
-      }
-      if (filters.shiftType) {
-        query = query.eq('shift_type', filters.shiftType);
-      }
-      if (filters.hasIncident !== '') {
-        query = query.eq('incident_occurred', filters.hasIncident === 'true');
-      }
-      if (filters.guard) {
-        query = query.ilike('submitted_by', `%${filters.guard}%`);
-      }
+    if (filters.startDate && filters.startTime) {
+      const startDateTime = new Date(`${filters.startDate}T${filters.startTime}`);
+      query = query.gte('created_at', startDateTime.toISOString());
+    }
+    if (filters.endDate && filters.endTime) {
+      const endDateTime = new Date(`${filters.endDate}T${filters.endTime}`);
+      query = query.lte('created_at', endDateTime.toISOString());
+    }
 
+    if (filters.shiftType) {
+      query = query.eq('shift_type', filters.shiftType);
+    }
+    if (filters.hasIncident !== '') {
+      query = query.eq('incident_occurred', filters.hasIncident === 'true');
+    }
+    if (filters.guard) {
+      query = query.ilike('submitted_by', `%${filters.guard}%`);
+    }
       // Pagination
       const start = (currentPage - 1) * reportsPerPage;
       const end = start + reportsPerPage - 1;
