@@ -110,7 +110,7 @@ const VisitorDetailsModal = ({ isOpen, visitor, onClose }) => {
                 <InfoItem label="Full Name" value={visitor.full_name} />
                 <InfoItem label="ID/Passport" value={visitor.identity_number} />
                 <InfoItem label="Phone Number" value={visitor.phone_number} />
-                <InfoItem label="Department" value={visitor.department} />
+      
               </div>
             </div>
 
