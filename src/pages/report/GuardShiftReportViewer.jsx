@@ -9,7 +9,8 @@ import {
   AlertCircle,
   CheckCircle,
   Printer,
-  Search
+  Search,
+  X
 } from 'lucide-react';
 import { supabase } from '../../config/supabase';
 import * as XLSX from 'xlsx';
@@ -19,13 +20,13 @@ const GuardShiftReportViewer = () => {
   const [reports, setReports] = useState([]);
   const [selectedReport, setSelectedReport] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
-const [filters, setFilters] = useState({
-  startDate: getFiveDaysAgo(),
-  endDate: new Date().toISOString().split('T')[0], 
-  shiftType: '',
-  hasIncident: '',
-  guard: ''
-});
+  const [filters, setFilters] = useState({
+    startDate: getFiveDaysAgo(),
+    endDate: new Date().toISOString().split('T')[0], 
+    shiftType: '',
+    hasIncident: '',
+    guard: ''
+  });
   const [stats, setStats] = useState({
     totalReports: 0,
     incidentReports: 0,
@@ -36,17 +37,48 @@ const [filters, setFilters] = useState({
   const [reportsPerPage, setReportsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
 
+  function getFiveDaysAgo() {
+    const date = new Date();
+    date.setDate(date.getDate() - 5);
+    return date.toISOString().split('T')[0];
+  }
+
+  const exportSingleReport = (report) => {
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet([{
+      'Date Submitted': new Date(report.created_at).toLocaleString(),
+      'Guard Name': report.submitted_by,
+      'Shift Type': report.shift_type,
+      // Add other fields as needed
+    }]);
+    
+    XLSX.utils.book_append_sheet(wb, ws, 'Report');
+    XLSX.writeFile(wb, `security_report_${report.id}.xlsx`);
+  };
+
+  const printReport = (report) => {
+    // Basic print functionality 
+    const printWindow = window.open('', '_blank');
+    printWindow?.document.write(`
+      <html>
+        <head><title>Security Report</title></head>
+        <body>
+          <h1>Security Report</h1>
+          <p>Date: ${new Date(report.created_at).toLocaleString()}</p>
+          <p>Guard: ${report.submitted_by}</p>
+          <p>Shift Type: ${report.shift_type}</p>
+          <!-- Add more report details -->
+        </body>
+      </html>
+    `);
+    printWindow?.document.close();
+    printWindow?.print();
+  };
+
   useEffect(() => {
     fetchReports();
     fetchStats();
   }, [filters, currentPage, reportsPerPage]);
-
-
-  const getFiveDaysAgo = () => {
-  const date = new Date();
-  date.setDate(date.getDate() - 5);
-  return date.toISOString().split('T')[0];
-};
 
   const fetchReports = async () => {
     try {
@@ -177,7 +209,7 @@ const [filters, setFilters] = useState({
     }
   };
 
-      const StatCard = ({ title, value, icon }) => (
+  const StatCard = ({ title, value, icon }) => (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
       <div className="flex items-center justify-between">
         <div>
@@ -189,171 +221,184 @@ const [filters, setFilters] = useState({
         </div>
       </div>
     </div>
-    );
-
+  );
   // Report Modal Component
-  const ReportModal = ({ report, onClose }) => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Report Details</h2>
+const ReportModal = ({ report, onClose, onPrint, onExport }) => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Report Details</h2>
+        <div className="flex space-x-2">
+          <button 
+            onClick={() => onPrint(report)} 
+            className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white"
+          >
+            <Printer size={24} />
+          </button>
+          <button 
+            onClick={() => onExport(report)} 
+            className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white"
+          >
+            <Download size={24} />
+          </button>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">×</button>
         </div>
-
-        <div className="space-y-6">
-          {/* Basic Info */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h3 className="font-medium text-gray-700 dark:text-gray-300">Submitted By</h3>
-              <p className="mt-1">{report.submitted_by}</p>
-            </div>
-            <div>
-              <h3 className="font-medium text-gray-700 dark:text-gray-300">Shift Type</h3>
-              <p className="mt-1 capitalize">{report.shift_type}</p>
-            </div>
-          </div>
-
-          {/* Team Members */}
-          <div>
-            <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Team Members</h3>
-            <div className="grid grid-cols-2 gap-4">
-              {report.team_members?.map((member, index) => (
-                <div key={index} className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
-                  {member.name} (ID: {member.id})
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Monitoring Details */}
-          <div>
-            <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Location Monitoring</h3>
-            <div className="grid grid-cols-2 gap-4">
-              {Object.entries(report.remote_locations_checked || {}).map(([location, data]) => (
-                <div key={location} className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
-                  <p className="font-medium">{location}</p>
-                  <p>Status: {data.status}</p>
-                  {data.notes && <p className="text-sm">Notes: {data.notes}</p>}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Utilities Status */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h3 className="font-medium text-gray-700 dark:text-gray-300">Electricity</h3>
-              <p className="mt-1">{report.electricity_status}</p>
-            </div>
-            <div>
-              <h3 className="font-medium text-gray-700 dark:text-gray-300">Water Supply</h3>
-              <p className="mt-1">{report.water_supply_status}</p>
-            </div>
-            <div>
-              <h3 className="font-medium text-gray-700 dark:text-gray-300">Generator</h3>
-              <p className="mt-1">{report.generator_status}</p>
-            </div>
-            <div>
-              <h3 className="font-medium text-gray-700 dark:text-gray-300">UPS</h3>
-              <p className="mt-1">{report.ups_status}</p>
-            </div>
-          </div>
-
-          {/* Incident Information */}
-          {report.incident_occurred && (
-            <div>
-              <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Incident Details</h3>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="font-medium">Type</p>
-                    <p>{report.incident_type}</p>
-                  </div>
-                  <div>
-                    <p className="font-medium">Time</p>
-                    <p>{new Date(report.incident_time).toLocaleString()}</p>
-                  </div>
-                </div>
-                <div>
-                  <p className="font-medium">Description</p>
-                  <p className="mt-1">{report.incident_description}</p>
-                </div>
-                <div>
-                  <p className="font-medium">Action Taken</p>
-                  <p className="mt-1">{report.action_taken}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Notes */}
-          <div>
-            <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Additional Notes</h3>
-            <p className="whitespace-pre-wrap">{report.notes || 'No additional notes'}</p>
-          </div>
-        </div>
       </div>
-    </div>
-  );
 
-
-  const ViewModal = ({ report, onClose }) => (
-  <div className="fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
-    <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Report Details</h3>
-        <button 
-          onClick={onClose}
-          className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-        >
-          <X size={24} />
-        </button>
-      </div>
-      
-      <div className="space-y-4">
+      <div className="space-y-6">
+        {/* Basic Info */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Date</label>
-            <p className="text-gray-900 dark:text-white">
-              {new Date(report.submitted_at).toLocaleDateString()}
-            </p>
+            <h3 className="font-medium text-gray-700 dark:text-gray-300">Submitted By</h3>
+            <p className="mt-1">{report.submitted_by}</p>
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Shift Type</label>
-            <p className="text-gray-900 dark:text-white capitalize">{report.shift_type}</p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Location</label>
-            <p className="text-gray-900 dark:text-white">{report.monitoring_location}</p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Status</label>
-            <p className="text-gray-900 dark:text-white">
-              {report.incident_occurred ? 'Incident Reported' : 'Normal'}
-            </p>
+            <h3 className="font-medium text-gray-700 dark:text-gray-300">Shift Type</h3>
+            <p className="mt-1 capitalize">{report.shift_type}</p>
           </div>
         </div>
 
+        {/* Team Members */}
+        <div>
+          <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Team Members</h3>
+          <div className="grid grid-cols-2 gap-4">
+            {report.team_members?.map((member, index) => (
+              <div key={index} className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                {member.name} (ID: {member.id})
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Monitoring Details */}
+        <div>
+          <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Location Monitoring</h3>
+          <div className="grid grid-cols-2 gap-4">
+            {Object.entries(report.remote_locations_checked || {}).map(([location, data]) => (
+              <div key={location} className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                <p className="font-medium">{location}</p>
+                <p>Status: {data.status}</p>
+                {data.notes && <p className="text-sm">Notes: {data.notes}</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Utilities Status */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <h3 className="font-medium text-gray-700 dark:text-gray-300">Electricity</h3>
+            <p className="mt-1">{report.electricity_status}</p>
+          </div>
+          <div>
+            <h3 className="font-medium text-gray-700 dark:text-gray-300">Water Supply</h3>
+            <p className="mt-1">{report.water_supply_status}</p>
+          </div>
+          <div>
+            <h3 className="font-medium text-gray-700 dark:text-gray-300">Generator</h3>
+            <p className="mt-1">{report.generator_status}</p>
+          </div>
+          <div>
+            <h3 className="font-medium text-gray-700 dark:text-gray-300">UPS</h3>
+            <p className="mt-1">{report.ups_status}</p>
+          </div>
+        </div>
+
+        {/* Incident Information */}
         {report.incident_occurred && (
           <div>
-            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Incident Details</label>
-            <p className="text-gray-900 dark:text-white mt-1">
-              Type: {report.incident_type}<br />
-              Description: {report.incident_description}
-            </p>
+            <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Incident Details</h3>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="font-medium">Type</p>
+                  <p>{report.incident_type}</p>
+                </div>
+                <div>
+                  <p className="font-medium">Time</p>
+                  <p>{new Date(report.incident_time).toLocaleString()}</p>
+                </div>
+              </div>
+              <div>
+                <p className="font-medium">Description</p>
+                <p className="mt-1">{report.incident_description}</p>
+              </div>
+              <div>
+                <p className="font-medium">Action Taken</p>
+                <p className="mt-1">{report.action_taken}</p>
+              </div>
+            </div>
           </div>
         )}
 
+        {/* Notes */}
         <div>
-          <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Notes</label>
-          <p className="text-gray-900 dark:text-white mt-1 whitespace-pre-wrap">
-            {report.notes || 'No notes provided'}
-          </p>
+          <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Additional Notes</h3>
+          <p className="whitespace-pre-wrap">{report.notes || 'No additional notes'}</p>
         </div>
       </div>
     </div>
   </div>
 );
+
+
+    const ViewModal = ({ report, onClose }) => (
+    <div className="fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Report Details</h3>
+          <button 
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          >
+            <X size={24} />
+          </button>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Date</label>
+              <p className="text-gray-900 dark:text-white">
+                {new Date(report.submitted_at).toLocaleDateString()}
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Shift Type</label>
+              <p className="text-gray-900 dark:text-white capitalize">{report.shift_type}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Location</label>
+              <p className="text-gray-900 dark:text-white">{report.monitoring_location}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Status</label>
+              <p className="text-gray-900 dark:text-white">
+                {report.incident_occurred ? 'Incident Reported' : 'Normal'}
+              </p>
+            </div>
+          </div>
+
+          {report.incident_occurred && (
+            <div>
+              <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Incident Details</label>
+              <p className="text-gray-900 dark:text-white mt-1">
+                Type: {report.incident_type}<br />
+                Description: {report.incident_description}
+              </p>
+            </div>
+          )}
+
+          <div>
+            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Notes</label>
+            <p className="text-gray-900 dark:text-white mt-1 whitespace-pre-wrap">
+              {report.notes || 'No notes provided'}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
   
   return (
   <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -616,31 +661,19 @@ const [filters, setFilters] = useState({
     </div>
 
     {/* Report Detail Modal */}
-    {showReportModal && selectedReport && (
-      <ReportModal 
-        report={selectedReport}
-        onClose={() => {
-          setShowReportModal(false);
-          setSelectedReport(null);
-        }}
-        onPrint={printReport}
-        onExport={exportSingleReport}
-      />
-    )}
-
-    {showReportModal && selectedReport && (
-  <ViewModal 
-    report={selectedReport}
-    onClose={() => {
-      setShowReportModal(false);
-      setSelectedReport(null);
-    }}
-  />
-)}
-  </div>
-);
-
-
+      {showReportModal && selectedReport && (
+        <ReportModal 
+          report={selectedReport}
+          onClose={() => {
+            setShowReportModal(false);
+            setSelectedReport(null);
+          }}
+          onPrint={printReport}
+          onExport={exportSingleReport}
+        />
+      )}
+    </div>
+  );
 }
 
-  export default GuardShiftReportViewer;                        
+export default GuardShiftReportViewer;                    
