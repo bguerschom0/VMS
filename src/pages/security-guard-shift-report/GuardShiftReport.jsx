@@ -1,4 +1,3 @@
-// GuardShiftReport.jsx
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../config/supabase';
@@ -10,37 +9,38 @@ import {
   Camera, 
   Shield, 
   Power,
-  Building2,
-  Droplets,
-  Car,
-  Bell,
   Users,
   FileClock
 } from 'lucide-react';
 
-// Remote locations configuration
-const REMOTE_LOCATIONS = [
-  { id: 'loc1', name: 'Head Quaters - Nyarutarama' },
-  { id: 'loc2', name: 'Remera Innovation HUB - Remera' },
-  { id: 'loc3', name: 'Kigali - Service Centers' },
-  { id: 'loc4', name: 'Eastern - Service Centers' },
-  { id: 'loc5', name: 'Gahengeri - Switch' },
-  { id: 'loc6', name: 'Norther - Service Centers' },
-  { id: 'loc7', name: 'Gicumbi - Switch' },
-  { id: 'loc8', name: 'Southern - Service Centers' },
-  { id: 'loc9', name: 'Nyanza - Switch' },
-  { id: 'loc10', name: 'Western - Service Centers' },
-  { id: 'loc11', name: 'Karongi - Switch' }
-];
+// Define location groups
+const LOCATION_GROUPS = {
+  nyarutarama: [
+    { id: 'loc1', name: 'Head Quaters - Nyarutarama' },
+    { id: 'loc3', name: 'Kigali - Service Centers' },
+    { id: 'loc4', name: 'Eastern - Service Centers' },
+    { id: 'loc5', name: 'Gahengeri - Switch' },
+    { id: 'loc6', name: 'Norther - Service Centers' },
+    { id: 'loc7', name: 'Gicumbi - Switch' },
+    { id: 'loc8', name: 'Southern - Service Centers' },
+    { id: 'loc9', name: 'Nyanza - Switch' },
+    { id: 'loc10', name: 'Western - Service Centers' },
+    { id: 'loc11', name: 'Karongi - Switch' }
+  ],
+  remera: [
+    { id: 'loc2', name: 'Remera Innovation HUB - Remera' }
+  ]
+};
 
 const GuardShiftReport = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [selectedLocation, setSelectedLocation] = useState('');
   const [newTeamMember, setNewTeamMember] = useState({ id: '', name: '' });
 
-  // Auto-update current time
+  // Update time every second
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -48,16 +48,12 @@ const GuardShiftReport = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Form data state
   const [formData, setFormData] = useState({
     shiftType: '',
     shiftStartTime: '',
     shiftEndTime: '',
     teamMembers: [],
-    remoteLocationsChecked: REMOTE_LOCATIONS.reduce((acc, loc) => ({
-      ...acc,
-      [loc.id]: { status: 'normal', notes: '' }
-    }), {}),
+    remoteLocationsChecked: {},
     electricityStatus: 'normal',
     waterSupplyStatus: 'normal',
     generatorStatus: 'normal',
@@ -71,13 +67,11 @@ const GuardShiftReport = () => {
     notes: ''
   });
 
-  // Toast notification handler
   const showToast = (message, type) => {
     setToast({ show: true, message, type });
     setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
   };
 
-  // Team member handlers
   const addTeamMember = () => {
     if (newTeamMember.id && newTeamMember.name) {
       setFormData({
@@ -95,7 +89,6 @@ const GuardShiftReport = () => {
     });
   };
 
-  // Form submission handler
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -105,27 +98,38 @@ const GuardShiftReport = () => {
         .from('security_reports')
         .insert([
           {
-            ...formData,
             submitted_by: user?.email || 'Anonymous',
+            shift_type: formData.shiftType,
+            shift_start_time: formData.shiftStartTime,
+            shift_end_time: formData.shiftEndTime,
             team_members: formData.teamMembers,
-            submitted_at: new Date().toISOString()
+            monitoring_location: selectedLocation,
+            remote_locations_checked: formData.remoteLocationsChecked,
+            electricity_status: formData.electricityStatus,
+            water_supply_status: formData.waterSupplyStatus,
+            generator_status: formData.generatorStatus,
+            ups_status: formData.upsStatus,
+            incident_occurred: formData.incidentOccurred,
+            incident_type: formData.incidentType,
+            incident_time: formData.incidentTime,
+            incident_location: formData.incidentLocation,
+            incident_description: formData.incidentDescription,
+            action_taken: formData.actionTaken,
+            notes: formData.notes
           }
         ]);
 
       if (submitError) throw submitError;
       
       showToast('Report submitted successfully!', 'success');
-      
+
       // Reset form
       setFormData({
         shiftType: '',
         shiftStartTime: '',
         shiftEndTime: '',
         teamMembers: [],
-        remoteLocationsChecked: REMOTE_LOCATIONS.reduce((acc, loc) => ({
-          ...acc,
-          [loc.id]: { status: 'normal', notes: '' }
-        }), {}),
+        remoteLocationsChecked: {},
         electricityStatus: 'normal',
         waterSupplyStatus: 'normal',
         generatorStatus: 'normal',
@@ -138,6 +142,7 @@ const GuardShiftReport = () => {
         actionTaken: '',
         notes: ''
       });
+      setSelectedLocation('');
     } catch (error) {
       console.error('Error submitting report:', error);
       showToast('Failed to submit report. Please try again.', 'error');
@@ -192,7 +197,6 @@ const GuardShiftReport = () => {
             </div>
           </div>
 
-          {/* Main Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Shift Information */}
             <motion.div
@@ -239,7 +243,7 @@ const GuardShiftReport = () => {
               </div>
             </motion.div>
 
-            {/* Team Members Section */}
+            {/* Team Members */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -272,18 +276,18 @@ const GuardShiftReport = () => {
                   <button
                     type="button"
                     onClick={addTeamMember}
+                    disabled={!newTeamMember.id || !newTeamMember.name}
                     className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 
-                             transition-colors duration-200"
+                             transition-colors duration-200 disabled:bg-gray-400"
                   >
-                    Add Member
+                    Add
                   </button>
                 </div>
 
-                {/* Team Members List */}
-                <div className="space-y-2">
-                  {formData.teamMembers.map((member) => (
+                <div className="mt-4 space-y-2">
+                  {formData.teamMembers.map((member, index) => (
                     <div 
-                      key={member.id}
+                      key={`${member.id}-${index}`}
                       className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
                     >
                       <div className="flex items-center space-x-4">
@@ -319,53 +323,85 @@ const GuardShiftReport = () => {
                 Remote CCTV Monitoring
               </h2>
               
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                {REMOTE_LOCATIONS.map(location => (
-                  <div key={location.id} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-700 dark:text-gray-300">{location.name}</span>
-                      <select
-                        value={formData.remoteLocationsChecked[location.id].status}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          remoteLocationsChecked: {
-                            ...formData.remoteLocationsChecked,
-                            [location.id]: {
-                              ...formData.remoteLocationsChecked[location.id],
-                              status: e.target.value
-                            }
-                          }
-                        })}
-                        className="px-2 py-1 text-sm rounded border border-gray-200 dark:border-gray-600
-                                 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
-                      >
-                        <option value="normal">Normal</option>
-                        <option value="issues">Issues</option>
-                        <option value="offline">Offline</option>
-                      </select>
-                    </div>
-                    
-                    {formData.remoteLocationsChecked[location.id].status !== 'normal' && (
-                      <input
-                        type="text"
-                        placeholder="Enter notes about issues..."
-                        value={formData.remoteLocationsChecked[location.id].notes}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          remoteLocationsChecked: {
-                            ...formData.remoteLocationsChecked,
-                            [location.id]: {
-                              ...formData.remoteLocationsChecked[location.id],
-                              notes: e.target.value
-                            }
-                          }
-                        })}
-                        className="w-full px-3 py-1 text-sm rounded border border-gray-200 dark:border-gray-600
-                                 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
-                      />
-                    )}
+              <div className="mt-4 space-y-6">
+                {/* Location Selection */}
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Select Monitoring Location
+                  </label>
+                  <select
+                    value={selectedLocation}
+                    onChange={(e) => {
+                      setSelectedLocation(e.target.value);
+                      // Reset location checks when changing monitoring location
+                      setFormData({
+                        ...formData,
+                        remoteLocationsChecked: {}
+                      });
+                    }}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
+                             dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+                    required
+                  >
+                    <option value="">Select Location</option>
+                    <option value="nyarutarama">Nyarutarama</option>
+                    <option value="remera">Remera Innovation Hub</option>
+                  </select>
+                </div>
+
+                {/* Display relevant locations */}
+                {selectedLocation && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {LOCATION_GROUPS[selectedLocation].map(location => (
+                      <div key={location.id} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-700 dark:text-gray-300">{location.name}</span>
+                          <select
+                            value={formData.remoteLocationsChecked[location.id]?.status || 'normal'}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              remoteLocationsChecked: {
+                                ...formData.remoteLocationsChecked,
+                                [location.id]: {
+                                  ...formData.remoteLocationsChecked[location.id],
+                                  status: e.target.value
+                                }
+                              }
+                            })}
+                            className="px-2 py-1 text-sm rounded border border-gray-200 dark:border-gray-600
+                                     dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+                            required
+                          >
+                            <option value="normal">Normal</option>
+                            <option value="issues">Issues</option>
+                            <option value="offline">Offline</option>
+                          </select>
+                        </div>
+                        
+                        {formData.remoteLocationsChecked[location.id]?.status !== 'normal' && (
+                          <input
+                            type="text"
+                            placeholder="Enter notes about issues..."
+                            value={formData.remoteLocationsChecked[location.id]?.notes || ''}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              remoteLocationsChecked: {
+                                ...formData.remoteLocationsChecked,
+                                [location.id]: {
+                                  ...formData.remoteLocationsChecked[location.id],
+                                  notes: e.target.value
+                                }
+                              }
+                            })}
+                            className="w-full px-3 py-1 text-sm rounded border border-gray-200 dark:border-gray-600
+                                     dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+                            required
+                          />
+                        )}
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
             </motion.div>
 
@@ -392,6 +428,7 @@ const GuardShiftReport = () => {
                     onChange={(e) => setFormData({ ...formData, electricityStatus: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
                              dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+                    required
                   >
                     <option value="normal">Normal</option>
                     <option value="issues">Issues Present</option>
@@ -409,6 +446,7 @@ const GuardShiftReport = () => {
                     onChange={(e) => setFormData({ ...formData, waterSupplyStatus: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
                              dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+                    required
                   >
                     <option value="normal">Normal</option>
                     <option value="issues">Issues Present</option>
@@ -426,6 +464,7 @@ const GuardShiftReport = () => {
                     onChange={(e) => setFormData({ ...formData, generatorStatus: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
                              dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+                    required
                   >
                     <option value="normal">Operational</option>
                     <option value="issues">Needs Maintenance</option>
@@ -443,6 +482,7 @@ const GuardShiftReport = () => {
                     onChange={(e) => setFormData({ ...formData, upsStatus: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
                              dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
+                    required
                   >
                     <option value="normal">Operational</option>
                     <option value="issues">Issues Present</option>
