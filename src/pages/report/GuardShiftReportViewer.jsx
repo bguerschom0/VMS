@@ -154,14 +154,14 @@ const GuardShiftReportViewer = () => {
         // Create workbook
         const ws = XLSX.utils.json_to_sheet(formattedData);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Guard Shift Reports');
+        XLSX.utils.book_append_sheet(wb, ws, 'Security Reports');
 
         // Adjust column widths
         const cols = Object.keys(formattedData[0]).map(() => ({ wch: 20 }));
         ws['!cols'] = cols;
 
         // Save file
-        XLSX.writeFile(wb, `guard_shift_report_${new Date().toISOString().split('T')[0]}.xlsx`);
+        XLSX.writeFile(wb, `security_reports_${new Date().toISOString().split('T')[0]}.xlsx`);
       }
     } catch (error) {
       console.error('Error exporting reports:', error);
@@ -170,7 +170,7 @@ const GuardShiftReportViewer = () => {
     }
   };
 
-    const StatCard = ({ title, value, icon }) => (
+      const StatCard = ({ title, value, icon }) => (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
       <div className="flex items-center justify-between">
         <div>
@@ -182,7 +182,7 @@ const GuardShiftReportViewer = () => {
         </div>
       </div>
     </div>
-  );
+
   // Report Modal Component
   const ReportModal = ({ report, onClose }) => (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -287,7 +287,6 @@ const GuardShiftReportViewer = () => {
       </div>
     </div>
   );
-  
   return (
   <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
