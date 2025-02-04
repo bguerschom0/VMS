@@ -129,7 +129,7 @@ return (
       </AnimatePresence>
       
       <main>
-        <div className="p-6">
+        <div className="p-8">
           <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl max-w-6xl mx-auto">
             {/* Search Bar */}
             <div className="p-5 border-b border-gray-200 dark:border-gray-700">
