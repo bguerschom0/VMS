@@ -88,12 +88,16 @@ const ActiveScheduledVisitors = () => {
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto">
+           <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50 dark:bg-gray-700">
                     <th className="p-4 text-left font-medium text-gray-600 dark:text-gray-200">Full Name</th>
+                    <th className="p-4 text-left font-medium text-gray-600 dark:text-gray-200">Identity Number</th>
+                    <th className="p-4 text-left font-medium text-gray-600 dark:text-gray-200">Phone Number</th>
                     <th className="p-4 text-left font-medium text-gray-600 dark:text-gray-200">Department</th>
+                    <th className="p-4 text-left font-medium text-gray-600 dark:text-gray-200">Items</th>
+                    <th className="p-4 text-left font-medium text-gray-600 dark:text-gray-200">Purpose</th>
                     <th className="p-4 text-left font-medium text-gray-600 dark:text-gray-200">Visit Period</th>
                     <th className="p-4 text-left font-medium text-gray-600 dark:text-gray-200">Status</th>
                     <th className="p-4 text-center font-medium text-gray-600 dark:text-gray-200">Action</th>
@@ -102,13 +106,13 @@ const ActiveScheduledVisitors = () => {
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan="5" className="text-center py-8">
+                      <td colSpan="9" className="text-center py-8">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black mx-auto"></div>
                       </td>
                     </tr>
                   ) : visitors.length === 0 ? (
                     <tr>
-                      <td colSpan="5" className="text-center py-8 text-gray-500 dark:text-gray-400">
+                      <td colSpan="9" className="text-center py-8 text-gray-500 dark:text-gray-400">
                         No active scheduled visitors found
                       </td>
                     </tr>
@@ -122,7 +126,11 @@ const ActiveScheduledVisitors = () => {
                         className="border-t border-gray-100 dark:border-gray-700"
                       >
                         <td className="p-4 text-gray-800 dark:text-gray-200">{visitor.full_name}</td>
+                        <td className="p-4 text-gray-800 dark:text-gray-200">{visitor.identity_number}</td>
+                        <td className="p-4 text-gray-800 dark:text-gray-200">{visitor.phone_number}</td>
                         <td className="p-4 text-gray-800 dark:text-gray-200">{visitor.department}</td>
+                        <td className="p-4 text-gray-800 dark:text-gray-200">{visitor.items}</td>
+                        <td className="p-4 text-gray-800 dark:text-gray-200">{visitor.purpose}</td>
                         <td className="p-4 text-gray-800 dark:text-gray-200">
                           {new Date(visitor.visit_start_date).toLocaleDateString()} - 
                           {new Date(visitor.visit_end_date).toLocaleDateString()}
