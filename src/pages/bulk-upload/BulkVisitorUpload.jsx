@@ -5,41 +5,105 @@ import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../config/supabase';
 import { DEPARTMENTS } from '../../utils/constants';
 
+// UploadCard Component
+const UploadCard = ({ title, icon, description, onClick, buttonText }) => (
+  <motion.div
+    whileHover={{ scale: 1.02 }}
+    whileTap={{ scale: 0.98 }}
+    className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 cursor-pointer
+             hover:shadow-2xl transition-all duration-300"
+    onClick={onClick}
+  >
+    <div className="flex flex-col items-center text-center space-y-6">
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        className="w-24 h-24 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center"
+      >
+        {icon}
+      </motion.div>
+
+      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+        {title}
+      </h3>
+
+      <p className="text-gray-600 dark:text-gray-400 max-w-sm">
+        {description}
+      </p>
+
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="px-6 py-3 bg-black text-white rounded-full hover:bg-gray-800
+                 transition-colors duration-200 font-medium"
+      >
+        {buttonText}
+      </motion.button>
+    </div>
+  </motion.div>
+);
+
 // Alert/Toast Component
 const Alert = ({ message, type = 'error', onClose, onConfirm }) => (
   <motion.div
-    initial={{ opacity: 0, y: 50 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: 50 }}
-    className={`fixed bottom-4 right-4 z-50 px-6 py-4 rounded-xl shadow-lg
+    initial={{ 
+      opacity: 0, 
+      scale: 0.7, 
+      x: '50%', 
+      y: '50%',
+      translateX: '-50%',
+      translateY: '-50%'
+    }}
+    animate={{ 
+      opacity: 1, 
+      scale: 1,
+      x: '50%', 
+      y: '50%',
+      translateX: '-50%',
+      translateY: '-50%'
+    }}
+    exit={{ 
+      opacity: 0, 
+      scale: 0.7,
+      x: '50%', 
+      y: '50%',
+      translateX: '-50%',
+      translateY: '-50%'
+    }}
+    transition={{
+      type: "spring",
+      stiffness: 300,
+      damping: 20
+    }}
+    className={`fixed top-1/2 left-1/2 z-50 px-8 py-6 rounded-2xl shadow-2xl w-96 max-w-[90%]
       ${type === 'success' 
         ? 'bg-black text-white dark:bg-white dark:text-black' 
         : 'bg-red-500 text-white'
       }
-      transition-colors duration-300`}
+      transition-colors duration-300 text-center flex flex-col items-center justify-center space-y-4`}
   >
-    <div className="flex items-center space-x-4">
-      <span>{message}</span>
-      {onConfirm && (
-        <div className="flex space-x-2">
+    <div className="text-xl font-semibold">{message}</div>
+    <div className="flex space-x-4">
+      {onConfirm ? (
+        <>
           <button 
             onClick={onConfirm} 
-            className="px-3 py-1 bg-white/30 hover:bg-white/40 rounded-lg"
+            className="px-4 py-2 bg-white/30 hover:bg-white/40 rounded-lg"
           >
             Confirm
           </button>
           <button 
             onClick={onClose} 
-            className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded-lg"
+            className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg"
           >
             Cancel
           </button>
-        </div>
-      )}
-      {!onConfirm && (
+        </>
+      ) : (
         <button 
           onClick={onClose} 
-          className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded-lg"
+          className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg"
         >
           Close
         </button>
@@ -72,6 +136,14 @@ const BulkVisitorUpload = () => {
     laptopBrand: '',
     laptopSerial: ''
   });
+
+  // Clear Data Function
+  const clearData = () => {
+    setPreviewData([]);
+    setFileName('');
+    const fileInput = document.getElementById('file-upload');
+    if (fileInput) fileInput.value = '';
+  };
 
   // Show error alert
   const showErrorAlert = (message) => {
@@ -142,14 +214,6 @@ const BulkVisitorUpload = () => {
     const ws = XLSX.utils.aoa_to_sheet(templateData);
     XLSX.utils.book_append_sheet(template, ws, 'Template');
     XLSX.writeFile(template, 'scheduled_visitors_template.xlsx');
-  };
-
-  // Clear Data Function
-  const clearData = () => {
-    setPreviewData([]);
-    setFileName('');
-    const fileInput = document.getElementById('file-upload');
-    if (fileInput) fileInput.value = '';
   };
 
   // File Upload Handler
@@ -344,8 +408,8 @@ const BulkVisitorUpload = () => {
   };
 
   return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8 relative">
-      {/* Alert/Toast Popup */}
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8 relative">
+      {/* Alert/Toast Popup with Centered Positioning */}
       <AnimatePresence>
         {showAlert && (
           <Alert 
@@ -357,7 +421,6 @@ const BulkVisitorUpload = () => {
         )}
       </AnimatePresence>
 
-          
       {/* Bulk Upload Section */}
       <AnimatePresence mode="wait">
         {!previewData.length && (
@@ -678,27 +741,6 @@ const BulkVisitorUpload = () => {
           </motion.div>
         )}
       </AnimatePresence>
-
-    {(error || success) && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="mt-4"
-          >
-            {error && (
-              <div className="p-4 bg-red-50 dark:bg-red-900/30 border-l-4 border-red-500 text-red-700 dark:text-red-200">
-                {error}
-              </div>
-            )}
-            {success && (
-              <div className="p-4 bg-green-50 dark:bg-green-900/30 border-l-4 border-green-500 text-green-700 dark:text-green-200">
-                {success}
-              </div>
-            )}
-          </motion.div>
-        )}
-
     </div>
   );
 };
