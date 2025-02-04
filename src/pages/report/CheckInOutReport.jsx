@@ -8,7 +8,7 @@ import * as XLSX from 'xlsx';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { Download, FileSpreadsheet, FileText } from 'lucide-react';
-import { supabase } from '../config/supabase';
+import { supabase } from '../../config/supabase';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
