@@ -95,7 +95,7 @@ const GuardShiftReport = () => {
     
     try {
       const { error: submitError } = await supabase
-        .from('security_reports')
+        .from('guard_shift_reports')
         .insert([
           {
             submitted_by: user?.email || 'Anonymous',
