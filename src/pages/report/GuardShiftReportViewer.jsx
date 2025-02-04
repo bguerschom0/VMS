@@ -8,7 +8,7 @@ import {
   FileSpreadsheet,
   AlertCircle,
   CheckCircle,
-  ChevronDown,
+  Printer,
   Search
 } from 'lucide-react';
 import { supabase } from '../../config/supabase';
@@ -24,91 +24,92 @@ const GuardShiftReportViewer = () => {
     endDate: '',
     shiftType: '',
     hasIncident: '',
-    guard: '',
-    location: ''
+    guard: ''
   });
   const [stats, setStats] = useState({
     totalReports: 0,
     incidentReports: 0,
     uniqueGuards: 0
   });
-
-  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const reportsPerPage = 10;
-
+  const [reportsPerPage, setReportsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
     fetchReports();
     fetchStats();
-  }, [filters, currentPage]);
+  }, [filters, currentPage, reportsPerPage]);
 
-const fetchReports = async () => {
-  try {
-    setLoading(true);
-    let query = supabase
-      .from('guard_shift_reports')
-      .select('*', { count: 'exact' }) // Add count option
-      .order('submitted_at', { ascending: false });
+  const fetchReports = async () => {
+    try {
+      setLoading(true);
+      let query = supabase
+        .from('security_reports')
+        .select('*', { count: 'exact' })
+        .order('submitted_at', { ascending: false });
 
-    // Apply filters
-    if (filters.startDate) {
-      query = query.gte('submitted_at', filters.startDate);
-    }
-    if (filters.endDate) {
-      query = query.lte('submitted_at', filters.endDate);
-    }
-    if (filters.shiftType) {
-      query = query.eq('shift_type', filters.shiftType);
-    }
-    if (filters.hasIncident !== '') {
-      query = query.eq('incident_occurred', filters.hasIncident === 'true');
-    }
-    if (filters.guard) {
-      query = query.ilike('guard_name', `%${filters.guard}%`);
-    }
+      // Apply filters
+      if (filters.startDate) {
+        query = query.gte('submitted_at', filters.startDate);
+      }
+      if (filters.endDate) {
+        query = query.lte('submitted_at', filters.endDate);
+      }
+      if (filters.shiftType) {
+        query = query.eq('shift_type', filters.shiftType);
+      }
+      if (filters.hasIncident !== '') {
+        query = query.eq('incident_occurred', filters.hasIncident === 'true');
+      }
+      if (filters.guard) {
+        query = query.ilike('submitted_by', `%${filters.guard}%`);
+      }
 
-    // Calculate pagination
-    const start = (currentPage - 1) * reportsPerPage;
-    const end = start + reportsPerPage - 1;
+      // Pagination
+      const start = (currentPage - 1) * reportsPerPage;
+      const end = start + reportsPerPage - 1;
+      query = query.range(start, end);
 
-    query = query.range(start, end);
-
-    const { data, count } = await query;
-    if (data) {
-      setReports(data);
-      setTotalCount(count); // Set the total count
-      setTotalPages(Math.ceil(count / reportsPerPage));
+      const { data, count, error } = await query;
+      
+      if (error) throw error;
+      
+      if (data) {
+        setReports(data);
+        setTotalCount(count || 0);
+        setTotalPages(Math.ceil((count || 0) / reportsPerPage));
+      }
+    } catch (error) {
+      console.error('Error fetching reports:', error);
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error('Error fetching reports:', error);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const fetchStats = async () => {
     try {
-      const { data: totalReports } = await supabase
+      // Get total reports
+      const { count: totalCount } = await supabase
         .from('security_reports')
-        .select('count');
+        .select('*', { count: 'exact' });
 
-      const { data: incidentReports } = await supabase
+      // Get incident reports
+      const { count: incidentCount } = await supabase
         .from('security_reports')
-        .select('count')
+        .select('*', { count: 'exact' })
         .eq('incident_occurred', true);
 
-      const { data: uniqueGuards } = await supabase
+      // Get unique guards
+      const { data: guards } = await supabase
         .from('security_reports')
-        .select('guard_id')
+        .select('submitted_by')
         .distinct();
 
       setStats({
-        totalReports: totalReports?.[0]?.count || 0,
-        incidentReports: incidentReports?.[0]?.count || 0,
-        uniqueGuards: uniqueGuards?.length || 0
+        totalReports: totalCount || 0,
+        incidentReports: incidentCount || 0,
+        uniqueGuards: (guards?.length || 0)
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -117,182 +118,163 @@ const fetchReports = async () => {
 
   const exportToExcel = async () => {
     try {
-      // Fetch all reports for export
-      const { data } = await supabase
+      setLoading(true);
+      
+      // Fetch all reports without pagination
+      const { data, error } = await supabase
         .from('security_reports')
         .select('*')
         .order('submitted_at', { ascending: false });
 
+      if (error) throw error;
+
       if (data) {
-        const ws = XLSX.utils.json_to_sheet(data);
+        // Format data for export
+        const formattedData = data.map(report => ({
+          'Date Submitted': new Date(report.submitted_at).toLocaleString(),
+          'Guard Name': report.submitted_by,
+          'Shift Type': report.shift_type,
+          'Shift Start': new Date(report.shift_start_time).toLocaleString(),
+          'Shift End': new Date(report.shift_end_time).toLocaleString(),
+          'Monitoring Location': report.monitoring_location,
+          'Incident Occurred': report.incident_occurred ? 'Yes' : 'No',
+          'Incident Type': report.incident_type || 'N/A',
+          'Incident Time': report.incident_time ? new Date(report.incident_time).toLocaleString() : 'N/A',
+          'Incident Location': report.incident_location || 'N/A',
+          'Incident Description': report.incident_description || 'N/A',
+          'Action Taken': report.action_taken || 'N/A',
+          'Electricity Status': report.electricity_status,
+          'Water Supply Status': report.water_supply_status,
+          'Generator Status': report.generator_status,
+          'UPS Status': report.ups_status,
+          'Team Members': JSON.stringify(report.team_members || []),
+          'Notes': report.notes || 'N/A'
+        }));
+
+        // Create workbook
+        const ws = XLSX.utils.json_to_sheet(formattedData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Security Reports');
-        XLSX.writeFile(wb, `security_reports_${new Date().toISOString()}.xlsx`);
+
+        // Adjust column widths
+        const cols = Object.keys(formattedData[0]).map(() => ({ wch: 20 }));
+        ws['!cols'] = cols;
+
+        // Save file
+        XLSX.writeFile(wb, `security_reports_${new Date().toISOString().split('T')[0]}.xlsx`);
       }
     } catch (error) {
       console.error('Error exporting reports:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const StatCard = ({ title, value, icon }) => (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
-          <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">{value}</p>
-        </div>
-        <div className="p-3 bg-black bg-opacity-5 dark:bg-opacity-10 rounded-full">
-          {icon}
-        </div>
-      </div>
-    </div>
-  );
-
+  // Report Modal Component
   const ReportModal = ({ report, onClose }) => (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Modal content */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Report Details</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">×</button>
+        </div>
+
+        <div className="space-y-6">
+          {/* Basic Info */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <h3 className="font-medium text-gray-700 dark:text-gray-300">Submitted By</h3>
+              <p className="mt-1">{report.submitted_by}</p>
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-700 dark:text-gray-300">Shift Type</h3>
+              <p className="mt-1 capitalize">{report.shift_type}</p>
+            </div>
+          </div>
+
+          {/* Team Members */}
+          <div>
+            <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Team Members</h3>
+            <div className="grid grid-cols-2 gap-4">
+              {report.team_members?.map((member, index) => (
+                <div key={index} className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                  {member.name} (ID: {member.id})
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Monitoring Details */}
+          <div>
+            <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Location Monitoring</h3>
+            <div className="grid grid-cols-2 gap-4">
+              {Object.entries(report.remote_locations_checked || {}).map(([location, data]) => (
+                <div key={location} className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                  <p className="font-medium">{location}</p>
+                  <p>Status: {data.status}</p>
+                  {data.notes && <p className="text-sm">Notes: {data.notes}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Utilities Status */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <h3 className="font-medium text-gray-700 dark:text-gray-300">Electricity</h3>
+              <p className="mt-1">{report.electricity_status}</p>
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-700 dark:text-gray-300">Water Supply</h3>
+              <p className="mt-1">{report.water_supply_status}</p>
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-700 dark:text-gray-300">Generator</h3>
+              <p className="mt-1">{report.generator_status}</p>
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-700 dark:text-gray-300">UPS</h3>
+              <p className="mt-1">{report.ups_status}</p>
+            </div>
+          </div>
+
+          {/* Incident Information */}
+          {report.incident_occurred && (
+            <div>
+              <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Incident Details</h3>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="font-medium">Type</p>
+                    <p>{report.incident_type}</p>
+                  </div>
+                  <div>
+                    <p className="font-medium">Time</p>
+                    <p>{new Date(report.incident_time).toLocaleString()}</p>
+                  </div>
+                </div>
+                <div>
+                  <p className="font-medium">Description</p>
+                  <p className="mt-1">{report.incident_description}</p>
+                </div>
+                <div>
+                  <p className="font-medium">Action Taken</p>
+                  <p className="mt-1">{report.action_taken}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Notes */}
+          <div>
+            <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Additional Notes</h3>
+            <p className="whitespace-pre-wrap">{report.notes || 'No additional notes'}</p>
+          </div>
+        </div>
       </div>
     </div>
   );
-
-
-  const printReport = (report) => {
-  const printWindow = window.open('', '_blank');
-  const content = `
-    <html>
-      <head>
-        <title>Security Report - ${report.id}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          .header { text-align: center; margin-bottom: 30px; }
-          .section { margin-bottom: 20px; }
-          .section-title { font-weight: bold; margin-bottom: 10px; }
-          .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-          .status { padding: 4px 8px; border-radius: 4px; display: inline-block; }
-          .status-normal { background: #d1fae5; color: #065f46; }
-          .status-incident { background: #fee2e2; color: #991b1b; }
-          @media print {
-            body { padding: 0; }
-            button { display: none; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>Security Report</h1>
-          <p>Report ID: ${report.id}</p>
-          <p>Date: ${new Date(report.submitted_at).toLocaleString()}</p>
-        </div>
-        
-        <div class="section">
-          <div class="section-title">Guard Information</div>
-          <div class="grid">
-            <p>Name: ${report.guard_name}</p>
-            <p>Shift: ${report.shift_type}</p>
-            <p>Start Time: ${new Date(report.shift_start_time).toLocaleString()}</p>
-            <p>End Time: ${new Date(report.shift_end_time).toLocaleString()}</p>
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">Utility Status</div>
-          <div class="grid">
-            <p>Electricity: ${report.electricity_status}</p>
-            <p>Water Supply: ${report.water_supply_status}</p>
-            <p>Generator: ${report.generator_status}</p>
-            <p>UPS: ${report.ups_status}</p>
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">Remote Location Checks</div>
-          ${Object.entries(report.remote_locations_checked || {})
-            .map(([location, data]) => `
-              <p>${location}: <span class="status ${
-                data.status === 'normal' ? 'status-normal' : 'status-incident'
-              }">${data.status}</span></p>
-              ${data.notes ? `<p><small>Notes: ${data.notes}</small></p>` : ''}
-            `).join('')}
-        </div>
-
-        ${report.incident_occurred ? `
-          <div class="section">
-            <div class="section-title">Incident Information</div>
-            <div class="grid">
-              <p>Type: ${report.incident_type}</p>
-              <p>Time: ${new Date(report.incident_time).toLocaleString()}</p>
-              <p>Location: ${report.incident_location}</p>
-            </div>
-            <p><strong>Description:</strong><br>${report.incident_description}</p>
-            <p><strong>Action Taken:</strong><br>${report.action_taken}</p>
-          </div>
-        ` : ''}
-
-        <div class="section">
-          <div class="section-title">Notes & Handover</div>
-          <p><strong>General Observations:</strong><br>${report.general_observations || 'None'}</p>
-          <p><strong>Pending Tasks:</strong><br>${report.pending_tasks || 'None'}</p>
-          <div class="grid">
-            <p>Keys Handover: ${report.key_handover ? 'Completed' : 'Not Completed'}</p>
-            <p>Radio Handover: ${report.radio_handover ? 'Completed' : 'Not Completed'}</p>
-          </div>
-        </div>
-
-        <div style="margin-top: 30px; text-align: center;">
-          <button onclick="window.print()">Print Report</button>
-        </div>
-      </body>
-    </html>
-  `;
-
-  printWindow.document.write(content);
-  printWindow.document.close();
-};
-
-                          const exportSingleReport = async (report) => {
-  try {
-    // Create worksheet with formatted data
-    const reportData = {
-      'Report ID': report.id,
-      'Guard Name': report.guard_name,
-      'Shift Type': report.shift_type,
-      'Shift Start': new Date(report.shift_start_time).toLocaleString(),
-      'Shift End': new Date(report.shift_end_time).toLocaleString(),
-      'Status': report.incident_occurred ? 'Incident Reported' : 'Normal',
-      'Electricity Status': report.electricity_status,
-      'Water Supply Status': report.water_supply_status,
-      'Generator Status': report.generator_status,
-      'UPS Status': report.ups_status,
-      'Incident Type': report.incident_occurred ? report.incident_type : 'N/A',
-      'Incident Time': report.incident_occurred ? new Date(report.incident_time).toLocaleString() : 'N/A',
-      'Incident Location': report.incident_occurred ? report.incident_location : 'N/A',
-      'Incident Description': report.incident_occurred ? report.incident_description : 'N/A',
-      'Action Taken': report.incident_occurred ? report.action_taken : 'N/A',
-      'General Observations': report.general_observations || 'None',
-      'Pending Tasks': report.pending_tasks || 'None',
-      'Keys Handover': report.key_handover ? 'Yes' : 'No',
-      'Radio Handover': report.radio_handover ? 'Yes' : 'No',
-      'Submitted At': new Date(report.submitted_at).toLocaleString()
-    };
-
-    // Create Excel file
-    const ws = XLSX.utils.json_to_sheet([reportData], { header: Object.keys(reportData) });
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Security Report');
-
-    // Adjust column widths
-    const cols = Object.keys(reportData).map(() => ({ wch: 20 }));
-    ws['!cols'] = cols;
-
-    // Save file
-    XLSX.writeFile(wb, `security_report_${report.id}_${new Date().toISOString().split('T')[0]}.xlsx`);
-  } catch (error) {
-    console.error('Error exporting report:', error);
-    // Handle error (show notification, etc.)
-  }
-};
-
+  
   return (
   <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
