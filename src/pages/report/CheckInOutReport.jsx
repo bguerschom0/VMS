@@ -380,5 +380,6 @@ return (
       `}</style>
     </div>
   );
+}
 
 export default CheckInOutReport;
