@@ -51,10 +51,10 @@ const GuardShiftReportViewer = () => {
 
       // Apply filters
       if (filters.startDate) {
-        query = query.gte('submitted_at', filters.startDate);
+        query = query.gte('created_at', filters.startDate);
       }
       if (filters.endDate) {
-        query = query.lte('submitted_at', filters.endDate);
+        query = query.lte('created_at', filters.endDate);
       }
       if (filters.shiftType) {
         query = query.eq('shift_type', filters.shiftType);
@@ -124,14 +124,14 @@ const GuardShiftReportViewer = () => {
       const { data, error } = await supabase
         .from('guard_shift_reports')
         .select('*')
-        .order('submitted_at', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
       if (data) {
         // Format data for export
         const formattedData = data.map(report => ({
-          'Date Submitted': new Date(report.submitted_at).toLocaleString(),
+          'Date Submitted': new Date(report.created_at).toLocaleString(),
           'Guard Name': report.submitted_by,
           'Shift Type': report.shift_type,
           'Shift Start': new Date(report.shift_start_time).toLocaleString(),
@@ -443,7 +443,7 @@ const GuardShiftReportViewer = () => {
                       className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
                       <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
-                        {new Date(report.submitted_at).toLocaleDateString()}
+                        {new Date(report.created_at).toLocaleDateString()}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
                         {report.guard_name}
