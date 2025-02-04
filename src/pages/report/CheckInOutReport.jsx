@@ -74,43 +74,46 @@ const CheckInOutReport = () => {
     }
   };
 
-  const processVisitorData = (visitors) => {
-    // Daily/Monthly visitor count
-    const visitorCount = visitors.reduce((acc, visitor) => {
-      const date = new Date(visitor.check_in_time).toLocaleDateString();
-      acc[date] = (acc[date] || 0) + 1;
-      return acc;
-    }, {});
+const processVisitorData = (visitors) => {
+  // Daily/Monthly visitor count
+  const visitorCount = visitors.reduce((acc, visitor) => {
+    const date = new Date(visitor.check_in_time).toLocaleDateString();
+    acc[date] = (acc[date] || 0) + 1;
+    return acc;
+  }, {});
 
-    setVisitorStats(Object.entries(visitorCount).map(([date, count]) => ({
-      date,
-      count
-    })));
+  setVisitorStats(Object.entries(visitorCount).map(([date, count]) => ({
+    date,
+    count
+  })));
 
-    // Purpose distribution (formerly department)
-    const purposeCount = visitors.reduce((acc, visitor) => {
-      const purpose = visitor.purpose || 'Unspecified';
-      acc[purpose] = (acc[purpose] || 0) + 1;
-      return acc;
-    }, {});
+  // Department distribution - Changed from purpose to department
+  const deptCount = visitors.reduce((acc, visitor) => {
+    const department = visitor.department || 'Unspecified';
+    acc[department] = (acc[department] || 0) + 1;
+    return acc;
+  }, {});
 
-    setDepartmentStats(Object.entries(purposeCount).map(([name, value]) => ({
+  setDepartmentStats(Object.entries(deptCount)
+    .map(([name, value]) => ({
       name,
       value
-    })));
+    }))
+    .sort((a, b) => b.value - a.value) // Sort by value in descending order
+  );
 
-    // Time of day statistics
-    const timeCount = visitors.reduce((acc, visitor) => {
-      const hour = new Date(visitor.check_in_time).getHours();
-      acc[hour] = (acc[hour] || 0) + 1;
-      return acc;
-    }, {});
+  // Time of day statistics
+  const timeCount = visitors.reduce((acc, visitor) => {
+    const hour = new Date(visitor.check_in_time).getHours();
+    acc[hour] = (acc[hour] || 0) + 1;
+    return acc;
+  }, {});
 
-    setTimeStats(Array.from({ length: 24 }, (_, i) => ({
-      hour: i,
-      visits: timeCount[i] || 0
-    })));
-  };
+  setTimeStats(Array.from({ length: 24 }, (_, i) => ({
+    hour: i,
+    visits: timeCount[i] || 0
+  })));
+};
 
   const exportToExcel = () => {
   // Prepare data for Excel export with all columns
