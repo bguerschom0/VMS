@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Moon, Sun, User, Lock } from 'lucide-react';
+import { Moon, Sun, User, Lock, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { motion } from 'framer-motion';
+import { supabase } from '../../config/supabase';
 
-// Password Change Modal Component
-const PasswordChangeModal = ({ isOpen, onClose, onSubmit }) => {
+// Enhanced Password Change Modal Component
+const PasswordChangeModal = ({ isOpen, onClose, onSubmit, isTemp }) => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -14,10 +15,39 @@ const PasswordChangeModal = ({ isOpen, onClose, onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setError('');
+
+    // Password validation
+    if (newPassword.length < 8) {
+      setError('Password must be at least 8 characters long');
+      return;
+    }
+
+    if (!/[A-Z]/.test(newPassword)) {
+      setError('Password must contain at least one uppercase letter');
+      return;
+    }
+
+    if (!/[a-z]/.test(newPassword)) {
+      setError('Password must contain at least one lowercase letter');
+      return;
+    }
+
+    if (!/[0-9]/.test(newPassword)) {
+      setError('Password must contain at least one number');
+      return;
+    }
+
+    if (!/[!@#$%^&*]/.test(newPassword)) {
+      setError('Password must contain at least one special character (!@#$%^&*)');
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
+
     onSubmit(newPassword);
   };
 
@@ -28,46 +58,78 @@ const PasswordChangeModal = ({ isOpen, onClose, onSubmit }) => {
         animate={{ scale: 1, opacity: 1 }}
         className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-md w-full mx-4"
       >
-        <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Change Password</h2>
+        <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">
+          {isTemp ? 'Change Temporary Password' : 'Change Password'}
+        </h2>
+        
+        {isTemp && (
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            Your temporary password has expired or needs to be changed. Please create a new password.
+          </p>
+        )}
+
         {error && (
-          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-200 rounded-lg">
-            {error}
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-200 rounded-lg flex items-start gap-2">
+            <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+            <span>{error}</span>
           </div>
         )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              New Password
+            </label>
             <input
               type="password"
-              placeholder="New Password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 
-                       bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                       bg-white dark:bg-gray-900 text-gray-900 dark:text-white
+                       focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
               required
             />
           </div>
+          
           <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Confirm New Password
+            </label>
             <input
               type="password"
-              placeholder="Confirm Password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 
-                       bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                       bg-white dark:bg-gray-900 text-gray-900 dark:text-white
+                       focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
               required
             />
           </div>
-          <div className="flex justify-end gap-4">
+
+          <div className="text-sm text-gray-500 dark:text-gray-400 space-y-1">
+            <p>Password must contain:</p>
+            <ul className="list-disc list-inside pl-2 space-y-0.5">
+              <li>At least 8 characters</li>
+              <li>At least one uppercase letter</li>
+              <li>At least one lowercase letter</li>
+              <li>At least one number</li>
+              <li>At least one special character (!@#$%^&*)</li>
+            </ul>
+          </div>
+
+          <div className="flex justify-end gap-4 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 
+                       dark:hover:text-white transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg"
+              className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg
+                       hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
             >
               Update Password
             </button>
@@ -83,6 +145,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [isTempPassword, setIsTempPassword] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return document.documentElement.classList.contains('dark');
   });
@@ -94,24 +157,64 @@ const LoginPage = () => {
     e.preventDefault();
     setError('');
 
-    const { user, error: loginError, passwordChangeRequired } = await login(username, password);
-    
-    if (loginError) {
-      setError(loginError);
-      return;
-    }
+    try {
+      // First check if it's a temporary password
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('username', username)
+        .single();
 
-    if (passwordChangeRequired) {
-      setShowPasswordChange(true);
-    } else {
-      navigate('/dashboard');
+      if (userError) throw userError;
+
+      if (userData?.temp_password && 
+          userData.temp_password === password &&
+          new Date(userData.temp_password_expires) > new Date()) {
+        // Valid temporary password
+        setIsTempPassword(true);
+        setShowPasswordChange(true);
+        return;
+      }
+
+      // Regular login attempt
+      const { error: loginError, passwordChangeRequired } = await login(username, password);
+      
+      if (loginError) {
+        setError(loginError);
+        return;
+      }
+
+      if (passwordChangeRequired) {
+        setShowPasswordChange(true);
+      } else {
+        navigate('/dashboard');
+      }
+
+    } catch (err) {
+      setError('Invalid username or password');
     }
   };
 
   const handlePasswordChange = async (newPassword) => {
     try {
       await updatePassword(newPassword);
+      
+      if (isTempPassword) {
+        // Clear temporary password fields
+        await supabase
+          .from('users')
+          .update({
+            temp_password: null,
+            temp_password_expires: null,
+            password_change_required: false,
+            password: newPassword, // Note: In production, this should be hashed
+            updated_at: new Date().toISOString()
+          })
+          .eq('username', username);
+      }
+
       setShowPasswordChange(false);
+      setIsTempPassword(false);
       navigate('/dashboard');
     } catch (error) {
       setError(error.message);
@@ -150,11 +253,7 @@ const LoginPage = () => {
         className="w-96 p-8 rounded-3xl shadow-xl bg-white dark:bg-gray-800"
       >
         <div className="flex justify-center mb-6">
-          <img 
-            src="/logo.png" 
-            alt="Logo" 
-            className="h-20 w-auto object-contain"
-          />
+          <img src="/logo.png" alt="Logo" className="h-20 w-auto object-contain" />
         </div>
 
         <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-white mb-6">
@@ -163,15 +262,15 @@ const LoginPage = () => {
         
         {error && (
           <div className="bg-red-50 dark:bg-red-900/30 border border-red-400 dark:border-red-800 
-                       text-red-700 dark:text-red-200 px-4 py-3 rounded-lg mb-6"
+                       text-red-700 dark:text-red-200 px-4 py-3 rounded-lg mb-6 flex items-start gap-2"
           >
-            {error}
+            <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div className="relative">
-
             <input 
               type="text" 
               value={username}
@@ -183,14 +282,12 @@ const LoginPage = () => {
               placeholder="Username"
               required
             />
-
-            <span className="absolute inset-y-0 right-3 flex items-center">
+            <span className="absolute inset-y-0 left-3 flex items-center">
               <User className="h-5 w-5 text-gray-400 dark:text-gray-500" />
             </span>
           </div>
           
           <div className="relative">
-
             <input 
               type="password" 
               value={password}
@@ -202,8 +299,7 @@ const LoginPage = () => {
               placeholder="Password"
               required
             />
-
-            <span className="absolute inset-y-0 right-3 flex items-center">
+            <span className="absolute inset-y-0 left-3 flex items-center">
               <Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />
             </span>
           </div>
@@ -222,8 +318,12 @@ const LoginPage = () => {
 
       <PasswordChangeModal 
         isOpen={showPasswordChange}
-        onClose={() => setShowPasswordChange(false)}
+        onClose={() => {
+          setShowPasswordChange(false);
+          setIsTempPassword(false);
+        }}
         onSubmit={handlePasswordChange}
+        isTemp={isTempPassword}
       />
     </div>
   );
