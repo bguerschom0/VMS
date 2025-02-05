@@ -151,27 +151,27 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { login, updatePassword, user } = useAuth();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError('');
+const handleLogin = async (e) => {
+  e.preventDefault();
+  setError('');
 
-    try {
-      const { error: loginError, passwordChangeRequired } = await login(username, password);
-      
-      if (loginError) {
-        setError(loginError);
-        return;
-      }
-
-      if (passwordChangeRequired) {
-        setShowPasswordChange(true);
-      } else {
-        navigate('/dashboard');
-      }
-    } catch (err) {
-      setError('Invalid username or password');
+  try {
+    const { error: loginError, passwordChangeRequired, user: loggedInUser } = await login(username, password);
+    
+    if (loginError) {
+      setError(loginError);
+      return;
     }
-  };
+
+    if (passwordChangeRequired) {
+      setShowPasswordChange(true);
+    } else {
+      navigate('/dashboard');
+    }
+  } catch (err) {
+    setError('Invalid username or password');
+  }
+};
 
   const handlePasswordChange = async (newPassword) => {
     try {
