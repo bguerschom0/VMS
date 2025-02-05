@@ -192,11 +192,11 @@ const LoginPage = () => {
               <Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />
             </span>
 <input 
- type="password" 
- className="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 
-          bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
- placeholder="     Password"
- required
+  type="password" 
+  className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 
+           bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+  placeholder="Password"
+  required
 />
           </div>
 
