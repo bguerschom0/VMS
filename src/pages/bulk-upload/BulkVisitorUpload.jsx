@@ -5,6 +5,31 @@ import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../config/supabase';
 import { DEPARTMENTS } from '../../utils/constants';
 
+// Toast Component
+const Toast = ({ message, type = 'error', onClose }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 50 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: 50 }}
+    className={`fixed bottom-4 right-4 z-50 px-6 py-4 rounded-xl shadow-lg
+      ${type === 'success' 
+        ? 'bg-black text-white dark:bg-white dark:text-black' 
+        : 'bg-red-500 text-white'
+      }
+      transition-colors duration-300`}
+  >
+    <div className="flex items-center space-x-4">
+      <span>{message}</span>
+      <button 
+        onClick={onClose} 
+        className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded-lg"
+      >
+        Close
+      </button>
+    </div>
+  </motion.div>
+);
+
 // UploadCard Component
 const UploadCard = ({ title, icon, description, onClick, buttonText }) => (
   <motion.div
@@ -44,74 +69,6 @@ const UploadCard = ({ title, icon, description, onClick, buttonText }) => (
   </motion.div>
 );
 
-// Alert/Toast Component
-const Alert = ({ message, type = 'error', onClose, onConfirm }) => (
-  <motion.div
-    initial={{ 
-      opacity: 0, 
-      scale: 0.7, 
-      x: '50%', 
-      y: '50%',
-      translateX: '-50%',
-      translateY: '-50%'
-    }}
-    animate={{ 
-      opacity: 1, 
-      scale: 1,
-      x: '50%', 
-      y: '50%',
-      translateX: '-50%',
-      translateY: '-50%'
-    }}
-    exit={{ 
-      opacity: 0, 
-      scale: 0.7,
-      x: '50%', 
-      y: '50%',
-      translateX: '-50%',
-      translateY: '-50%'
-    }}
-    transition={{
-      type: "spring",
-      stiffness: 300,
-      damping: 20
-    }}
-    className={`fixed top-1/2 left-1/2 z-50 px-8 py-6 rounded-2xl shadow-2xl w-96 max-w-[90%]
-      ${type === 'success' 
-        ? 'bg-black text-white dark:bg-white dark:text-black' 
-        : 'bg-red-500 text-white'
-      }
-      transition-colors duration-300 text-center flex flex-col items-center justify-center space-y-4`}
-  >
-    <div className="text-xl font-semibold">{message}</div>
-    <div className="flex space-x-4">
-      {onConfirm ? (
-        <>
-          <button 
-            onClick={onConfirm} 
-            className="px-4 py-2 bg-white/30 hover:bg-white/40 rounded-lg"
-          >
-            Confirm
-          </button>
-          <button 
-            onClick={onClose} 
-            className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg"
-          >
-            Cancel
-          </button>
-        </>
-      ) : (
-        <button 
-          onClick={onClose} 
-          className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg"
-        >
-          Close
-        </button>
-      )}
-    </div>
-  </motion.div>
-);
-
 const BulkVisitorUpload = () => {
   const { user } = useAuth();
   const [previewData, setPreviewData] = useState([]);
@@ -120,7 +77,6 @@ const BulkVisitorUpload = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [alertType, setAlertType] = useState('error');
-  const [alertConfirmAction, setAlertConfirmAction] = useState(null);
   
   // Manual Entry States
   const [showManualEntry, setShowManualEntry] = useState(false);
@@ -145,40 +101,16 @@ const BulkVisitorUpload = () => {
     if (fileInput) fileInput.value = '';
   };
 
-  // Show error alert
-  const showErrorAlert = (message) => {
+  // Show toast
+  const showToast = (message, type = 'error') => {
     setAlertMessage(message);
-    setAlertType('error');
+    setAlertType(type);
     setShowAlert(true);
-    setAlertConfirmAction(null);
 
-    // Automatically remove alert after 3 seconds
+    // Auto hide after 3 seconds
     setTimeout(() => {
       setShowAlert(false);
     }, 3000);
-  };
-
-  // Show success alert
-  const showSuccessAlert = (message, confirmAction = null) => {
-    setAlertMessage(message);
-    setAlertType('success');
-    setShowAlert(true);
-    setAlertConfirmAction(confirmAction);
-
-    // Automatically remove alert after 3 seconds if no confirm action
-    if (!confirmAction) {
-      setTimeout(() => {
-        setShowAlert(false);
-      }, 3000);
-    }
-  };
-
-  // Close alert handler
-  const handleCloseAlert = () => {
-    setShowAlert(false);
-    if (alertConfirmAction) {
-      alertConfirmAction();
-    }
   };
 
   // Download Template Function
@@ -256,30 +188,30 @@ const BulkVisitorUpload = () => {
 
           setPreviewData(validatedData);
         } catch (error) {
-          showErrorAlert('Error reading Excel file. Please ensure it follows the template format.');
+          showToast('Error reading Excel file. Please ensure it follows the template format.', 'error');
         }
       };
       reader.readAsArrayBuffer(file);
     } catch (error) {
-      showErrorAlert('Error processing file');
+      showToast('Error processing file', 'error');
     }
   };
 
   // Bulk Submit Handler
   const handleBulkSubmit = async () => {
     if (!previewData.length) {
-      showErrorAlert('Please upload a file first');
+      showToast('Please upload a file first', 'error');
       return;
     }
 
     if (!user?.username) {
-      showErrorAlert('User session expired. Please log in again.');
+      showToast('User session expired. Please log in again.', 'error');
       return;
     }
 
     const invalidRows = previewData.filter(row => !row.isValid);
     if (invalidRows.length > 0) {
-      showErrorAlert(`Please fix errors in rows: ${invalidRows.map(row => row.rowNumber).join(', ')}`);
+      showToast(`Please fix errors in rows: ${invalidRows.map(row => row.rowNumber).join(', ')}`, 'error');
       return;
     }
 
@@ -307,22 +239,19 @@ const BulkVisitorUpload = () => {
           departure_time: null
         }));
 
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('scheduled_visitors')
           .insert(visitorsToInsert)
           .select();
 
-        if (error) {
-          console.error(`Batch ${i/BATCH_SIZE + 1} error:`, error);
-          throw error;
-        }
+        if (error) throw error;
       }
       
-      showSuccessAlert(`Successfully uploaded ${previewData.length} visitor${previewData.length > 1 ? 's' : ''}!`);
+      showToast(`Successfully uploaded ${previewData.length} visitor${previewData.length > 1 ? 's' : ''}!`, 'success');
       clearData();
     } catch (error) {
-      console.error('Full error object:', error);
-      showErrorAlert(`Error uploading visitors: ${error.message}`);
+      console.error('Upload error:', error);
+      showToast(`Error uploading visitors: ${error.message}`, 'error');
     } finally {
       setLoading(false);
     }
@@ -349,18 +278,18 @@ const BulkVisitorUpload = () => {
     const missingFields = requiredFields.filter(field => !manualVisitor[field]);
     
     if (missingFields.length > 0) {
-      showErrorAlert(`Please fill in all required fields: ${missingFields.join(', ')}`);
+      showToast(`Please fill in all required fields: ${missingFields.join(', ')}`, 'error');
       return;
     }
 
     if (!user?.username) {
-      showErrorAlert('User session expired. Please log in again.');
+      showToast('User session expired. Please log in again.', 'error');
       return;
     }
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('scheduled_visitors')
         .insert({
           full_name: manualVisitor.fullName,
@@ -383,7 +312,7 @@ const BulkVisitorUpload = () => {
 
       if (error) throw error;
 
-      showSuccessAlert('Visitor added successfully!');
+      showToast('Visitor added successfully!', 'success');
       
       // Reset form
       setManualVisitor({
@@ -401,7 +330,7 @@ const BulkVisitorUpload = () => {
       setShowManualEntry(false);
     } catch (error) {
       console.error('Error inserting visitor:', error);
-      showErrorAlert(`Error adding visitor: ${error.message}`);
+      showToast(`Error adding visitor: ${error.message}`, 'error');
     } finally {
       setLoading(false);
     }
@@ -409,14 +338,13 @@ const BulkVisitorUpload = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8 relative">
-      {/* Alert/Toast Popup with Centered Positioning */}
+      {/* Toast Notification */}
       <AnimatePresence>
         {showAlert && (
-          <Alert 
+          <Toast 
             message={alertMessage} 
             type={alertType}
-            onClose={handleCloseAlert}
-            onConfirm={alertConfirmAction ? handleCloseAlert : null}
+            onClose={() => setShowAlert(false)}
           />
         )}
       </AnimatePresence>
@@ -502,148 +430,158 @@ const BulkVisitorUpload = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6"
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 mb-6"
           >
             <form onSubmit={handleManualSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block mb-2 text-gray-700 dark:text-gray-300">Full Name</label>
-                <input
-                  type="text"
-                  name="fullName"
-                  value={manualVisitor.fullName}
-                  onChange={handleManualInputChange}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
+              {/* Left Column */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Full Name</label>
+                  <input
+                    type="text"
+                    name="fullName"
+                    value={manualVisitor.fullName}
+                    onChange={handleManualInputChange}
+                    className="w-full md:w-4/5 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
                              bg-white dark:bg-gray-700 dark:text-white"
-                  placeholder="Enter full name"
-                />
+                    placeholder="Enter full name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Identity Number</label>
+                  <input
+                    type="text"
+                    name="identityNumber"
+                    value={manualVisitor.identityNumber}
+                    onChange={handleManualInputChange}
+                    className="w-full md:w-4/5 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
+                             bg-white dark:bg-gray-700 dark:text-white"
+                    placeholder="Enter ID or Passport number"
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Phone Number</label>
+                  <input
+                    type="text"
+                    name="phoneNumber"
+                    value={manualVisitor.phoneNumber}
+                    onChange={handleManualInputChange}
+                    className="w-full md:w-4/5 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
+                             bg-white dark:bg-gray-700 dark:text-white"
+                    placeholder="Enter phone number"
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Department</label>
+                  <select
+                    name="department"
+                    value={manualVisitor.department}
+                    onChange={handleManualInputChange}
+                    className="w-full md:w-4/5 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
+                             bg-white dark:bg-gray-700 dark:text-white"
+                  >
+                    <option value="">Select Department</option>
+                    {DEPARTMENTS.map(dept => (
+                      <option key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              <div>
-                <label className="block mb-2 text-gray-700 dark:text-gray-300">Identity Number</label>
-                <input
-                  type="text"
-                  name="identityNumber"
-                  value={manualVisitor.identityNumber}
-                  onChange={handleManualInputChange}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
+              {/* Right Column */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Purpose</label>
+                  <input
+                    type="text"
+                    name="purpose"
+                    value={manualVisitor.purpose}
+                    onChange={handleManualInputChange}
+                    className="w-full md:w-4/5 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
                              bg-white dark:bg-gray-700 dark:text-white"
-                  placeholder="Enter ID or Passport number"
-                />
+                    placeholder="Enter purpose of visit"
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Visit Start Date</label>
+                  <input
+                    type="date"
+                    name="visitStartDate"
+                    value={manualVisitor.visitStartDate}
+                    onChange={handleManualInputChange}
+                    className="w-full md:w-4/5 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
+                             bg-white dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Visit End Date</label>
+                  <input
+                    type="date"
+                    name="visitEndDate"
+                    value={manualVisitor.visitEndDate}
+                    onChange={handleManualInputChange}
+                    className="w-full md:w-4/5 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
+                             bg-white dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Items (Optional)</label>
+                  <input
+                    type="text"
+                    name="items"
+                    value={manualVisitor.items}
+                    onChange={handleManualInputChange}
+                    className="w-full md:w-4/5 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
+                             bg-white dark:bg-gray-700 dark:text-white"
+                    placeholder="Enter items"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block mb-2 text-gray-700 dark:text-gray-300">Phone Number</label>
-                <input
-                  type="text"
-                  name="phoneNumber"
-                  value={manualVisitor.phoneNumber}
-                  onChange={handleManualInputChange}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
+              {/* Optional Laptop Information - Full Width */}
+              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Laptop Brand (Optional)</label>
+                  <input
+                    type="text"
+                    name="laptopBrand"
+                    value={manualVisitor.laptopBrand}
+                    onChange={handleManualInputChange}
+                    className="w-full md:w-4/5 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
                              bg-white dark:bg-gray-700 dark:text-white"
-                  placeholder="Enter phone number"
-                />
+                    placeholder="Enter laptop brand"
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Laptop Serial (Optional)</label>
+                  <input
+                    type="text"
+                    name="laptopSerial"
+                    value={manualVisitor.laptopSerial}
+                    onChange={handleManualInputChange}
+                    className="w-full md:w-4/5 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
+                             bg-white dark:bg-gray-700 dark:text-white"
+                    placeholder="Enter laptop serial number"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block mb-2 text-gray-700 dark:text-gray-300">Department</label>
-                <select
-                  name="department"
-                  value={manualVisitor.department}
-                  onChange={handleManualInputChange}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
-                             bg-white dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="">Select Department</option>
-                  {DEPARTMENTS.map(dept => (
-                    <option key={dept.id} value={dept.id}>
-                      {dept.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block mb-2 text-gray-700 dark:text-gray-300">Purpose of Visit</label>
-                <input
-                  type="text"
-                  name="purpose"
-                  value={manualVisitor.purpose}
-                  onChange={handleManualInputChange}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
-                             bg-white dark:bg-gray-700 dark:text-white"
-                  placeholder="Enter purpose of visit"
-                />
-              </div>
-
-              <div>
-                <label className="block mb-2 text-gray-700 dark:text-gray-300">Visit Start Date</label>
-                <input
-                  type="date"
-                  name="visitStartDate"
-                  value={manualVisitor.visitStartDate}
-                  onChange={handleManualInputChange}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
-                             bg-white dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block mb-2 text-gray-700 dark:text-gray-300">Visit End Date</label>
-                <input
-                  type="date"
-                  name="visitEndDate"
-                  value={manualVisitor.visitEndDate}
-                  onChange={handleManualInputChange}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
-                             bg-white dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block mb-2 text-gray-700 dark:text-gray-300">Items (Optional)</label>
-                <input
-                  type="text"
-                  name="items"
-                  value={manualVisitor.items}
-                  onChange={handleManualInputChange}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
-                             bg-white dark:bg-gray-700 dark:text-white"
-                  placeholder="Enter items"
-                />
-              </div>
-
-              <div>
-                <label className="block mb-2 text-gray-700 dark:text-gray-300">Laptop Brand (Optional)</label>
-                <input
-                  type="text"
-                  name="laptopBrand"
-                  value={manualVisitor.laptopBrand}
-                  onChange={handleManualInputChange}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
-                             bg-white dark:bg-gray-700 dark:text-white"
-                  placeholder="Enter laptop brand"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block mb-2 text-gray-700 dark:text-gray-300">Laptop Serial (Optional)</label>
-                <input
-                  type="text"
-                  name="laptopSerial"
-                  value={manualVisitor.laptopSerial}
-                  onChange={handleManualInputChange}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
-                             bg-white dark:bg-gray-700 dark:text-white"
-                  placeholder="Enter laptop serial number"
-                />
-              </div>
-
+              {/* Form Actions */}
               <div className="md:col-span-2 flex justify-end space-x-4">
                 <button
                   type="button"
                   onClick={() => setShowManualEntry(false)}
                   className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
-                             text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700"
+                           text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Cancel
                 </button>
@@ -651,7 +589,7 @@ const BulkVisitorUpload = () => {
                   type="submit"
                   disabled={loading}
                   className="px-4 py-2 rounded-lg bg-black text-white hover:bg-gray-800
-                             disabled:opacity-50 disabled:cursor-not-allowed"
+                           disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? 'Submitting...' : 'Add Visitor'}
                 </button>
