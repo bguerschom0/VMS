@@ -1,96 +1,167 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { createClient } from '@supabase/supabase-js';
+import bcrypt from 'bcryptjs';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
   import.meta.env.VITE_SUPABASE_ANON_KEY
-)
+);
 
-const AuthContext = createContext(null)
+const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const logoutTimer = useRef(null) // Holds the logout timer
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const logoutTimer = useRef(null);
 
   useEffect(() => {
     const checkUser = async () => {
-      const storedUser = localStorage.getItem('user')
+      const storedUser = localStorage.getItem('user');
       if (storedUser) {
-        setUser(JSON.parse(storedUser))
-        resetLogoutTimer() // Start inactivity timer
+        setUser(JSON.parse(storedUser));
+        resetLogoutTimer();
       }
-      setLoading(false)
-    }
+      setLoading(false);
+    };
+    checkUser();
+  }, []);
 
-    checkUser()
-  }, [])
-
-  // Reset inactivity timer
   const resetLogoutTimer = () => {
-    clearTimeout(logoutTimer.current)
+    clearTimeout(logoutTimer.current);
     logoutTimer.current = setTimeout(() => {
-      logout()
-    }, 5 * 60 * 1000) // 5 minutes (300,000 ms)
-  }
+      logout();
+    }, 5 * 60 * 1000); // 5 minutes
+  };
 
   const login = async (username, password) => {
     try {
-      const { data, error } = await supabase
+      // First check for temporary password
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
         .eq('username', username)
-        .eq('password', password)
-        .single()
+        .single();
 
-      if (error || !data) {
-        throw new Error('Invalid credentials')
+      if (userError) throw new Error('Invalid credentials');
+
+      // Check if it's a temporary password
+      if (userData?.temp_password && 
+          userData.temp_password === password &&
+          new Date(userData.temp_password_expires) > new Date()) {
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        resetLogoutTimer();
+        return { 
+          user: userData, 
+          error: null, 
+          passwordChangeRequired: true 
+        };
       }
 
-      setUser(data)
-      localStorage.setItem('user', JSON.stringify(data)) // Store user in local storage
-      resetLogoutTimer() // Start inactivity timer
-      return { user: data, error: null }
+      // If not temp password, verify hashed password
+      const isValidPassword = await bcrypt.compare(password, userData.password);
+
+      if (!isValidPassword) {
+        throw new Error('Invalid credentials');
+      }
+
+      // Update last login
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ 
+          last_login: new Date().toISOString() 
+        })
+        .eq('id', userData.id);
+
+      if (updateError) console.error('Error updating last login:', updateError);
+
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      resetLogoutTimer();
+      
+      return { 
+        user: userData, 
+        error: null, 
+        passwordChangeRequired: userData.password_change_required 
+      };
     } catch (error) {
-      console.error('Login error:', error.message)
-      return { user: null, error: error.message }
+      console.error('Login error:', error.message);
+      return { user: null, error: error.message };
     }
-  }
+  };
+
+  const updatePassword = async (userId, newPassword) => {
+    try {
+      // Hash the new password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({
+          password: hashedPassword,
+          temp_password: null,
+          temp_password_expires: null,
+          password_change_required: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId);
+
+      if (updateError) throw updateError;
+
+      // Update user in state and localStorage
+      const { data: updatedUser, error: fetchError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      resetLogoutTimer();
+
+      return { error: null };
+    } catch (error) {
+      console.error('Password update error:', error);
+      return { error: error.message };
+    }
+  };
 
   const logout = () => {
-    setUser(null)
-    localStorage.removeItem('user')
-    clearTimeout(logoutTimer.current)
-  }
+    setUser(null);
+    localStorage.removeItem('user');
+    clearTimeout(logoutTimer.current);
+  };
 
   // Reset logout timer on user activity
   useEffect(() => {
-    const resetTimerOnActivity = () => resetLogoutTimer()
-
-    window.addEventListener('mousemove', resetTimerOnActivity)
-    window.addEventListener('keydown', resetTimerOnActivity)
-    window.addEventListener('click', resetTimerOnActivity)
-    window.addEventListener('scroll', resetTimerOnActivity)
+    const resetTimerOnActivity = () => resetLogoutTimer();
+    window.addEventListener('mousemove', resetTimerOnActivity);
+    window.addEventListener('keydown', resetTimerOnActivity);
+    window.addEventListener('click', resetTimerOnActivity);
+    window.addEventListener('scroll', resetTimerOnActivity);
 
     return () => {
-      window.removeEventListener('mousemove', resetTimerOnActivity)
-      window.removeEventListener('keydown', resetTimerOnActivity)
-      window.removeEventListener('click', resetTimerOnActivity)
-      window.removeEventListener('scroll', resetTimerOnActivity)
-    }
-  }, [])
+      window.removeEventListener('mousemove', resetTimerOnActivity);
+      window.removeEventListener('keydown', resetTimerOnActivity);
+      window.removeEventListener('click', resetTimerOnActivity);
+      window.removeEventListener('scroll', resetTimerOnActivity);
+    };
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, updatePassword }}>
       {children}
     </AuthContext.Provider>
-  )
-}
+  );
+};
 
 export const useAuth = () => {
-  const context = useContext(AuthContext)
+  const context = useContext(AuthContext);
   if (context === null) {
-    throw new Error('useAuth must be used within an AuthProvider')
+    throw new Error('useAuth must be used within an AuthProvider');
   }
-  return context
-}
+  return context;
+};
