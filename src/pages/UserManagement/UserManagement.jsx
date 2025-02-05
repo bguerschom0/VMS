@@ -6,7 +6,8 @@ import {
   Lock, 
   Trash2, 
   Search,
-  Download,
+  Copy,
+  Check,
   FileSpreadsheet,
   FileText 
 } from 'lucide-react';
@@ -18,13 +19,29 @@ import { useRoleCheck } from '../../hooks/useRoleCheck';
 // User Modal Component for Create/Edit
 const UserModal = ({ isOpen, mode, user, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
-    username: user?.username || '',
-    full_name: user?.full_name || '',
-    password: '',
-    role: user?.role || 'user',
-    is_active: user?.is_active ?? true
+    username: '',
+    full_name: '',
+    role: 'user',
+    is_active: true
   });
-  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        username: user.username || '',
+        full_name: user.full_name || '',
+        role: user.role || 'user',
+        is_active: user.is_active ?? true
+      });
+    } else {
+      setFormData({
+        username: '',
+        full_name: '',
+        role: 'user',
+        is_active: true
+      });
+    }
+  }, [user]);
 
   const roles = [
     { value: 'admin', label: 'Administrator' },
@@ -35,10 +52,6 @@ const UserModal = ({ isOpen, mode, user, onClose, onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (mode === 'create' && !formData.password) {
-      setError('Password is required');
-      return;
-    }
     onSubmit(formData);
   };
 
@@ -62,12 +75,6 @@ const UserModal = ({ isOpen, mode, user, onClose, onSubmit }) => {
             ✕
           </button>
         </div>
-
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-200 rounded-lg">
-            {error}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -99,23 +106,6 @@ const UserModal = ({ isOpen, mode, user, onClose, onSubmit }) => {
               required
             />
           </div>
-
-          {mode === 'create' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Password
-              </label>
-              <input
-                type="password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 
-                         bg-white dark:bg-gray-900 text-gray-900 dark:text-white
-                         focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
-                required={mode === 'create'}
-              />
-            </div>
-          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -173,27 +163,119 @@ const UserModal = ({ isOpen, mode, user, onClose, onSubmit }) => {
   );
 };
 
+// Temporary Password Modal Component
+const TempPasswordModal = ({ isOpen, onClose, tempPassword }) => {
+  const [copied, setCopied] = useState(false);
+
+  if (!isOpen) return null;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(tempPassword);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-md w-full mx-4"
+      >
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            Temporary Password Generated
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="mb-6">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+            Please copy this temporary password. It will expire in 24 hours.
+          </p>
+          <div className="flex items-center gap-2">
+            <code className="flex-1 p-3 bg-gray-100 dark:bg-gray-900 rounded-lg font-mono text-lg break-all">
+              {tempPassword}
+            </code>
+            <button
+              onClick={handleCopy}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              title="Copy to clipboard"
+            >
+              {copied ? (
+                <Check className="w-5 h-5 text-green-500" />
+              ) : (
+                <Copy className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              )}
+            </button>
+          </div>
+          {copied && (
+            <p className="text-sm text-green-500 mt-2">
+              ✓ Copied to clipboard
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2 text-sm text-gray-500 dark:text-gray-400">
+          <p>Important notes:</p>
+          <ul className="list-disc list-inside space-y-1">
+            <li>This password is valid for 24 hours only</li>
+            <li>User will be required to change it upon first login</li>
+            <li>Keep this password secure and do not share it</li>
+          </ul>
+        </div>
+
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 const UserManagement = () => {
   const { user: currentUser } = useAuth();
   const isAuthorized = useRoleCheck('/user-management');
 
-   if (!isAuthorized) return null;
+  if (!isAuthorized) return null;
 
-  
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState('create');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
   const [showTempPasswordModal, setShowTempPasswordModal] = useState(false);
   const [currentTempPassword, setCurrentTempPassword] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   useEffect(() => {
     fetchUsers();
   }, [searchTerm]);
+
+  const generateTempPassword = () => {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let tempPassword = '';
+    const randomValues = new Uint32Array(10);
+    crypto.getRandomValues(randomValues);
+    
+    randomValues.forEach((value) => {
+      tempPassword += characters[value % characters.length];
+    });
+
+    return tempPassword;
+  };
 
   const fetchUsers = async () => {
     try {
@@ -222,15 +304,23 @@ const UserManagement = () => {
 
   const handleCreateUser = async (userData) => {
     try {
+      const tempPassword = generateTempPassword();
+      const tempPasswordExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
       const { data, error } = await supabase
         .from('users')
         .insert([{
           ...userData,
+          temp_password: tempPassword,
+          temp_password_expires: tempPasswordExpiry,
+          password_change_required: true,
           created_by: currentUser.username
         }]);
 
       if (error) throw error;
       
+      setCurrentTempPassword(tempPassword);
+      setShowTempPasswordModal(true);
       fetchUsers();
       setShowModal(false);
     } catch (error) {
@@ -244,7 +334,8 @@ const UserManagement = () => {
         .from('users')
         .update({
           ...userData,
-          updated_by: currentUser.username
+          updated_by: currentUser.username,
+          updated_at: new Date().toISOString()
         })
         .eq('id', selectedUser.id);
 
@@ -257,97 +348,31 @@ const UserManagement = () => {
     }
   };
 
-const handleResetPassword = async (userId) => {
-  try {
-    // Generate a 10-character temporary password using more secure method
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
-    let tempPassword = '';
-    const randomValues = new Uint32Array(10);
-    crypto.getRandomValues(randomValues);
-    
-    randomValues.forEach((value) => {
-      tempPassword += characters[value % characters.length];
-    });
-
-    // Set expiry to 24 hours from now
-    const tempPasswordExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-    
-    // Update user with temporary password details
-    const { error } = await supabase
-      .from('users')
-      .update({
-        temp_password: tempPassword,
-        temp_password_expires: tempPasswordExpiry,
-        password_change_required: true,
-        updated_by: currentUser.username
-      })
-      .eq('id', userId);
-
-    if (error) throw error;
-
-    // Show the modal with the temporary password
-    setCurrentTempPassword(tempPassword);
-    setShowTempPasswordModal(true);
-    
-  } catch (error) {
-    console.error('Error resetting password:', error);
-    throw error;
-  }
-};
-
-  const verifyTempPassword = async (username, password) => {
-  try {
-    const { data: userData, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('username', username)
-      .single();
-
-    if (error) throw error;
-
-    // Check if there's a valid temporary password
-    if (userData.temp_password && 
-        userData.temp_password === password && 
-        new Date(userData.temp_password_expires) > new Date()) {
+  const handleResetPassword = async (userId) => {
+    try {
+      const tempPassword = generateTempPassword();
+      const tempPasswordExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       
-      return {
-        valid: true,
-        passwordChangeRequired: true,
-        userId: userData.id
-      };
+      const { error } = await supabase
+        .from('users')
+        .update({
+          temp_password: tempPassword,
+          temp_password_expires: tempPasswordExpiry,
+          password_change_required: true,
+          updated_by: currentUser.username
+        })
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      setCurrentTempPassword(tempPassword);
+      setShowTempPasswordModal(true);
+      
+      fetchUsers();
+    } catch (error) {
+      console.error('Error resetting password:', error);
     }
-
-    // If no temp password match, proceed to check regular password
-    return {
-      valid: false,
-      passwordChangeRequired: false
-    };
-  } catch (error) {
-    console.error('Error verifying temporary password:', error);
-    throw error;
-  }
-};
-
-const handlePasswordChange = async (userId, newPassword) => {
-  try {
-    const { error } = await supabase
-      .from('users')
-      .update({
-        password: newPassword,
-        temp_password: null,
-        temp_password_expires: null,
-        password_change_required: false,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', userId);
-
-    if (error) throw error;
-
-  } catch (error) {
-    console.error('Error changing password:', error);
-    throw error;
-  }
-};
+  };
 
   const handleDeleteUser = async (userId) => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
@@ -601,7 +626,6 @@ const handlePasswordChange = async (userId, newPassword) => {
                     >
                       Previous
                     </button>
-                    {/* Page Numbers */}
                     {[...Array(totalPages)].map((_, i) => (
                       <button
                         key={i + 1}
@@ -615,12 +639,10 @@ const handlePasswordChange = async (userId, newPassword) => {
                         {i + 1}
                       </button>
                     ))}
-
                     <button
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                       disabled={currentPage === totalPages}
-                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50
-                               dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300"
+                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
                     >
                       Next
                     </button>
@@ -644,11 +666,12 @@ const handlePasswordChange = async (userId, newPassword) => {
         onSubmit={modalMode === 'create' ? handleCreateUser : handleUpdateUser}
       />
 
+      {/* Temporary Password Modal */}
       <TempPasswordModal
-  isOpen={showTempPasswordModal}
-  onClose={() => setShowTempPasswordModal(false)}
-  tempPassword={currentTempPassword}
-/>
+        isOpen={showTempPasswordModal}
+        onClose={() => setShowTempPasswordModal(false)}
+        tempPassword={currentTempPassword}
+      />
     </div>
   );
 };
