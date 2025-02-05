@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Moon, Sun, User, Lock, AlertCircle } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
 import { motion } from 'framer-motion';
-import { supabase } from '../../config/supabase';
-import bcrypt from 'bcryptjs';
+import { useAuth } from '../../hooks/useAuth';
 
-// Enhanced Password Change Modal Component
+// Password Change Modal Component
 const PasswordChangeModal = ({ isOpen, onClose, onSubmit, isTemp }) => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -146,117 +144,50 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showPasswordChange, setShowPasswordChange] = useState(false);
-  const [isTempPassword, setIsTempPassword] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return document.documentElement.classList.contains('dark');
   });
   
   const navigate = useNavigate();
-  const { login, updatePassword } = useAuth();
+  const { login, updatePassword, user } = useAuth();
 
-const handleLogin = async (e) => {
-  e.preventDefault();
-  setError('');
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError('');
 
-  try {
-    // First check if user exists
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('username', username)
-      .single();
+    try {
+      const { error: loginError, passwordChangeRequired } = await login(username, password);
+      
+      if (loginError) {
+        setError(loginError);
+        return;
+      }
 
-    if (userError) throw new Error('Invalid username or password');
-
-    // Check if it's a temporary password
-    if (userData?.temp_password && 
-        userData.temp_password === password &&
-        new Date(userData.temp_password_expires) > new Date()) {
-      // Valid temporary password
-      setIsTempPassword(true);
-      setShowPasswordChange(true);
-      return;
+      if (passwordChangeRequired) {
+        setShowPasswordChange(true);
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      setError('Invalid username or password');
     }
+  };
 
-    // Verify password
-    const isValidPassword = await bcrypt.compare(password, userData.password);
+  const handlePasswordChange = async (newPassword) => {
+    try {
+      const { error } = await updatePassword(user.id, newPassword);
+      
+      if (error) {
+        setError(error);
+        return;
+      }
 
-    if (!isValidPassword) {
-      throw new Error('Invalid username or password');
+      setShowPasswordChange(false);
+      navigate('/dashboard');
+    } catch (error) {
+      setError(error.message);
     }
-
-    // Check if password change is required
-    if (userData.password_change_required) {
-      setShowPasswordChange(true);
-      return;
-    }
-
-    // Update last login time
-    await supabase
-      .from('users')
-      .update({ 
-        last_login: new Date().toISOString() 
-      })
-      .eq('id', userData.id);
-
-    // Proceed with login
-    navigate('/dashboard');
-
-  } catch (err) {
-    console.error('Login error:', err);
-    setError(err.message || 'Error logging in');
-  }
-};
-
-const handlePasswordChange = async (newPassword) => {
-  try {
-    // Hash the new password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(newPassword, salt);
-
-    if (isTempPassword) {
-      // Update user with new hashed password and clear temp password
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({
-          password: hashedPassword,
-          temp_password: null,
-          temp_password_expires: null,
-          password_change_required: false,
-          updated_at: new Date().toISOString()
-        })
-        .eq('username', username);
-
-      if (updateError) throw updateError;
-    } else {
-      // Regular password update
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({
-          password: hashedPassword,
-          updated_at: new Date().toISOString()
-        })
-        .eq('username', username);
-
-      if (updateError) throw updateError;
-    }
-
-    // If password update is successful, proceed with login
-    const { error: loginError } = await supabase.auth.signIn({ 
-      email: username, 
-      password: newPassword 
-    });
-
-    if (loginError) throw loginError;
-
-    setShowPasswordChange(false);
-    setIsTempPassword(false);
-    navigate('/dashboard');
-  } catch (error) {
-    console.error('Password update error:', error);
-    setError(error.message || 'Error updating password');
-  }
-};
+  };
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
@@ -290,10 +221,14 @@ const handlePasswordChange = async (newPassword) => {
         className="w-96 p-8 rounded-3xl shadow-xl bg-white dark:bg-gray-800"
       >
         <div className="flex justify-center mb-6">
-          <img src="/logo.png" alt="Logo" className="h-20 w-auto object-contain" />
+          <img 
+            src="/logo.png" 
+            alt="Logo" 
+            className="h-20 w-auto object-contain"
+          />
         </div>
 
-        <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-white mb-6">
+        <h2 className="text-2xl font-bold text-center text-gray-900 text-2xl font-bold text-center text-gray-900 dark:text-white mb-6">
           Welcome Back
         </h2>
         
@@ -353,14 +288,12 @@ const handlePasswordChange = async (newPassword) => {
         </form>
       </motion.div>
 
+      {/* Password Change Modal */}
       <PasswordChangeModal 
         isOpen={showPasswordChange}
-        onClose={() => {
-          setShowPasswordChange(false);
-          setIsTempPassword(false);
-        }}
+        onClose={() => setShowPasswordChange(false)}
         onSubmit={handlePasswordChange}
-        isTemp={isTempPassword}
+        isTemp={true}
       />
     </div>
   );
