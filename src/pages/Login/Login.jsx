@@ -170,22 +170,22 @@ const LoginPage = () => {
         )}
 
         <form onSubmit={handleLogin} className="space-y-6">
-          <div className="relative">
-            <span className="absolute inset-y-0 left-3 flex items-center">
-              <User className="h-5 w-5 text-gray-400 dark:text-gray-500" />
-            </span>
-            <input 
-              type="text" 
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 
-                       bg-white dark:bg-gray-900 text-gray-900 dark:text-white
-                       focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white
-                       transition-colors duration-200"
-              placeholder="     Username"
-              required
-            />
-          </div>
+<div className="relative">
+  <span className="absolute inset-y-0 left-3 flex items-center">
+    <User className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+  </span>
+  <input 
+    type="text" 
+    value={username}
+    onChange={(e) => setUsername(e.target.value)}
+    className="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 
+             bg-white dark:bg-gray-900 text-gray-900 dark:text-white
+             focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white
+             transition-colors duration-200"
+    placeholder="     Username"
+    required
+  />
+</div>
           
           <div className="relative">
             <span className="absolute inset-y-0 left-3 flex items-center">
