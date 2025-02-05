@@ -10,6 +10,24 @@ export const useGuardShiftForm = () => {
   const [selectedLocation, setSelectedLocation] = useState('');
   const [newTeamMember, setNewTeamMember] = useState({ id: '', name: '' });
 
+  const LOCATION_GROUPS = {
+  nyarutarama: [
+    { id: 'loc1', name: 'Head Quaters - Nyarutarama' },
+    { id: 'loc3', name: 'Kigali - Service Centers' },
+    { id: 'loc4', name: 'Eastern - Service Centers' },
+    { id: 'loc5', name: 'Gahengeri - Switch' },
+    { id: 'loc6', name: 'Norther - Service Centers' },
+    { id: 'loc7', name: 'Gicumbi - Switch' },
+    { id: 'loc8', name: 'Southern - Service Centers' },
+    { id: 'loc9', name: 'Nyanza - Switch' },
+    { id: 'loc10', name: 'Western - Service Centers' },
+    { id: 'loc11', name: 'Karongi - Switch' }
+  ],
+  remera: [
+    { id: 'loc2', name: 'Remera Innovation HUB - Remera' }
+  ]
+};
+  
   const [formData, setFormData] = useState({
     shiftType: '',
     shiftStartTime: '',
