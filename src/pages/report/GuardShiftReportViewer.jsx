@@ -636,6 +636,58 @@ const GuardShiftReportViewer = () => {
     </div>
   );
 
+    const UtilityStatus = ({ icon: Icon, label, status }) => {
+    const getStatusStyles = () => {
+      switch (status?.toLowerCase()) {
+        case 'normal':
+          return {
+            container: 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20',
+            text: 'text-green-800 dark:text-green-200',
+            icon: 'text-green-500 dark:text-green-400'
+          };
+        case 'issues':
+          return {
+            container: 'border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20',
+            text: 'text-yellow-800 dark:text-yellow-200',
+            icon: 'text-yellow-500 dark:text-yellow-400'
+          };
+        default:
+          return {
+            container: 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20',
+            text: 'text-red-800 dark:text-red-200',
+            icon: 'text-red-500 dark:text-red-400'
+          };
+      }
+    };
+
+    const styles = getStatusStyles();
+
+    return (
+      <div className={`p-4 rounded-lg border ${styles.container}`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className={`p-2 rounded-full bg-white dark:bg-gray-800`}>
+              <Icon className={`w-5 h-5 ${styles.icon}`} />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{label}</p>
+              <p className={`text-sm font-medium ${styles.text}`}>
+                {status || 'N/A'}
+              </p>
+            </div>
+          </div>
+          <div className={`h-2 w-2 rounded-full ${
+            status === 'normal' 
+              ? 'bg-green-500' 
+              : status === 'issues' 
+              ? 'bg-yellow-500' 
+              : 'bg-red-500'
+          }`} />
+        </div>
+      </div>
+    );
+  };
+  
   // Detailed Report Modal Component
   const ReportModal = ({ report, onClose }) => {
     if (!report) return null;
