@@ -255,38 +255,45 @@ const GuardShiftReportViewer = () => {
     }
   };
 
-  const exportDetailedReport = (report) => {
-    const element = document.getElementById('report-modal-content');
-    if (!element) return;
+const exportDetailedReport = (report) => {
+    const content = document.getElementById('report-modal-content');
+    if (!content) return;
 
-    const isDarkMode = document.documentElement.classList.contains('dark');
+    // Create a clean clone for export
+    const exportContainer = document.createElement('div');
+    exportContainer.className = 'bg-white p-8'; // Clean white background
     
-    const win = window.open('', '_blank');
-    win.document.write(`
-      <html class="${isDarkMode ? 'dark' : 'light'}">
-        <head>
-          <title>Security Report - ${report.submitted_by}</title>
-          <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-          <style>
-            @media print {
-              body { -webkit-print-color-adjust: exact; }
-              .dark { background-color: #1f2937; color: white; }
-              .light { background-color: white; color: black; }
-            }
-          </style>
-        </head>
-        <body class="${isDarkMode ? 'dark bg-gray-900 text-white' : 'light bg-white text-black'} p-8">
-          <div class="max-w-4xl mx-auto">
-            ${element.innerHTML}
-          </div>
-        </body>
-      </html>
-    `);
+    // Add header content
+    exportContainer.innerHTML = `
+      <div class="mb-8 border-b pb-6">
+        <div class="flex items-center mb-4">
+          <h1 class="text-2xl font-bold">Security Report</h1>
+        </div>
+        <div class="flex items-center text-gray-600 space-x-4 text-sm">
+          <span>${new Date(report.created_at).toLocaleString()}</span>
+          <span>•</span>
+          <span>${report.submitted_by}</span>
+        </div>
+      </div>
+      ${content.innerHTML}
+    `;
 
-    win.document.close();
-    setTimeout(() => {
-      win.print();
-    }, 250);
+    // Use html2canvas to create an image
+    import('html2canvas').then(html2canvas => {
+      html2canvas.default(exportContainer, {
+        scale: 2, // Higher quality
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        logging: false
+      }).then(canvas => {
+        // Convert to image and download
+        const image = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = `Security_Report_${report.submitted_by}_${new Date(report.created_at).toLocaleDateString()}.png`;
+        link.href = image;
+        link.click();
+      });
+    });
   };
 
   // Load initial data
@@ -701,10 +708,10 @@ const GuardShiftReportViewer = () => {
               <div className="flex justify-between items-center">
                 <div>
                   <div className="flex items-center space-x-3">
-                    <Shield className="w-8 h-8 text-blue-600" />
+                    <Shield className="w-8 h-8 text-gray-600" />
                     <h2 className="text-2xl font-bold dark:text-white">Detailed Security Report</h2>
                   </div>
-                  <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                  <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
                     <span className="flex items-center">
                       <Clock className="w-4 h-4 mr-1" />
                       {new Date(report.created_at).toLocaleString()}
@@ -736,42 +743,51 @@ const GuardShiftReportViewer = () => {
 
             {/* Modal Content - Scrollable */}
             <div id="report-modal-content" className="p-6 space-y-6">
-              {/* Basic Info Cards */}
+              {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                  <p className="text-sm text-blue-600 dark:text-blue-400">Shift Type</p>
-                  <p className="text-lg font-semibold text-blue-900 dark:text-blue-200">
+                <div className="p-4 border rounded-lg dark:border-gray-700">
+                  <p className="text-sm text-gray-500">Shift Type</p>
+                  <p className="text-lg font-semibold dark:text-white">
                     {report.shift_type.toUpperCase()}
                   </p>
                 </div>
-                <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
-                  <p className="text-sm text-green-600 dark:text-green-400">Team Members</p>
-                  <p className="text-lg font-semibold text-green-900 dark:text-green-200">
+                <div className="p-4 border rounded-lg dark:border-gray-700">
+                  <p className="text-sm text-gray-500">Team Size</p>
+                  <p className="text-lg font-semibold dark:text-white">
                     {report.team_members?.length || 0} Members
                   </p>
                 </div>
-                <div className={`${report.incident_occurred 
-                  ? 'bg-red-50 dark:bg-red-900/20' 
-                  : 'bg-green-50 dark:bg-green-900/20'} p-4 rounded-lg`}>
-                  <p className={`text-sm ${report.incident_occurred 
-                    ? 'text-red-600 dark:text-red-400' 
-                    : 'text-green-600 dark:text-green-400'}`}>
-                    Status
-                  </p>
-                  <p className={`text-lg font-semibold ${report.incident_occurred 
-                    ? 'text-red-900 dark:text-red-200' 
-                    : 'text-green-900 dark:text-green-200'}`}>
+                <div className={`p-4 border rounded-lg ${
+                  report.incident_occurred 
+                    ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' 
+                    : 'dark:border-gray-700'
+                }`}>
+                  <p className={`text-sm ${
+                    report.incident_occurred 
+                      ? 'text-red-600 dark:text-red-400' 
+                      : 'text-gray-500'
+                  }`}>Status</p>
+                  <p className={`text-lg font-semibold ${
+                    report.incident_occurred 
+                      ? 'text-red-700 dark:text-red-300' 
+                      : 'dark:text-white'
+                  }`}>
                     {report.incident_occurred ? 'Incident Reported' : 'Normal'}
                   </p>
                 </div>
               </div>
 
               {/* CCTV Monitoring Status */}
-              <DetailSection title="CCTV Monitoring Status" icon={Camera}>
+              <div className="border rounded-lg dark:border-gray-700 p-6">
+                <div className="flex items-center mb-4">
+                  <Camera className="w-5 h-5 mr-2 text-gray-500" />
+                  <h3 className="text-lg font-semibold dark:text-white">CCTV Monitoring Status</h3>
+                </div>
+                
                 <div className="space-y-4">
                   <div className="flex items-center justify-between mb-4">
-                    <span className="font-medium text-gray-700 dark:text-gray-300">Main Location:</span>
-                    <span className="text-blue-600 dark:text-blue-400 font-medium">
+                    <span className="font-medium text-gray-600 dark:text-gray-400">Main Location:</span>
+                    <span className="font-medium dark:text-white">
                       {report.monitoring_location}
                     </span>
                   </div>
@@ -779,96 +795,76 @@ const GuardShiftReportViewer = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {Object.entries(report.remote_locations_checked || {}).map(([location, data]) => (
                       <div key={location} 
-                           className={`p-4 rounded-lg border ${
-                             data.status === 'normal' 
-                               ? 'border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800' 
-                               : data.status === 'issues'
-                               ? 'border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-800'
-                               : 'border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800'
-                           }`}>
+                           className="p-4 border rounded-lg dark:border-gray-700">
                         <div className="flex justify-between items-center">
-                          <span className="font-medium text-gray-900 dark:text-gray-100">{location}</span>
-                          <span className={`px-3 py-1 rounded-full text-sm ${
-                            data.status === 'normal'
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200'
-                              : data.status === 'issues'
-                              ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-200'
-                              : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200'
-                          }`}>
-                            {data.status}
-                          </span>
+                          <span className="font-medium dark:text-white">{location}</span>
+                          <StatusBadge status={data.status} />
                         </div>
                         {data.notes && (
                           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                            Note: {data.notes}
+                            {data.notes}
                           </p>
                         )}
                       </div>
                     ))}
                   </div>
                 </div>
-              </DetailSection>
+              </div>
 
               {/* Utility Status */}
-              <DetailSection title="Utility Status" icon={Activity}>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <UtilityStatus
-                    icon={Power}
-                    label="Electricity"
-                    status={report.electricity_status}
-                  />
-                  <UtilityStatus
-                    icon={Droplets}
-                    label="Water"
-                    status={report.water_status}
-                  />
-                  <UtilityStatus
-                    icon={Building2}
-                    label="Office"
-                    status={report.office_status}
-                  />
-                  <UtilityStatus
-                    icon={Car}
-                    label="Parking"
-                    status={report.parking_status}
-                  />
+              <div className="border rounded-lg dark:border-gray-700 p-6">
+                <div className="flex items-center mb-4">
+                  <Activity className="w-5 h-5 mr-2 text-gray-500" />
+                  <h3 className="text-lg font-semibold dark:text-white">Utility Status</h3>
                 </div>
-              </DetailSection>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <UtilityStatus icon={Power} label="Electricity" status={report.electricity_status} />
+                  <UtilityStatus icon={Droplets} label="Water" status={report.water_status} />
+                  <UtilityStatus icon={Building2} label="Office" status={report.office_status} />
+                  <UtilityStatus icon={Car} label="Parking" status={report.parking_status} />
+                </div>
+              </div>
 
               {/* Team Members */}
-              <DetailSection title="Security Team" icon={Users}>
+              <div className="border rounded-lg dark:border-gray-700 p-6">
+                <div className="flex items-center mb-4">
+                  <Users className="w-5 h-5 mr-2 text-gray-500" />
+                  <h3 className="text-lg font-semibold dark:text-white">Security Team</h3>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {report.team_members?.map((member, index) => (
                     <div key={index} 
-                         className="flex items-center space-x-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                      <UserCircle className="w-10 h-10 text-gray-400 dark:text-gray-500" />
+                         className="flex items-center space-x-3 p-4 border rounded-lg dark:border-gray-700">
+                      <UserCircle className="w-10 h-10 text-gray-400" />
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">{member.name}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">ID: {member.id}</p>
+                        <p className="font-medium dark:text-white">{member.name}</p>
+                        <p className="text-sm text-gray-500">ID: {member.id}</p>
                       </div>
                     </div>
                   ))}
                 </div>
-              </DetailSection>
+              </div>
 
               {/* Incident Report */}
               {report.incident_occurred && (
-                <DetailSection 
-                  title="Incident Report" 
-                  icon={AlertTriangle}
-                  className="border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20"
-                >
+                <div className="border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 rounded-lg p-6">
+                  <div className="flex items-center mb-4">
+                    <AlertTriangle className="w-5 h-5 mr-2 text-red-500" />
+                    <h3 className="text-lg font-semibold text-red-700 dark:text-red-300">
+                      Incident Report
+                    </h3>
+                  </div>
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <p className="text-sm text-red-600 dark:text-red-400">Incident Type</p>
-                        <p className="mt-1 text-lg font-medium text-red-900 dark:text-red-200">
+                        <p className="mt-1 text-lg font-medium text-red-700 dark:text-red-300">
                           {report.incident_type}
                         </p>
                       </div>
                       <div>
                         <p className="text-sm text-red-600 dark:text-red-400">Time of Incident</p>
-                        <p className="mt-1 text-lg font-medium text-red-900 dark:text-red-200">
+                        <p className="mt-1 text-lg font-medium text-red-700 dark:text-red-300">
                           {report.incident_time ? 
                             new Date(report.incident_time).toLocaleString() : 
                             'Not specified'}
@@ -879,7 +875,7 @@ const GuardShiftReportViewer = () => {
                     <div>
                       <p className="text-sm text-red-600 dark:text-red-400">Description</p>
                       <p className="mt-2 p-4 bg-white dark:bg-gray-800 rounded-lg border border-red-200 
-                                  dark:border-red-800 text-gray-900 dark:text-gray-100">
+                                  dark:border-red-800 text-gray-900 dark:text-red-100">
                         {report.incident_description}
                       </p>
                     </div>
@@ -887,23 +883,27 @@ const GuardShiftReportViewer = () => {
                     <div>
                       <p className="text-sm text-red-600 dark:text-red-400">Action Taken</p>
                       <p className="mt-2 p-4 bg-white dark:bg-gray-800 rounded-lg border border-red-200 
-                                  dark:border-red-800 text-gray-900 dark:text-gray-100">
+                                  dark:border-red-800 text-gray-900 dark:text-red-100">
                         {report.action_taken}
                       </p>
                     </div>
                   </div>
-                </DetailSection>
+                </div>
               )}
 
               {/* Notes Section */}
               {report.notes && (
-                <DetailSection title="Additional Notes" icon={FileText}>
-                  <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <p className="whitespace-pre-wrap text-gray-900 dark:text-gray-100">
+                <div className="border rounded-lg dark:border-gray-700 p-6">
+                  <div className="flex items-center mb-4">
+                    <FileText className="w-5 h-5 mr-2 text-gray-500" />
+                    <h3 className="text-lg font-semibold dark:text-white">Additional Notes</h3>
+                  </div>
+                  <div className="p-4 border rounded-lg dark:border-gray-700">
+                    <p className="whitespace-pre-wrap text-gray-600 dark:text-gray-300">
                       {report.notes}
                     </p>
                   </div>
-                </DetailSection>
+                </div>
               )}
             </div>
           </div>
