@@ -180,20 +180,53 @@ const handleLogin = async (e) => {
 
 const handlePasswordChange = async (newPassword) => {
   try {
-    const { error } = await updatePassword(user.id, newPassword);
+    // Check if user exists before attempting to update
+    if (!user) {
+      // If user is null, try to retrieve from localStorage
+      const storedUser = JSON.parse(localStorage.getItem('user'));
+      
+      if (!storedUser) {
+        setError('User information is missing. Please log in again.');
+        return;
+      }
+
+      // Update the user state
+      setUser(storedUser);
+    }
+
+    // Use the current user or stored user to get the ID
+    const userId = user?.id || JSON.parse(localStorage.getItem('user')).id;
+
+    const { error } = await updatePassword(userId, newPassword);
     
     if (error) {
       setError(error);
       return;
     }
 
+    // Only navigate to dashboard AFTER successful password change
     setShowPasswordChange(false);
-    setUser(user);
-    localStorage.setItem('user', JSON.stringify(user));
+    
+    // Fetch updated user information
+    const { data: updatedUser, error: fetchError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching updated user:', fetchError);
+      setError('Failed to retrieve updated user information');
+      return;
+    }
+
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
     resetLogoutTimer();
     navigate('/dashboard');
   } catch (error) {
-    setError(error.message);
+    console.error('Password change error:', error);
+    setError(error.message || 'An unexpected error occurred');
   }
 };
 
