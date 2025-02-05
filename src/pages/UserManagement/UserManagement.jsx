@@ -348,31 +348,42 @@ const UserManagement = () => {
     }
   };
 
-  const handleResetPassword = async (userId) => {
-    try {
-      const tempPassword = generateTempPassword();
-      const tempPasswordExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-      
-      const { error } = await supabase
-        .from('users')
-        .update({
-          temp_password: tempPassword,
-          temp_password_expires: tempPasswordExpiry,
-          password_change_required: true,
-          updated_by: currentUser.username
-        })
-        .eq('id', userId);
+const handleResetPassword = async (userId) => {
+  try {
+    // Generate a 10-character temporary password
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let tempPassword = '';
+    const randomValues = new Uint32Array(10);
+    crypto.getRandomValues(randomValues);
+    
+    randomValues.forEach((value) => {
+      tempPassword += characters[value % characters.length];
+    });
 
-      if (error) throw error;
+    // Set expiry to 24 hours from now
+    const tempPasswordExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    
+    // Only update temp password fields, NOT the actual password
+    const { error } = await supabase
+      .from('users')
+      .update({
+        temp_password: tempPassword,
+        temp_password_expires: tempPasswordExpiry,
+        password_change_required: true,
+        updated_by: currentUser.username
+      })
+      .eq('id', userId);
 
-      setCurrentTempPassword(tempPassword);
-      setShowTempPasswordModal(true);
-      
-      fetchUsers();
-    } catch (error) {
-      console.error('Error resetting password:', error);
-    }
-  };
+    if (error) throw error;
+
+    setCurrentTempPassword(tempPassword);
+    setShowTempPasswordModal(true);
+    
+    fetchUsers();
+  } catch (error) {
+    console.error('Error resetting password:', error);
+  }
+};
 
   const handleDeleteUser = async (userId) => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
