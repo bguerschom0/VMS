@@ -24,6 +24,19 @@ import GuardShiftReportViewer from './pages/report/GuardShiftReportViewer';
 import ScheduledVisitorsReport from './pages/report/ScheduledVisitorsReport';
 import Unauthorized from './pages/Unauthorized';
 
+
+
+
+
+
+
+//audit Pages
+
+import ComponentDocumentation from './audit/ComponentDocumentation';
+import RouteDocumentation from './audit/RouteDocumentation';
+
+
+
 // Protected Route wrapper
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -228,6 +241,38 @@ const App = () => {
         }
       />
 
+
+      
+      {/*Audit pages*/}
+
+      <Route
+  path="/route-documentation"
+  element={
+    <ProtectedRoute>
+      <AuthenticatedLayout>
+        <RouteDocumentation />
+      </AuthenticatedLayout>
+    </ProtectedRoute>
+  }
+/>
+
+      <Route
+  path="/component-documentation"
+  element={
+    <ProtectedRoute>
+      <AuthenticatedLayout>
+        <ComponentDocumentation />
+      </AuthenticatedLayout>
+    </ProtectedRoute>
+  }
+/>
+
+
+
+
+
+
+      
       {/* Root route redirect */}
       <Route
         path="/"
