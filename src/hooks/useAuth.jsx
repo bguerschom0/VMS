@@ -33,66 +33,67 @@ export const AuthProvider = ({ children }) => {
     }, 5 * 60 * 1000); // 5 minutes
   };
 
+
 const login = async (username, password) => {
-    try {
-      // First check user exists
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('username', username)
-        .single();
+  try {
 
-      if (userError) throw new Error('Invalid credentials');
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('username', username)
+      .single();
 
-      // First check if there's a valid temporary password
-      if (userData?.temp_password) {
-        const tempPasswordValid = 
-          userData.temp_password === password && 
-          new Date(userData.temp_password_expires) > new Date();
+    if (userError) throw new Error('Invalid credentials');
 
-        if (tempPasswordValid) {
-          setUser(userData);
-          localStorage.setItem('user', JSON.stringify(userData));
-          resetLogoutTimer();
-          return { 
-            user: userData, 
-            error: null, 
-            passwordChangeRequired: true 
-          };
-        }
+
+    if (userData?.temp_password) {
+      const tempPasswordValid = 
+        userData.temp_password === password && 
+        new Date(userData.temp_password_expires) > new Date();
+
+      if (tempPasswordValid) {
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        resetLogoutTimer();
+        return { 
+          user: userData, 
+          error: null, 
+          passwordChangeRequired: true  
+        };
       }
-
-      // If no valid temp password, check regular password
-      const isValidPassword = await bcrypt.compare(password, userData.password);
-
-      if (!isValidPassword) {
-        throw new Error('Invalid credentials');
-      }
-
-      // Update last login
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ 
-          last_login: new Date().toISOString() 
-        })
-        .eq('id', userData.id);
-
-      if (updateError) console.error('Error updating last login:', updateError);
-
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-      resetLogoutTimer();
-      
-      return { 
-        user: userData, 
-        error: null, 
-        passwordChangeRequired: false
-      };
-    } catch (error) {
-      console.error('Login error:', error.message);
-      return { user: null, error: error.message };
     }
-  };
+
+
+    const isValidPassword = await bcrypt.compare(password, userData.password);
+
+    if (!isValidPassword) {
+      throw new Error('Invalid credentials');
+    }
+
+
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ 
+        last_login: new Date().toISOString() 
+      })
+      .eq('id', userData.id);
+
+    if (updateError) console.error('Error updating last login:', updateError);
+
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+    resetLogoutTimer();
+    
+    return { 
+      user: userData, 
+      error: null, 
+      passwordChangeRequired: userData.password_change_required || false
+    };
+  } catch (error) {
+    console.error('Login error:', error.message);
+    return { user: null, error: error.message };
+  }
+};
 
   const updatePassword = async (userId, newPassword) => {
     try {
