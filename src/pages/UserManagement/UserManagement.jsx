@@ -188,6 +188,8 @@ const UserManagement = () => {
   const [modalMode, setModalMode] = useState('create');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [showTempPasswordModal, setShowTempPasswordModal] = useState(false);
+  const [currentTempPassword, setCurrentTempPassword] = useState('');
 
   useEffect(() => {
     fetchUsers();
@@ -283,8 +285,9 @@ const handleResetPassword = async (userId) => {
 
     if (error) throw error;
 
-    // In production, send via email instead of alert
-    alert(`Temporary password: ${tempPassword}\nValid for 24 hours only. Please change upon login.`);
+    // Show the modal with the temporary password
+    setCurrentTempPassword(tempPassword);
+    setShowTempPasswordModal(true);
     
   } catch (error) {
     console.error('Error resetting password:', error);
@@ -640,6 +643,12 @@ const handlePasswordChange = async (userId, newPassword) => {
         }}
         onSubmit={modalMode === 'create' ? handleCreateUser : handleUpdateUser}
       />
+
+      <TempPasswordModal
+  isOpen={showTempPasswordModal}
+  onClose={() => setShowTempPasswordModal(false)}
+  tempPassword={currentTempPassword}
+/>
     </div>
   );
 };
