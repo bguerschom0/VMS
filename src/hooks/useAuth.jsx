@@ -52,9 +52,6 @@ const login = async (username, password) => {
         new Date(userData.temp_password_expires) > new Date();
 
       if (tempPasswordValid) {
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
-        resetLogoutTimer();
         return { 
           user: userData, 
           error: null, 
@@ -84,10 +81,6 @@ const login = async (username, password) => {
 
     if (updateError) console.error('Error updating last login:', updateError);
 
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
-    resetLogoutTimer();
-    
     return { 
       user: userData, 
       error: null, 
