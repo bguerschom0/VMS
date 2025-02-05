@@ -164,8 +164,13 @@ const handleLogin = async (e) => {
     }
 
     if (passwordChangeRequired) {
+      // Ensures user MUST change password
       setShowPasswordChange(true);
     } else {
+      // Only set user and navigate to dashboard for non-temp password logins
+      setUser(loggedInUser);
+      localStorage.setItem('user', JSON.stringify(loggedInUser));
+      resetLogoutTimer();
       navigate('/dashboard');
     }
   } catch (err) {
@@ -173,21 +178,24 @@ const handleLogin = async (e) => {
   }
 };
 
-  const handlePasswordChange = async (newPassword) => {
-    try {
-      const { error } = await updatePassword(user.id, newPassword);
-      
-      if (error) {
-        setError(error);
-        return;
-      }
-
-      setShowPasswordChange(false);
-      navigate('/dashboard');
-    } catch (error) {
-      setError(error.message);
+const handlePasswordChange = async (newPassword) => {
+  try {
+    const { error } = await updatePassword(user.id, newPassword);
+    
+    if (error) {
+      setError(error);
+      return;
     }
-  };
+
+    setShowPasswordChange(false);
+    setUser(user);
+    localStorage.setItem('user', JSON.stringify(user));
+    resetLogoutTimer();
+    navigate('/dashboard');
+  } catch (error) {
+    setError(error.message);
+  }
+};
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
