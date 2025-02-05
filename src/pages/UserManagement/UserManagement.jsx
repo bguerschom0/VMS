@@ -402,36 +402,26 @@ const handleResetPassword = async (userId) => {
     }
   };
 
-  const exportUsers = async (format) => {
-    try {
-      const exportData = users.map(user => ({
-        'Username': user.username,
-        'Full Name': user.full_name,
-        'Role': user.role,
-        'Status': user.is_active ? 'Active' : 'Inactive',
-        'Created At': new Date(user.created_at).toLocaleString(),
-        'Created By': user.created_by,
-        'Last Login': user.last_login ? new Date(user.last_login).toLocaleString() : 'Never'
-      }));
+const exportUsers = async (format) => {
+  try {
+    const exportData = users.map(user => ({
+      'Username': user.username,
+      'Full Name': user.full_name,
+      'Role': user.role,
+      'Status': user.is_active ? 'Active' : 'Inactive',
+      'Created At': new Date(user.created_at).toLocaleString(),
+      'Created By': user.created_by,
+      'Last Login': user.last_login ? new Date(user.last_login).toLocaleString() : 'Never'
+    }));
 
-      if (format === 'excel') {
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.json_to_sheet(exportData);
-        XLSX.utils.book_append_sheet(wb, ws, 'Users');
-        XLSX.writeFile(wb, `users_export_${new Date().toISOString().split('T')[0]}.xlsx`);
-      } else if (format === 'csv') {
-        const ws = XLSX.utils.json_to_sheet(exportData);
-        const csv = XLSX.utils.sheet_to_csv(ws);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `users_export_${new Date().toISOString().split('T')[0]}.csv`;
-        link.click();
-      }
-    } catch (error) {
-      console.error('Error exporting users:', error);
-    }
-  };
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    XLSX.utils.book_append_sheet(wb, ws, 'Users');
+    XLSX.writeFile(wb, `users_export_${new Date().toISOString().split('T')[0]}.xlsx`);
+  } catch (error) {
+    console.error('Error exporting users:', error);
+  }
+};
 
   // Calculate pagination
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -450,23 +440,14 @@ const handleResetPassword = async (userId) => {
             </h1>
 
             <div className="flex flex-wrap gap-3">
-              <button
-                onClick={() => exportUsers('excel')}
-                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg
-                         hover:bg-green-700 transition-colors"
-              >
-                <FileSpreadsheet className="w-4 h-4 mr-2" />
-                Excel
-              </button>
-
-              <button
-                onClick={() => exportUsers('csv')}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg
-                         hover:bg-blue-700 transition-colors"
-              >
-                <FileText className="w-4 h-4 mr-2" />
-                CSV
-              </button>
+<button
+  onClick={() => exportUsers()}
+  className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg
+           hover:bg-primary-700 transition-colors"
+>
+  <FileSpreadsheet className="w-4 h-4 mr-2" />
+  Export
+</button>
 
               <button
                 onClick={() => {
@@ -637,19 +618,19 @@ const handleResetPassword = async (userId) => {
                     >
                       Previous
                     </button>
-                    {[...Array(totalPages)].map((_, i) => (
-                      <button
-                        key={i + 1}
-                        onClick={() => setCurrentPage(i + 1)}
-                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium
-                          ${currentPage === i + 1
-                            ? 'z-10 bg-black border-black text-white dark:bg-white dark:text-black'
-                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300'
-                          }`}
-                      >
-                        {i + 1}
-                      </button>
-                    ))}
+{[...Array(totalPages)].map((_, i) => (
+  <button
+    key={i + 1}
+    onClick={() => setCurrentPage(i + 1)}
+    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium
+      ${currentPage === i + 1
+        ? 'z-10 bg-primary-600 border-primary-600 text-white dark:bg-primary-400 dark:border-primary-400 dark:text-black'
+        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300'
+      }`}
+  >
+    {i + 1}
+  </button>
+))}
                     <button
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                       disabled={currentPage === totalPages}
