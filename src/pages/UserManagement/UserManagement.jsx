@@ -442,12 +442,13 @@ const exportUsers = async (format) => {
             <div className="flex flex-wrap gap-3">
 <button
   onClick={() => exportUsers()}
-  className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg
-           hover:bg-primary-700 transition-colors"
+  className="flex items-center px-4 py-2 bg-black text-white dark:bg-white dark:text-black rounded-lg
+           hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
 >
   <FileSpreadsheet className="w-4 h-4 mr-2" />
   Export
 </button>
+
 
               <button
                 onClick={() => {
@@ -584,20 +585,24 @@ const exportUsers = async (format) => {
             {/* Pagination */}
             <div className="px-6 py-4 flex items-center justify-between border-t border-gray-200 dark:border-gray-700">
               <div className="flex-1 flex justify-between sm:hidden">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                >
-                  Next
-                </button>
+<button
+  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+  disabled={currentPage === 1}
+  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-700 
+             bg-white text-sm font-medium text-gray-500 dark:text-gray-300 
+             hover:bg-gray-50 dark:hover:bg-gray-800"
+>
+  Previous
+</button>
+<button
+  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+  disabled={currentPage === totalPages}
+  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-700 
+             bg-white text-sm font-medium text-gray-500 dark:text-gray-300 
+             hover:bg-gray-50 dark:hover:bg-gray-800"
+>
+  Next
+</button>
               </div>
               <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
@@ -624,9 +629,9 @@ const exportUsers = async (format) => {
     onClick={() => setCurrentPage(i + 1)}
     className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium
       ${currentPage === i + 1
-        ? 'z-10 bg-primary-600 border-primary-600 text-white dark:bg-primary-400 dark:border-primary-400 dark:text-black'
-        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300'
-      }`}
+        ? 'z-10 bg-black text-white dark:bg-white dark:text-black'
+        : 'bg-white text-gray-500 border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
+      } border-gray-300 dark:border-gray-700 rounded-md`}
   >
     {i + 1}
   </button>
