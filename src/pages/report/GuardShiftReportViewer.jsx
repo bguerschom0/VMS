@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import { 
   Calendar,
   Filter,
@@ -257,88 +258,172 @@ const GuardShiftReportViewer = () => {
   };
 
 const exportDetailedReport = async (report) => {
-    try {
-      // Create a temporary container
-      const tempContainer = document.createElement('div');
-      tempContainer.style.position = 'absolute';
-      tempContainer.style.left = '-9999px';
-      tempContainer.style.top = '-9999px';
-      document.body.appendChild(tempContainer);
+  try {
+    // Create a temporary container
+    const tempContainer = document.createElement('div');
+    tempContainer.style.width = '800px';  // Fixed width for better formatting
+    tempContainer.style.padding = '40px';  // Add padding
+    tempContainer.style.backgroundColor = 'white';
+    document.body.appendChild(tempContainer);
 
-      // Clone the modal content
-      const modalContent = document.getElementById('report-modal-content');
-      const headerContent = document.querySelector('.modal-header');
-      
-      if (!modalContent) return;
+    // Add content with proper spacing
+    tempContainer.innerHTML = `
+      <div style="font-family: Arial, sans-serif;">
+        <!-- Header Section -->
+        <div style="margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 20px;">
+          <h1 style="font-size: 24px; margin-bottom: 15px; color: #333;">Security Report</h1>
+          <div style="color: #666; font-size: 14px;">
+            <span>${new Date(report.created_at).toLocaleString()}</span>
+            <span style="margin: 0 10px;">•</span>
+            <span>Submitted by: ${report.submitted_by}</span>
+          </div>
+        </div>
 
-      const isDarkMode = document.documentElement.classList.contains('dark');
-      
-      // Create export content
-      tempContainer.innerHTML = `
-        <div class="bg-white p-8" style="width: 1200px;">
-          <!-- Header -->
-          <div class="mb-6 pb-6 border-b">
-            <div class="flex items-center mb-4">
-              <h1 class="text-2xl font-bold text-black">Security Report</h1>
+        <!-- Basic Info Section -->
+        <div style="margin-bottom: 30px;">
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+            <div style="padding: 15px; border: 1px solid #eee; border-radius: 8px;">
+              <div style="color: #666; font-size: 12px;">Shift Type</div>
+              <div style="font-size: 16px; font-weight: bold;">${report.shift_type.toUpperCase()}</div>
             </div>
-            <div class="flex items-center text-gray-600 space-x-4 text-sm">
-              <span>${new Date(report.created_at).toLocaleString()}</span>
-              <span>•</span>
-              <span>${report.submitted_by}</span>
+            <div style="padding: 15px; border: 1px solid #eee; border-radius: 8px;">
+              <div style="color: #666; font-size: 12px;">Team Size</div>
+              <div style="font-size: 16px; font-weight: bold;">${report.team_members?.length || 0} Members</div>
+            </div>
+            <div style="padding: 15px; border: 1px solid #eee; border-radius: 8px; ${
+              report.incident_occurred ? 'background-color: #FEE2E2;' : ''
+            }">
+              <div style="color: ${report.incident_occurred ? '#DC2626' : '#666'}; font-size: 12px;">Status</div>
+              <div style="font-size: 16px; font-weight: bold; color: ${
+                report.incident_occurred ? '#DC2626' : '#333'
+              }">${report.incident_occurred ? 'Incident Reported' : 'Normal'}</div>
             </div>
           </div>
-          
-          <!-- Content -->
-          ${modalContent.innerHTML}
         </div>
-      `;
 
-      // Remove any interactive elements that might cause issues
-      tempContainer.querySelectorAll('button').forEach(button => button.remove());
+        <!-- CCTV Section -->
+        <div style="margin-bottom: 30px; border: 1px solid #eee; border-radius: 8px; padding: 20px;">
+          <h2 style="font-size: 18px; margin-bottom: 15px;">CCTV Monitoring Status</h2>
+          <div style="margin-bottom: 15px;">
+            <span style="color: #666;">Main Location:</span>
+            <span style="font-weight: bold;">${report.monitoring_location}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+            ${Object.entries(report.remote_locations_checked || {}).map(([location, data]) => `
+              <div style="padding: 15px; border: 1px solid #eee; border-radius: 8px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                  <span style="font-weight: bold;">${location}</span>
+                  <span style="padding: 4px 8px; border-radius: 12px; font-size: 12px; ${
+                    data.status === 'normal' 
+                      ? 'background: #DCFCE7; color: #166534;'
+                      : data.status === 'issues'
+                      ? 'background: #FEF9C3; color: #854D0E;'
+                      : 'background: #FEE2E2; color: #DC2626;'
+                  }">${data.status}</span>
+                </div>
+                ${data.notes ? `<div style="color: #666; font-size: 12px;">${data.notes}</div>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
 
-      // Wait for all images to load
-      const images = tempContainer.getElementsByTagName('img');
-      const imagePromises = Array.from(images).map(img => {
-        return new Promise((resolve, reject) => {
-          if (img.complete) resolve();
-          img.onload = resolve;
-          img.onerror = reject;
-        });
-      });
+        <!-- Utilities Section -->
+        <div style="margin-bottom: 30px; border: 1px solid #eee; border-radius: 8px; padding: 20px;">
+          <h2 style="font-size: 18px; margin-bottom: 15px;">Utility Status</h2>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+            ${[
+              { label: 'Electricity', status: report.electricity_status },
+              { label: 'Water', status: report.water_status },
+              { label: 'Office', status: report.office_status },
+              { label: 'Parking', status: report.parking_status }
+            ].map(item => `
+              <div style="padding: 15px; border: 1px solid #eee; border-radius: 8px;">
+                <div style="color: #666; font-size: 12px;">${item.label}</div>
+                <div style="font-size: 14px; font-weight: bold;">${item.status}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
 
-      await Promise.all(imagePromises);
+        <!-- Team Members Section -->
+        <div style="margin-bottom: 30px; border: 1px solid #eee; border-radius: 8px; padding: 20px;">
+          <h2 style="font-size: 18px; margin-bottom: 15px;">Security Team</h2>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+            ${(report.team_members || []).map(member => `
+              <div style="padding: 15px; border: 1px solid #eee; border-radius: 8px;">
+                <div style="font-weight: bold;">${member.name}</div>
+                <div style="color: #666; font-size: 12px;">ID: ${member.id}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
 
-      // Use html2canvas
-      const canvas = await html2canvas(tempContainer.firstElementChild, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        onclone: (clonedDoc) => {
-          // Apply specific styles to cloned document if needed
-          const clonedElement = clonedDoc.querySelector('.bg-white');
-          if (clonedElement) {
-            clonedElement.style.width = '1200px';
-            clonedElement.style.padding = '2rem';
-          }
-        }
-      });
+        ${report.incident_occurred ? `
+          <!-- Incident Report Section -->
+          <div style="margin-bottom: 30px; border: 2px solid #FCA5A5; border-radius: 8px; padding: 20px; background-color: #FEF2F2;">
+            <h2 style="font-size: 18px; margin-bottom: 15px; color: #DC2626;">Incident Report</h2>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
+              <div>
+                <div style="color: #DC2626; font-size: 12px;">Incident Type</div>
+                <div style="font-size: 16px; font-weight: bold; color: #991B1B;">${report.incident_type}</div>
+              </div>
+              <div>
+                <div style="color: #DC2626; font-size: 12px;">Time of Incident</div>
+                <div style="font-size: 16px; font-weight: bold; color: #991B1B;">
+                  ${report.incident_time ? new Date(report.incident_time).toLocaleString() : 'Not specified'}
+                </div>
+              </div>
+            </div>
+            <div style="margin-bottom: 15px;">
+              <div style="color: #DC2626; font-size: 12px;">Description</div>
+              <div style="padding: 15px; background: white; border: 1px solid #FCA5A5; border-radius: 8px; margin-top: 8px;">
+                ${report.incident_description}
+              </div>
+            </div>
+            <div>
+              <div style="color: #DC2626; font-size: 12px;">Action Taken</div>
+              <div style="padding: 15px; background: white; border: 1px solid #FCA5A5; border-radius: 8px; margin-top: 8px;">
+                ${report.action_taken}
+              </div>
+            </div>
+          </div>
+        ` : ''}
 
-      // Convert to image and download
-      const image = canvas.toDataURL('image/png', 1.0);
-      const link = document.createElement('a');
-      link.download = `Security_Report_${report.submitted_by}_${new Date(report.created_at).toLocaleDateString()}.png`;
-      link.href = image;
-      link.click();
+        ${report.notes ? `
+          <!-- Notes Section -->
+          <div style="margin-bottom: 30px; border: 1px solid #eee; border-radius: 8px; padding: 20px;">
+            <h2 style="font-size: 18px; margin-bottom: 15px;">Additional Notes</h2>
+            <div style="padding: 15px; border: 1px solid #eee; border-radius: 8px; color: #666;">
+              ${report.notes}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `;
 
-      // Clean up
-      document.body.removeChild(tempContainer);
-    } catch (error) {
-      console.error('Error exporting report:', error);
-      // Fallback to basic export if html2canvas fails
-      window.print();
-    }
-  };
+    // Convert to PDF using html2canvas and jsPDF
+    const canvas = await html2canvas(tempContainer, {
+      scale: 2,
+      useCORS: true,
+      logging: false
+    });
+
+    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'pt',
+      format: [canvas.width / 2, canvas.height / 2]
+    });
+
+    pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width / 2, canvas.height / 2);
+    pdf.save(`Security_Report_${report.submitted_by}_${new Date(report.created_at).toLocaleDateString()}.pdf`);
+
+    // Clean up
+    document.body.removeChild(tempContainer);
+  } catch (error) {
+    console.error('Error exporting report:', error);
+  }
+};
 
   // Load initial data
   useEffect(() => {
@@ -520,7 +605,7 @@ const exportDetailedReport = async (report) => {
                 Date & Time
               </th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">
-                Guard
+                Submitted By
               </th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">
                 Location
@@ -567,9 +652,8 @@ const exportDetailedReport = async (report) => {
                   </td>
 
                   {/* Guard Column */}
-                  <td className="px-4 py-4">
+                  <td className="px-2 py-4">
                     <div className="flex items-center">
-                      <UserCircle className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                       <div className="ml-3">
                         <p className="text-sm font-medium text-gray-900 dark:text-white">
                           {report.submitted_by}
@@ -615,14 +699,14 @@ const exportDetailedReport = async (report) => {
                   </td>
 
                   {/* Actions Column */}
-                  <td className="px-4 py-4 text-right">
+                  <td className="px-2 py-4 text-right">
                     <div className="flex items-center justify-end space-x-2">
                       <button
                         onClick={() => {
                           setSelectedReport(report);
                           setShowReportModal(true);
                         }}
-                        className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm
+                        className="inline-flex items-center px-2 py-1.5 rounded-lg text-sm
                                  bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-700 
                                  dark:hover:bg-gray-600 transition-colors"
                       >
