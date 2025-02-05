@@ -4,6 +4,7 @@ import { Moon, Sun, User, Lock, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { motion } from 'framer-motion';
 import { supabase } from '../../config/supabase';
+import bcrypt from 'bcryptjs';
 
 // Enhanced Password Change Modal Component
 const PasswordChangeModal = ({ isOpen, onClose, onSubmit, isTemp }) => {
@@ -153,73 +154,109 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { login, updatePassword } = useAuth();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError('');
+const handleLogin = async (e) => {
+  e.preventDefault();
+  setError('');
 
-    try {
-      // First check if it's a temporary password
-      const { data: userData, error: userError } = await supabase
+  try {
+    // First check if user exists
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('username', username)
+      .single();
+
+    if (userError) throw new Error('Invalid username or password');
+
+    // Check if it's a temporary password
+    if (userData?.temp_password && 
+        userData.temp_password === password &&
+        new Date(userData.temp_password_expires) > new Date()) {
+      // Valid temporary password
+      setIsTempPassword(true);
+      setShowPasswordChange(true);
+      return;
+    }
+
+    // Verify password
+    const isValidPassword = await bcrypt.compare(password, userData.password);
+
+    if (!isValidPassword) {
+      throw new Error('Invalid username or password');
+    }
+
+    // Check if password change is required
+    if (userData.password_change_required) {
+      setShowPasswordChange(true);
+      return;
+    }
+
+    // Update last login time
+    await supabase
+      .from('users')
+      .update({ 
+        last_login: new Date().toISOString() 
+      })
+      .eq('id', userData.id);
+
+    // Proceed with login
+    navigate('/dashboard');
+
+  } catch (err) {
+    console.error('Login error:', err);
+    setError(err.message || 'Error logging in');
+  }
+};
+
+const handlePasswordChange = async (newPassword) => {
+  try {
+    // Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    if (isTempPassword) {
+      // Update user with new hashed password and clear temp password
+      const { error: updateError } = await supabase
         .from('users')
-        .select('*')
-        .eq('username', username)
-        .single();
+        .update({
+          password: hashedPassword,
+          temp_password: null,
+          temp_password_expires: null,
+          password_change_required: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq('username', username);
 
-      if (userError) throw userError;
+      if (updateError) throw updateError;
+    } else {
+      // Regular password update
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({
+          password: hashedPassword,
+          updated_at: new Date().toISOString()
+        })
+        .eq('username', username);
 
-      if (userData?.temp_password && 
-          userData.temp_password === password &&
-          new Date(userData.temp_password_expires) > new Date()) {
-        // Valid temporary password
-        setIsTempPassword(true);
-        setShowPasswordChange(true);
-        return;
-      }
-
-      // Regular login attempt
-      const { error: loginError, passwordChangeRequired } = await login(username, password);
-      
-      if (loginError) {
-        setError(loginError);
-        return;
-      }
-
-      if (passwordChangeRequired) {
-        setShowPasswordChange(true);
-      } else {
-        navigate('/dashboard');
-      }
-
-    } catch (err) {
-      setError('Invalid username or password');
+      if (updateError) throw updateError;
     }
-  };
 
-  const handlePasswordChange = async (newPassword) => {
-    try {
-      await updatePassword(newPassword);
-      
-      if (isTempPassword) {
-        // Clear temporary password fields
-        await supabase
-          .from('users')
-          .update({
-            temp_password: null,
-            temp_password_expires: null,
-            password_change_required: false,
-            password: newPassword, // Note: In production, this should be hashed
-            updated_at: new Date().toISOString()
-          })
-          .eq('username', username);
-      }
+    // If password update is successful, proceed with login
+    const { error: loginError } = await supabase.auth.signIn({ 
+      email: username, 
+      password: newPassword 
+    });
 
-      setShowPasswordChange(false);
-      setIsTempPassword(false);
-      navigate('/dashboard');
-    } catch (error) {
-      setError(error.message);
-    }
-  };
+    if (loginError) throw loginError;
+
+    setShowPasswordChange(false);
+    setIsTempPassword(false);
+    navigate('/dashboard');
+  } catch (error) {
+    console.error('Password update error:', error);
+    setError(error.message || 'Error updating password');
+  }
+};
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
