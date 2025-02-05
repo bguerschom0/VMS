@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
 
 const login = async (username, password) => {
   try {
-
+    // First check user exists
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('*')
@@ -45,7 +45,7 @@ const login = async (username, password) => {
 
     if (userError) throw new Error('Invalid credentials');
 
-
+    // First check if there's a valid temporary password
     if (userData?.temp_password) {
       const tempPasswordValid = 
         userData.temp_password === password && 
@@ -58,11 +58,15 @@ const login = async (username, password) => {
         return { 
           user: userData, 
           error: null, 
-          passwordChangeRequired: true  
+          passwordChangeRequired: true  // Always true for temp password
         };
       }
     }
 
+    // If no valid temp password, check regular password
+    if (!userData.password) {
+      throw new Error('Invalid credentials');
+    }
 
     const isValidPassword = await bcrypt.compare(password, userData.password);
 
@@ -70,7 +74,7 @@ const login = async (username, password) => {
       throw new Error('Invalid credentials');
     }
 
-
+    // Update last login
     const { error: updateError } = await supabase
       .from('users')
       .update({ 
@@ -87,7 +91,7 @@ const login = async (username, password) => {
     return { 
       user: userData, 
       error: null, 
-      passwordChangeRequired: userData.password_change_required || false
+      passwordChangeRequired: false
     };
   } catch (error) {
     console.error('Login error:', error.message);
