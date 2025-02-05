@@ -276,20 +276,22 @@ tempContainer.innerHTML = `
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgb(75, 85, 99)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           </svg>
-          <h1 style="font-size: 24px; font-weight: 700; color: #111827; margin: 0;">Detailed Guard Shift Report</h1>
+          <h1 style="font-size: 24px; font-weight: 700; color: #111827; margin: 0; line-height: 1;">Detailed Guard Shift Report</h1>
         </div>
         <div style="display: flex; align-items: center; gap: 16px; color: #6b7280; font-size: 14px;">
           <div style="display: flex; align-items: center; gap: 4px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v6l4 2"/>
             </svg>
-            ${new Date(report.created_at).toLocaleString()}
+            <span>${new Date(report.created_at).toLocaleString()}</span>
           </div>
           <div style="display: flex; align-items: center; gap: 4px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
             </svg>
-            ${report.submitted_by}
+            <span>${report.submitted_by}</span>
           </div>
         </div>
       </div>
@@ -299,15 +301,35 @@ tempContainer.innerHTML = `
     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px;">
       <div style="padding: 16px; border: 1px solid #e5e7eb; border-radius: 8px;">
         <p style="font-size: 14px; color: #6b7280; margin: 0 0 4px 0;">Shift Type</p>
-        <p style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">${report.shift_type.toUpperCase()}</p>
+        <p style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">
+          ${report.shift_type.toUpperCase()}
+        </p>
       </div>
       <div style="padding: 16px; border: 1px solid #e5e7eb; border-radius: 8px;">
         <p style="font-size: 14px; color: #6b7280; margin: 0 0 4px 0;">Team Size</p>
-        <p style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">${report.team_members?.length || 0} Members</p>
+        <p style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">
+          ${report.team_members?.length || 0} Members
+        </p>
       </div>
-      <div style="padding: 16px; border: 1px solid ${report.incident_occurred ? '#fecaca' : '#e5e7eb'}; border-radius: 8px; background: ${report.incident_occurred ? '#fef2f2' : 'white'};">
-        <p style="font-size: 14px; color: ${report.incident_occurred ? '#dc2626' : '#6b7280'}; margin: 0 0 4px 0;">Status</p>
-        <p style="font-size: 18px; font-weight: 600; color: ${report.incident_occurred ? '#dc2626' : '#111827'}; margin: 0;">
+      <div style="
+        padding: 16px; 
+        border: 1px solid ${report.incident_occurred ? '#fecaca' : '#e5e7eb'}; 
+        border-radius: 8px; 
+        background: ${report.incident_occurred ? '#fef2f2' : 'white'}
+      ">
+        <p style="
+          font-size: 14px; 
+          color: ${report.incident_occurred ? '#dc2626' : '#6b7280'}; 
+          margin: 0 0 4px 0;
+        ">
+          Status
+        </p>
+        <p style="
+          font-size: 18px; 
+          font-weight: 600; 
+          color: ${report.incident_occurred ? '#dc2626' : '#111827'}; 
+          margin: 0;
+        ">
           ${report.incident_occurred ? 'Incident Reported' : 'Normal'}
         </p>
       </div>
@@ -315,12 +337,14 @@ tempContainer.innerHTML = `
 
     <!-- CCTV Section -->
     <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin-bottom: 24px;">
-      <div style="display: flex; items-center; gap: 8px; margin-bottom: 16px;">
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2">
           <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
           <circle cx="12" cy="13" r="4"/>
         </svg>
-        <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">CCTV Monitoring Status</h3>
+        <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0; line-height: 1;">
+          CCTV Monitoring Status
+        </h3>
       </div>
       
       <div style="margin-bottom: 16px;">
@@ -335,17 +359,26 @@ tempContainer.innerHTML = `
           <div style="padding: 16px; border: 1px solid #e5e7eb; border-radius: 8px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${data.notes ? '8px' : '0'};">
               <span style="font-weight: 500; color: #111827;">${location}</span>
-              <span style="padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 500; 
-                          ${data.status === 'normal' 
-                            ? 'background: #dcfce7; color: #166534;'
-                            : data.status === 'issues'
-                            ? 'background: #fef9c3; color: #854d0e;'
-                            : 'background: #fee2e2; color: #dc2626;'
-                          }">
+              <span style="
+                padding: 4px 12px; 
+                border-radius: 9999px; 
+                font-size: 12px; 
+                font-weight: 500; 
+                ${data.status === 'normal' 
+                  ? 'background: #dcfce7; color: #166534;'
+                  : data.status === 'issues'
+                  ? 'background: #fef9c3; color: #854d0e;'
+                  : 'background: #fee2e2; color: #dc2626;'
+                }
+              ">
                 ${data.status}
               </span>
             </div>
-            ${data.notes ? `<p style="margin: 0; font-size: 14px; color: #6b7280;">${data.notes}</p>` : ''}
+            ${data.notes ? `
+              <p style="margin: 0; font-size: 14px; color: #6b7280;">
+                ${data.notes}
+              </p>
+            ` : ''}
           </div>
         `).join('')}
       </div>
@@ -353,11 +386,13 @@ tempContainer.innerHTML = `
 
     <!-- Utility Status -->
     <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin-bottom: 24px;">
-      <div style="display: flex; items-center; gap: 8px; margin-bottom: 16px;">
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2">
           <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
         </svg>
-        <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">Utility Status</h3>
+        <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0; line-height: 1;">
+          Utility Status
+        </h3>
       </div>
       
       <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
@@ -384,12 +419,14 @@ tempContainer.innerHTML = `
 
     <!-- Team Members -->
     <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin-bottom: 24px;">
-      <div style="display: flex; items-center; gap: 8px; margin-bottom: 16px;">
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
           <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
         </svg>
-        <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">Security Team</h3>
+        <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0; line-height: 1;">
+          Security Team
+        </h3>
       </div>
       
       <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
@@ -411,19 +448,23 @@ tempContainer.innerHTML = `
     ${report.incident_occurred ? `
       <!-- Incident Report -->
       <div style="border: 2px solid #fecaca; border-radius: 8px; padding: 24px; margin-bottom: 24px; background: #fef2f2;">
-        <div style="display: flex; items-center; gap: 8px; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2">
             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
             <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
           </svg>
-          <h3 style="font-size: 18px; font-weight: 600; color: #dc2626; margin: 0;">Incident Report</h3>
+          <h3 style="font-size: 18px; font-weight: 600; color: #dc2626; margin: 0; line-height: 1;">
+            Incident Report
+          </h3>
         </div>
         
         <div style="margin-bottom: 24px;">
           <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px;">
             <div>
               <p style="font-size: 14px; color: #dc2626; margin: 0 0 4px 0;">Incident Type</p>
-              <p style="font-size: 18px; font-weight: 500; color: #991b1b; margin: 0;">${report.incident_type}</p>
+              <p style="font-size: 18px; font-weight: 500; color: #991b1b; margin: 0;">
+                ${report.incident_type}
+              </p>
             </div>
             <div>
               <p style="font-size: 14px; color: #dc2626; margin: 0 0 4px 0;">Time of Incident</p>
@@ -452,17 +493,21 @@ tempContainer.innerHTML = `
     ${report.notes ? `
       <!-- Additional Notes -->
       <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px;">
-        <div style="display: flex; items-center; gap: 8px; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
             <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>
             <line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
           </svg>
-          <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">Additional Notes</h3>
+          <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0; line-height: 1;">
+            Additional Notes
+          </h3>
         </div>
         
         <div style="padding: 16px; border: 1px solid #e5e7eb; border-radius: 8px;">
-          <p style="color: #4b5563; margin: 0; white-space: pre-wrap;">${report.notes}</p>
+          <p style="color: #4b5563; margin: 0; white-space: pre-wrap;">
+            ${report.notes}
+          </p>
         </div>
       </div>
     ` : ''}
