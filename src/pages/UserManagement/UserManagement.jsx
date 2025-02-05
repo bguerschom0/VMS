@@ -277,8 +277,7 @@ const handleResetPassword = async (userId) => {
         temp_password: tempPassword,
         temp_password_expires: tempPasswordExpiry,
         password_change_required: true,
-        updated_by: currentUser.username,
-        temp_password_used: false
+        updated_by: currentUser.username
       })
       .eq('id', userId);
 
@@ -306,17 +305,8 @@ const handleResetPassword = async (userId) => {
     // Check if there's a valid temporary password
     if (userData.temp_password && 
         userData.temp_password === password && 
-        !userData.temp_password_used &&
         new Date(userData.temp_password_expires) > new Date()) {
       
-      // Mark temporary password as used
-      await supabase
-        .from('users')
-        .update({
-          temp_password_used: true
-        })
-        .eq('id', userData.id);
-
       return {
         valid: true,
         passwordChangeRequired: true,
@@ -335,7 +325,7 @@ const handleResetPassword = async (userId) => {
   }
 };
 
-  const handlePasswordChange = async (userId, newPassword) => {
+const handlePasswordChange = async (userId, newPassword) => {
   try {
     const { error } = await supabase
       .from('users')
@@ -344,7 +334,6 @@ const handleResetPassword = async (userId) => {
         temp_password: null,
         temp_password_expires: null,
         password_change_required: false,
-        temp_password_used: null,
         updated_at: new Date().toISOString()
       })
       .eq('id', userId);
