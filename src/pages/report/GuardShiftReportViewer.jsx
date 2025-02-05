@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import html2canvas from 'html2canvas';
 import { 
   Calendar,
   Filter,
@@ -255,45 +256,88 @@ const GuardShiftReportViewer = () => {
     }
   };
 
-const exportDetailedReport = (report) => {
-    const content = document.getElementById('report-modal-content');
-    if (!content) return;
+const exportDetailedReport = async (report) => {
+    try {
+      // Create a temporary container
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.top = '-9999px';
+      document.body.appendChild(tempContainer);
 
-    // Create a clean clone for export
-    const exportContainer = document.createElement('div');
-    exportContainer.className = 'bg-white p-8'; // Clean white background
-    
-    // Add header content
-    exportContainer.innerHTML = `
-      <div class="mb-8 border-b pb-6">
-        <div class="flex items-center mb-4">
-          <h1 class="text-2xl font-bold">Security Report</h1>
-        </div>
-        <div class="flex items-center text-gray-600 space-x-4 text-sm">
-          <span>${new Date(report.created_at).toLocaleString()}</span>
-          <span>•</span>
-          <span>${report.submitted_by}</span>
-        </div>
-      </div>
-      ${content.innerHTML}
-    `;
+      // Clone the modal content
+      const modalContent = document.getElementById('report-modal-content');
+      const headerContent = document.querySelector('.modal-header');
+      
+      if (!modalContent) return;
 
-    // Use html2canvas to create an image
-    import('html2canvas').then(html2canvas => {
-      html2canvas.default(exportContainer, {
-        scale: 2, // Higher quality
-        backgroundColor: '#ffffff',
-        useCORS: true,
-        logging: false
-      }).then(canvas => {
-        // Convert to image and download
-        const image = canvas.toDataURL('image/png');
-        const link = document.createElement('a');
-        link.download = `Security_Report_${report.submitted_by}_${new Date(report.created_at).toLocaleDateString()}.png`;
-        link.href = image;
-        link.click();
+      const isDarkMode = document.documentElement.classList.contains('dark');
+      
+      // Create export content
+      tempContainer.innerHTML = `
+        <div class="bg-white p-8" style="width: 1200px;">
+          <!-- Header -->
+          <div class="mb-6 pb-6 border-b">
+            <div class="flex items-center mb-4">
+              <h1 class="text-2xl font-bold text-black">Security Report</h1>
+            </div>
+            <div class="flex items-center text-gray-600 space-x-4 text-sm">
+              <span>${new Date(report.created_at).toLocaleString()}</span>
+              <span>•</span>
+              <span>${report.submitted_by}</span>
+            </div>
+          </div>
+          
+          <!-- Content -->
+          ${modalContent.innerHTML}
+        </div>
+      `;
+
+      // Remove any interactive elements that might cause issues
+      tempContainer.querySelectorAll('button').forEach(button => button.remove());
+
+      // Wait for all images to load
+      const images = tempContainer.getElementsByTagName('img');
+      const imagePromises = Array.from(images).map(img => {
+        return new Promise((resolve, reject) => {
+          if (img.complete) resolve();
+          img.onload = resolve;
+          img.onerror = reject;
+        });
       });
-    });
+
+      await Promise.all(imagePromises);
+
+      // Use html2canvas
+      const canvas = await html2canvas(tempContainer.firstElementChild, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        onclone: (clonedDoc) => {
+          // Apply specific styles to cloned document if needed
+          const clonedElement = clonedDoc.querySelector('.bg-white');
+          if (clonedElement) {
+            clonedElement.style.width = '1200px';
+            clonedElement.style.padding = '2rem';
+          }
+        }
+      });
+
+      // Convert to image and download
+      const image = canvas.toDataURL('image/png', 1.0);
+      const link = document.createElement('a');
+      link.download = `Security_Report_${report.submitted_by}_${new Date(report.created_at).toLocaleDateString()}.png`;
+      link.href = image;
+      link.click();
+
+      // Clean up
+      document.body.removeChild(tempContainer);
+    } catch (error) {
+      console.error('Error exporting report:', error);
+      // Fallback to basic export if html2canvas fails
+      window.print();
+    }
   };
 
   // Load initial data
@@ -432,7 +476,7 @@ const exportDetailedReport = (report) => {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search guard..."
+                placeholder="     Search guard..."
                 value={filters.guard}
                 onChange={(e) => setFilters({ ...filters, guard: e.target.value })}
                 className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600
@@ -709,7 +753,7 @@ const exportDetailedReport = (report) => {
                 <div>
                   <div className="flex items-center space-x-3">
                     <Shield className="w-8 h-8 text-gray-600" />
-                    <h2 className="text-2xl font-bold dark:text-white">Detailed Security Report</h2>
+                    <h2 className="text-2xl font-bold dark:text-white">Detailed Guard Shift Report</h2>
                   </div>
                   <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
                     <span className="flex items-center">
