@@ -350,55 +350,49 @@ const BulkVisitorUpload = () => {
       </AnimatePresence>
 
       {/* Bulk Upload Section */}
-      <AnimatePresence mode="wait">
-        {!previewData.length && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="grid md:grid-cols-2 gap-8 mb-8"
-          >
-            <UploadCard
-              title="Download Template"
-              icon={
-                <svg className="w-12 h-12 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              }
-              description="Download our standardized Excel template to ensure your data is formatted correctly"
-              onClick={downloadTemplate}
-              buttonText="Download Template"
-            />
-
-            <UploadCard
-              title="Upload Excel File"
-              icon={
-                <svg className="w-12 h-12 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
-              }
-              description="Upload your completed Excel file with visitor information"
-              onClick={() => document.getElementById('file-upload').click()}
-              buttonText="Select File"
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <input
-        type="file"
-        id="file-upload"
-        accept=".xlsx,.xls"
-        onChange={handleFileUpload}
-        className="hidden"
+<AnimatePresence mode="wait">
+  {!previewData.length && (  // This condition hides both cards when preview data exists
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="grid md:grid-cols-2 gap-8 mb-8"
+    >
+      <UploadCard
+        title="Download Template"
+        icon={/* your existing icon */}
+        description="Download our standardized Excel template to ensure your data is formatted correctly"
+        onClick={downloadTemplate}
+        buttonText="Download Template"
       />
 
+      <UploadCard
+        title="Upload Excel File"
+        icon={/* your existing icon */}
+        description="Upload your completed Excel file with visitor information"
+        onClick={() => document.getElementById('file-upload').click()}
+        buttonText="Select File"
+      />
+    </motion.div>
+  )}
+</AnimatePresence>
+
+<input
+  type="file"
+  id="file-upload"
+  accept=".xlsx,.xls"
+  onChange={handleFileUpload}
+  className="hidden"
+/>
+
       {/* Manual Entry Section */}
-      <div 
-  onClick={() => setShowManualEntry(!showManualEntry)}
-  className="max-w-3xl mx-auto cursor-pointer bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 mb-6 
-             hover:shadow-lg transition-all duration-300"
->
+      {!previewData.length && (
+  <>
+    <div 
+      onClick={() => setShowManualEntry(!showManualEntry)}
+      className="max-w-3xl mx-auto cursor-pointer bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 mb-6 
+                hover:shadow-lg transition-all duration-300"
+    >
   <div className="flex items-center justify-between">
     <div className="flex items-center space-x-4">
       <svg 
@@ -426,14 +420,14 @@ const BulkVisitorUpload = () => {
 </div>
 
       
-      <AnimatePresence>
-  {showManualEntry && (
-    <motion.div
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: 'auto' }}
-      exit={{ opacity: 0, height: 0 }}
-      className="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 mb-6"
-    >
+   <AnimatePresence>
+      {showManualEntry && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 mb-6"
+        >
       <form onSubmit={handleManualSubmit} className="grid grid-cols-1 gap-6">
         {/* Personal Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -601,6 +595,8 @@ const BulkVisitorUpload = () => {
     </motion.div>
   )}
 </AnimatePresence>
+      </>
+)}
 
       {/* Preview Section for Bulk Upload */}
       <AnimatePresence>
