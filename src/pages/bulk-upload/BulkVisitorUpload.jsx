@@ -395,209 +395,212 @@ const BulkVisitorUpload = () => {
 
       {/* Manual Entry Section */}
       <div 
-        onClick={() => setShowManualEntry(!showManualEntry)}
-        className="cursor-pointer bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 mb-6 hover:shadow-lg transition-all duration-300"
+  onClick={() => setShowManualEntry(!showManualEntry)}
+  className="max-w-3xl mx-auto cursor-pointer bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 mb-6 
+             hover:shadow-lg transition-all duration-300"
+>
+  <div className="flex items-center justify-between">
+    <div className="flex items-center space-x-4">
+      <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        className="h-8 w-8 text-gray-600 dark:text-gray-300" 
+        fill="none" 
+        viewBox="0 0 24 24" 
+        stroke="currentColor"
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-8 w-8 text-gray-600 dark:text-gray-300" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M12 4v16m8-8H4" 
-              />
-            </svg>
-            <span className="text-xl font-semibold text-gray-900 dark:text-white">
-              Add Single Visitor
-            </span>
-          </div>
-          <span className="text-gray-500 dark:text-gray-400">
-            {showManualEntry ? 'Close' : 'Open'}
-          </span>
-        </div>
-      </div>
+        <path 
+          strokeLinecap="round" 
+          strokeLinejoin="round" 
+          strokeWidth={2} 
+          d="M12 4v16m8-8H4" 
+        />
+      </svg>
+      <span className="text-xl font-semibold text-gray-900 dark:text-white">
+        Add Single Visitor
+      </span>
+    </div>
+    <span className="text-gray-500 dark:text-gray-400">
+      {showManualEntry ? 'Close' : 'Open'}
+    </span>
+  </div>
+</div>
 
+      
       <AnimatePresence>
-        {showManualEntry && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 mb-6"
+  {showManualEntry && (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      exit={{ opacity: 0, height: 0 }}
+      className="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 mb-6"
+    >
+      <form onSubmit={handleManualSubmit} className="grid grid-cols-1 gap-6">
+        {/* Personal Information */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div>
+              <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Full Name</label>
+              <input
+                type="text"
+                name="fullName"
+                value={manualVisitor.fullName}
+                onChange={handleManualInputChange}
+                className="w-full md:w-11/12 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
+                         bg-white dark:bg-gray-700 dark:text-white"
+                placeholder="Enter full name"
+              />
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Identity Number</label>
+              <input
+                type="text"
+                name="identityNumber"
+                value={manualVisitor.identityNumber}
+                onChange={handleManualInputChange}
+                className="w-full md:w-11/12 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
+                         bg-white dark:bg-gray-700 dark:text-white"
+                placeholder="Enter ID or Passport number"
+              />
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Phone Number</label>
+              <input
+                type="text"
+                name="phoneNumber"
+                value={manualVisitor.phoneNumber}
+                onChange={handleManualInputChange}
+                className="w-full md:w-11/12 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
+                         bg-white dark:bg-gray-700 dark:text-white"
+                placeholder="Enter phone number"
+              />
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Department</label>
+              <select
+                name="department"
+                value={manualVisitor.department}
+                onChange={handleManualInputChange}
+                className="w-full md:w-11/12 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
+                         bg-white dark:bg-gray-700 dark:text-white"
+              >
+                <option value="">Select Department</option>
+                {DEPARTMENTS.map(dept => (
+                  <option key={dept.id} value={dept.id}>
+                    {dept.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Visit Details */}
+          <div className="space-y-4">
+            <div>
+              <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Purpose</label>
+              <input
+                type="text"
+                name="purpose"
+                value={manualVisitor.purpose}
+                onChange={handleManualInputChange}
+                className="w-full md:w-11/12 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
+                         bg-white dark:bg-gray-700 dark:text-white"
+                placeholder="Enter purpose of visit"
+              />
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Visit Start Date</label>
+              <input
+                type="date"
+                name="visitStartDate"
+                value={manualVisitor.visitStartDate}
+                onChange={handleManualInputChange}
+                className="w-full md:w-11/12 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
+                         bg-white dark:bg-gray-700 dark:text-white"
+              />
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Visit End Date</label>
+              <input
+                type="date"
+                name="visitEndDate"
+                value={manualVisitor.visitEndDate}
+                onChange={handleManualInputChange}
+                className="w-full md:w-11/12 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
+                         bg-white dark:bg-gray-700 dark:text-white"
+              />
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Items (Optional)</label>
+              <input
+                type="text"
+                name="items"
+                value={manualVisitor.items}
+                onChange={handleManualInputChange}
+                className="w-full md:w-11/12 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
+                         bg-white dark:bg-gray-700 dark:text-white"
+                placeholder="Enter items"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Laptop Information */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Laptop Brand (Optional)</label>
+            <input
+              type="text"
+              name="laptopBrand"
+              value={manualVisitor.laptopBrand}
+              onChange={handleManualInputChange}
+              className="w-full md:w-11/12 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
+                       bg-white dark:bg-gray-700 dark:text-white"
+              placeholder="Enter laptop brand"
+            />
+          </div>
+          <div>
+            <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Laptop Serial (Optional)</label>
+            <input
+              type="text"
+              name="laptopSerial"
+              value={manualVisitor.laptopSerial}
+              onChange={handleManualInputChange}
+              className="w-full md:w-11/12 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
+                       bg-white dark:bg-gray-700 dark:text-white"
+              placeholder="Enter laptop serial number"
+            />
+          </div>
+        </div>
+
+        {/* Form Actions */}
+        <div className="flex justify-end space-x-4 pt-4">
+          <button
+            type="button"
+            onClick={() => setShowManualEntry(false)}
+            className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
+                     text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700"
           >
-            <form onSubmit={handleManualSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Left Column */}
-              <div className="space-y-4">
-                <div>
-                  <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Full Name</label>
-                  <input
-                    type="text"
-                    name="fullName"
-                    value={manualVisitor.fullName}
-                    onChange={handleManualInputChange}
-                    className="w-full md:w-4/5 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
-                             bg-white dark:bg-gray-700 dark:text-white"
-                    placeholder="Enter full name"
-                  />
-                </div>
-
-                <div>
-                  <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Identity Number</label>
-                  <input
-                    type="text"
-                    name="identityNumber"
-                    value={manualVisitor.identityNumber}
-                    onChange={handleManualInputChange}
-                    className="w-full md:w-4/5 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
-                             bg-white dark:bg-gray-700 dark:text-white"
-                    placeholder="Enter ID or Passport number"
-                  />
-                </div>
-
-                <div>
-                  <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Phone Number</label>
-                  <input
-                    type="text"
-                    name="phoneNumber"
-                    value={manualVisitor.phoneNumber}
-                    onChange={handleManualInputChange}
-                    className="w-full md:w-4/5 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
-                             bg-white dark:bg-gray-700 dark:text-white"
-                    placeholder="Enter phone number"
-                  />
-                </div>
-
-                <div>
-                  <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Department</label>
-                  <select
-                    name="department"
-                    value={manualVisitor.department}
-                    onChange={handleManualInputChange}
-                    className="w-full md:w-4/5 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
-                             bg-white dark:bg-gray-700 dark:text-white"
-                  >
-                    <option value="">Select Department</option>
-                    {DEPARTMENTS.map(dept => (
-                      <option key={dept.id} value={dept.id}>
-                        {dept.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Right Column */}
-              <div className="space-y-4">
-                <div>
-                  <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Purpose</label>
-                  <input
-                    type="text"
-                    name="purpose"
-                    value={manualVisitor.purpose}
-                    onChange={handleManualInputChange}
-                    className="w-full md:w-4/5 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
-                             bg-white dark:bg-gray-700 dark:text-white"
-                    placeholder="Enter purpose of visit"
-                  />
-                </div>
-
-                <div>
-                  <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Visit Start Date</label>
-                  <input
-                    type="date"
-                    name="visitStartDate"
-                    value={manualVisitor.visitStartDate}
-                    onChange={handleManualInputChange}
-                    className="w-full md:w-4/5 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
-                             bg-white dark:bg-gray-700 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Visit End Date</label>
-                  <input
-                    type="date"
-                    name="visitEndDate"
-                    value={manualVisitor.visitEndDate}
-                    onChange={handleManualInputChange}
-                    className="w-full md:w-4/5 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
-                             bg-white dark:bg-gray-700 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Items (Optional)</label>
-                  <input
-                    type="text"
-                    name="items"
-                    value={manualVisitor.items}
-                    onChange={handleManualInputChange}
-                    className="w-full md:w-4/5 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
-                             bg-white dark:bg-gray-700 dark:text-white"
-                    placeholder="Enter items"
-                  />
-                </div>
-              </div>
-
-              {/* Optional Laptop Information - Full Width */}
-              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Laptop Brand (Optional)</label>
-                  <input
-                    type="text"
-                    name="laptopBrand"
-                    value={manualVisitor.laptopBrand}
-                    onChange={handleManualInputChange}
-                    className="w-full md:w-4/5 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
-                             bg-white dark:bg-gray-700 dark:text-white"
-                    placeholder="Enter laptop brand"
-                  />
-                </div>
-
-                <div>
-                  <label className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Laptop Serial (Optional)</label>
-                  <input
-                    type="text"
-                    name="laptopSerial"
-                    value={manualVisitor.laptopSerial}
-                    onChange={handleManualInputChange}
-                    className="w-full md:w-4/5 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
-                             bg-white dark:bg-gray-700 dark:text-white"
-                    placeholder="Enter laptop serial number"
-                  />
-                </div>
-              </div>
-
-              {/* Form Actions */}
-              <div className="md:col-span-2 flex justify-end space-x-4">
-                <button
-                  type="button"
-                  onClick={() => setShowManualEntry(false)}
-                  className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 
-                           text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-4 py-2 rounded-lg bg-black text-white hover:bg-gray-800
-                           disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? 'Submitting...' : 'Add Visitor'}
-                </button>
-              </div>
-            </form>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-4 py-2 rounded-lg bg-black text-white hover:bg-gray-800
+                     disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Submitting...' : 'Add Visitor'}
+          </button>
+        </div>
+      </form>
+    </motion.div>
+  )}
+</AnimatePresence>
 
       {/* Preview Section for Bulk Upload */}
       <AnimatePresence>
