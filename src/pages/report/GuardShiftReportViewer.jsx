@@ -267,139 +267,123 @@ const exportDetailedReport = async (report) => {
     document.body.appendChild(tempContainer);
 
     // Add content with proper spacing
-    tempContainer.innerHTML = `
-      <div style="font-family: Arial, sans-serif;">
-        <!-- Header Section -->
-        <div style="margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 20px;">
-          <h1 style="font-size: 24px; margin-bottom: 15px; color: #333;">Security Report</h1>
-          <div style="color: #666; font-size: 14px;">
-            <span>${new Date(report.created_at).toLocaleString()}</span>
-            <span style="margin: 0 10px;">•</span>
-            <span>Submitted by: ${report.submitted_by}</span>
-          </div>
-        </div>
-
-        <!-- Basic Info Section -->
-        <div style="margin-bottom: 30px;">
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
-            <div style="padding: 15px; border: 1px solid #eee; border-radius: 8px;">
-              <div style="color: #666; font-size: 12px;">Shift Type</div>
-              <div style="font-size: 16px; font-weight: bold;">${report.shift_type.toUpperCase()}</div>
-            </div>
-            <div style="padding: 15px; border: 1px solid #eee; border-radius: 8px;">
-              <div style="color: #666; font-size: 12px;">Team Size</div>
-              <div style="font-size: 16px; font-weight: bold;">${report.team_members?.length || 0} Members</div>
-            </div>
-            <div style="padding: 15px; border: 1px solid #eee; border-radius: 8px; ${
-              report.incident_occurred ? 'background-color: #FEE2E2;' : ''
-            }">
-              <div style="color: ${report.incident_occurred ? '#DC2626' : '#666'}; font-size: 12px;">Status</div>
-              <div style="font-size: 16px; font-weight: bold; color: ${
-                report.incident_occurred ? '#DC2626' : '#333'
-              }">${report.incident_occurred ? 'Incident Reported' : 'Normal'}</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- CCTV Section -->
-        <div style="margin-bottom: 30px; border: 1px solid #eee; border-radius: 8px; padding: 20px;">
-          <h2 style="font-size: 18px; margin-bottom: 15px;">CCTV Monitoring Status</h2>
-          <div style="margin-bottom: 15px;">
-            <span style="color: #666;">Main Location:</span>
-            <span style="font-weight: bold;">${report.monitoring_location}</span>
-          </div>
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
-            ${Object.entries(report.remote_locations_checked || {}).map(([location, data]) => `
-              <div style="padding: 15px; border: 1px solid #eee; border-radius: 8px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                  <span style="font-weight: bold;">${location}</span>
-                  <span style="padding: 4px 8px; border-radius: 12px; font-size: 12px; ${
-                    data.status === 'normal' 
-                      ? 'background: #DCFCE7; color: #166534;'
-                      : data.status === 'issues'
-                      ? 'background: #FEF9C3; color: #854D0E;'
-                      : 'background: #FEE2E2; color: #DC2626;'
-                  }">${data.status}</span>
-                </div>
-                ${data.notes ? `<div style="color: #666; font-size: 12px;">${data.notes}</div>` : ''}
-              </div>
-            `).join('')}
-          </div>
-        </div>
-
-        <!-- Utilities Section -->
-        <div style="margin-bottom: 30px; border: 1px solid #eee; border-radius: 8px; padding: 20px;">
-          <h2 style="font-size: 18px; margin-bottom: 15px;">Utility Status</h2>
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
-            ${[
-              { label: 'Electricity', status: report.electricity_status },
-              { label: 'Water', status: report.water_status },
-              { label: 'Office', status: report.office_status },
-              { label: 'Parking', status: report.parking_status }
-            ].map(item => `
-              <div style="padding: 15px; border: 1px solid #eee; border-radius: 8px;">
-                <div style="color: #666; font-size: 12px;">${item.label}</div>
-                <div style="font-size: 14px; font-weight: bold;">${item.status}</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-
-        <!-- Team Members Section -->
-        <div style="margin-bottom: 30px; border: 1px solid #eee; border-radius: 8px; padding: 20px;">
-          <h2 style="font-size: 18px; margin-bottom: 15px;">Security Team</h2>
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
-            ${(report.team_members || []).map(member => `
-              <div style="padding: 15px; border: 1px solid #eee; border-radius: 8px;">
-                <div style="font-weight: bold;">${member.name}</div>
-                <div style="color: #666; font-size: 12px;">ID: ${member.id}</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-
-        ${report.incident_occurred ? `
-          <!-- Incident Report Section -->
-          <div style="margin-bottom: 30px; border: 2px solid #FCA5A5; border-radius: 8px; padding: 20px; background-color: #FEF2F2;">
-            <h2 style="font-size: 18px; margin-bottom: 15px; color: #DC2626;">Incident Report</h2>
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
-              <div>
-                <div style="color: #DC2626; font-size: 12px;">Incident Type</div>
-                <div style="font-size: 16px; font-weight: bold; color: #991B1B;">${report.incident_type}</div>
-              </div>
-              <div>
-                <div style="color: #DC2626; font-size: 12px;">Time of Incident</div>
-                <div style="font-size: 16px; font-weight: bold; color: #991B1B;">
-                  ${report.incident_time ? new Date(report.incident_time).toLocaleString() : 'Not specified'}
-                </div>
-              </div>
-            </div>
-            <div style="margin-bottom: 15px;">
-              <div style="color: #DC2626; font-size: 12px;">Description</div>
-              <div style="padding: 15px; background: white; border: 1px solid #FCA5A5; border-radius: 8px; margin-top: 8px;">
-                ${report.incident_description}
-              </div>
-            </div>
+tempContainer.innerHTML = `
+  <div class="fixed inset-0 bg-black/50 z-50 overflow-y-auto">
+    <div class="min-h-screen px-4 py-8 flex items-center justify-center">
+      <div class="bg-white dark:bg-gray-900 rounded-2xl max-w-6xl w-full relative">
+        
+        <!-- Modal Header - Fixed -->
+        <div class="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b dark:border-gray-700 p-6 rounded-t-2xl">
+          <div class="flex justify-between items-center">
             <div>
-              <div style="color: #DC2626; font-size: 12px;">Action Taken</div>
-              <div style="padding: 15px; background: white; border: 1px solid #FCA5A5; border-radius: 8px; margin-top: 8px;">
-                ${report.action_taken}
+              <div class="flex items-center space-x-3">
+                <svg class="w-8 h-8 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 2z"></path>
+                </svg>
+                <h2 class="text-2xl font-bold dark:text-white">Detailed Guard Shift Report</h2>
+              </div>
+              <div class="mt-2 flex items-center space-x-4 text-sm text-gray-500">
+                <span class="flex items-center">
+                  <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2"></path>
+                  </svg>
+                  ${new Date(report.created_at).toLocaleString()}
+                </span>
+                <span class="flex items-center">
+                  <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 12.121a4 4 0 005.657 0"></path>
+                  </svg>
+                  ${report.submitted_by}
+                </span>
               </div>
             </div>
           </div>
-        ` : ''}
+        </div>
 
-        ${report.notes ? `
-          <!-- Notes Section -->
-          <div style="margin-bottom: 30px; border: 1px solid #eee; border-radius: 8px; padding: 20px;">
-            <h2 style="font-size: 18px; margin-bottom: 15px;">Additional Notes</h2>
-            <div style="padding: 15px; border: 1px solid #eee; border-radius: 8px; color: #666;">
-              ${report.notes}
+        <!-- Modal Content -->
+        <div class="p-6 space-y-6">
+          
+          <!-- Basic Info -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="p-4 border rounded-lg dark:border-gray-700">
+              <p class="text-sm text-gray-500">Shift Type</p>
+              <p class="text-lg font-semibold dark:text-white">${report.shift_type.toUpperCase()}</p>
+            </div>
+            <div class="p-4 border rounded-lg dark:border-gray-700">
+              <p class="text-sm text-gray-500">Team Size</p>
+              <p class="text-lg font-semibold dark:text-white">${report.team_members?.length || 0} Members</p>
+            </div>
+            <div class="p-4 border rounded-lg ${report.incident_occurred ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'dark:border-gray-700'}">
+              <p class="text-sm ${report.incident_occurred ? 'text-red-600 dark:text-red-400' : 'text-gray-500'}">Status</p>
+              <p class="text-lg font-semibold ${report.incident_occurred ? 'text-red-700 dark:text-red-300' : 'dark:text-white'}">
+                ${report.incident_occurred ? 'Incident Reported' : 'Normal'}
+              </p>
             </div>
           </div>
-        ` : ''}
+
+          <!-- CCTV Monitoring Status -->
+          <div class="border rounded-lg dark:border-gray-700 p-6">
+            <div class="flex items-center mb-4">
+              <h3 class="text-lg font-semibold dark:text-white">CCTV Monitoring Status</h3>
+            </div>
+            <div class="space-y-4">
+              <div class="flex items-center justify-between mb-4">
+                <span class="font-medium text-gray-600 dark:text-gray-400">Main Location:</span>
+                <span class="font-medium dark:text-white">${report.monitoring_location}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Utility Status -->
+          <div class="border rounded-lg dark:border-gray-700 p-6">
+            <div class="flex items-center mb-4">
+              <h3 class="text-lg font-semibold dark:text-white">Utility Status</h3>
+            </div>
+          </div>
+
+          <!-- Team Members -->
+          <div class="border rounded-lg dark:border-gray-700 p-6">
+            <div class="flex items-center mb-4">
+              <h3 class="text-lg font-semibold dark:text-white">Security Team</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              ${report.team_members.map(member => `
+                <div class="flex items-center space-x-3 p-4 border rounded-lg dark:border-gray-700">
+                  <div>
+                    <p class="font-medium dark:text-white">${member.name}</p>
+                    <p class="text-sm text-gray-500">ID: ${member.id}</p>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Incident Report -->
+          ${report.incident_occurred ? `
+          <div class="border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 rounded-lg p-6">
+            <div class="flex items-center mb-4">
+              <h3 class="text-lg font-semibold text-red-700 dark:text-red-300">Incident Report</h3>
+            </div>
+            <div class="space-y-6">
+              <div>
+                <p class="text-sm text-red-600 dark:text-red-400">Incident Type</p>
+                <p class="mt-1 text-lg font-medium text-red-700 dark:text-red-300">${report.incident_type}</p>
+              </div>
+              <div>
+                <p class="text-sm text-red-600 dark:text-red-400">Description</p>
+                <p class="mt-2 p-4 bg-white dark:bg-gray-800 rounded-lg border border-red-200 dark:border-red-800 text-gray-900 dark:text-red-100">
+                  ${report.incident_description}
+                </p>
+              </div>
+            </div>
+          </div>
+          ` : ''}
+
+        </div>
       </div>
-    `;
+    </div>
+  </div>
+`;
 
     // Convert to PDF using html2canvas and jsPDF
     const canvas = await html2canvas(tempContainer, {
@@ -613,7 +597,7 @@ const exportDetailedReport = async (report) => {
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">
                 Status
               </th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 dark:text-gray-300">
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">
                 Actions
               </th>
             </tr>
@@ -700,7 +684,7 @@ const exportDetailedReport = async (report) => {
 
                   {/* Actions Column */}
                   <td className="px-2 py-4 text-right">
-                    <div className="flex items-center justify-end space-x-2">
+                    <div className="flex items-center space-x-2">
                       <button
                         onClick={() => {
                           setSelectedReport(report);
