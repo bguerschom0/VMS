@@ -255,31 +255,107 @@ const UserManagement = () => {
     }
   };
 
-  const handleResetPassword = async (userId) => {
-    try {
-      // Generate temporary password
-      const tempPassword = Math.random().toString(36).slice(-8);
+const handleResetPassword = async (userId) => {
+  try {
+    // Generate a 10-character temporary password using more secure method
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let tempPassword = '';
+    const randomValues = new Uint32Array(10);
+    crypto.getRandomValues(randomValues);
+    
+    randomValues.forEach((value) => {
+      tempPassword += characters[value % characters.length];
+    });
+
+    // Set expiry to 24 hours from now
+    const tempPasswordExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    
+    // Update user with temporary password details
+    const { error } = await supabase
+      .from('users')
+      .update({
+        temp_password: tempPassword,
+        temp_password_expires: tempPasswordExpiry,
+        password_change_required: true,
+        updated_by: currentUser.username,
+        temp_password_used: false
+      })
+      .eq('id', userId);
+
+    if (error) throw error;
+
+    // In production, send via email instead of alert
+    alert(`Temporary password: ${tempPassword}\nValid for 24 hours only. Please change upon login.`);
+    
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    throw error;
+  }
+};
+
+  const verifyTempPassword = async (username, password) => {
+  try {
+    const { data: userData, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('username', username)
+      .single();
+
+    if (error) throw error;
+
+    // Check if there's a valid temporary password
+    if (userData.temp_password && 
+        userData.temp_password === password && 
+        !userData.temp_password_used &&
+        new Date(userData.temp_password_expires) > new Date()) {
       
-      const { error } = await supabase
+      // Mark temporary password as used
+      await supabase
         .from('users')
         .update({
-          password: tempPassword,
-          password_change_required: true,
-          temp_password_expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-          updated_by: currentUser.username
+          temp_password_used: true
         })
-        .eq('id', userId);
+        .eq('id', userData.id);
 
-      if (error) throw error;
-
-      // In production, send this via email
-      alert(`Temporary password: ${tempPassword}`);
-      
-      fetchUsers();
-    } catch (error) {
-      console.error('Error resetting password:', error);
+      return {
+        valid: true,
+        passwordChangeRequired: true,
+        userId: userData.id
+      };
     }
-  };
+
+    // If no temp password match, proceed to check regular password
+    return {
+      valid: false,
+      passwordChangeRequired: false
+    };
+  } catch (error) {
+    console.error('Error verifying temporary password:', error);
+    throw error;
+  }
+};
+
+  const handlePasswordChange = async (userId, newPassword) => {
+  try {
+    const { error } = await supabase
+      .from('users')
+      .update({
+        password: newPassword,
+        temp_password: null,
+        temp_password_expires: null,
+        password_change_required: false,
+        temp_password_used: null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId);
+
+    if (error) throw error;
+
+  } catch (error) {
+    console.error('Error changing password:', error);
+    throw error;
+  }
+};
 
   const handleDeleteUser = async (userId) => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
