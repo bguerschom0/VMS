@@ -33,9 +33,9 @@ export const AuthProvider = ({ children }) => {
     }, 5 * 60 * 1000); // 5 minutes
   };
 
-  const login = async (username, password) => {
+const login = async (username, password) => {
     try {
-      // First check for temporary password
+      // First check user exists
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
@@ -44,21 +44,25 @@ export const AuthProvider = ({ children }) => {
 
       if (userError) throw new Error('Invalid credentials');
 
-      // Check if it's a temporary password
-      if (userData?.temp_password && 
-          userData.temp_password === password &&
-          new Date(userData.temp_password_expires) > new Date()) {
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
-        resetLogoutTimer();
-        return { 
-          user: userData, 
-          error: null, 
-          passwordChangeRequired: true 
-        };
+      // First check if there's a valid temporary password
+      if (userData?.temp_password) {
+        const tempPasswordValid = 
+          userData.temp_password === password && 
+          new Date(userData.temp_password_expires) > new Date();
+
+        if (tempPasswordValid) {
+          setUser(userData);
+          localStorage.setItem('user', JSON.stringify(userData));
+          resetLogoutTimer();
+          return { 
+            user: userData, 
+            error: null, 
+            passwordChangeRequired: true 
+          };
+        }
       }
 
-      // If not temp password, verify hashed password
+      // If no valid temp password, check regular password
       const isValidPassword = await bcrypt.compare(password, userData.password);
 
       if (!isValidPassword) {
@@ -82,7 +86,7 @@ export const AuthProvider = ({ children }) => {
       return { 
         user: userData, 
         error: null, 
-        passwordChangeRequired: userData.password_change_required 
+        passwordChangeRequired: false
       };
     } catch (error) {
       console.error('Login error:', error.message);
