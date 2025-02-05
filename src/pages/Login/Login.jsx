@@ -298,7 +298,7 @@ const LoginPage = () => {
               placeholder="Username"
               required
             />
-            <span className="absolute inset-y-0 left-3 flex items-center">
+            <span className="absolute inset-y-0 right-3 flex items-center">
               <User className="h-5 w-5 text-gray-400 dark:text-gray-500" />
             </span>
           </div>
@@ -315,7 +315,7 @@ const LoginPage = () => {
               placeholder="Password"
               required
             />
-            <span className="absolute inset-y-0 left-3 flex items-center">
+            <span className="absolute inset-y-0 right-3 flex items-center">
               <Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />
             </span>
           </div>
