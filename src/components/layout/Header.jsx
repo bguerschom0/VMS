@@ -271,7 +271,7 @@ const Header = () => {
                         <User className="h-6 w-6 text-gray-600 dark:text-gray-300" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user.fullName}</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user.full_name}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">{user.username}</p>
                       </div>
                     </div>
