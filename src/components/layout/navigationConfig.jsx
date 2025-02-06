@@ -93,10 +93,15 @@ export const roleBasedNavigation = {
     },
   ],
   user: [
- { 
+    { 
       name: 'Dashboard', 
       path: '/dashboard', 
       icon: LayoutDashboard 
+    },
+    { 
+      name: 'Guard Shift Report', 
+      path: '/GuardShiftReport', 
+      icon: ClipboardList
     },
     {
       name: 'Visitor Management',
