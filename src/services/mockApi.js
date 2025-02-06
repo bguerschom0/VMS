@@ -2,7 +2,7 @@ const MOCK_USERS = [
   {
     identityNumber: "1199000000000000",
     phoneNumber: "250788315218",
-    fullName: "John Doe",
+    fullName: "Bigirimana Guerschom",
     gender: "Male",
     photoUrl: "https://randomuser.me/api/portraits/men/1.jpg",
     nationality: "Rwandan"
