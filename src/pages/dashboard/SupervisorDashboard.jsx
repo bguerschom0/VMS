@@ -108,7 +108,7 @@ const SupervisorDashboard = () => {
                 Welcome, {user?.full_name}
               </h1>
               <p className="mt-2 text-gray-600 dark:text-gray-400">
-                Security team overview and management
+                Welcome to Visitor Management Platform!
               </p>
             </motion.div>
 
