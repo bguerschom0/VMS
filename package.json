@@ -20,7 +20,6 @@
     "xlsx": "^0.18.5",
     "lucide-react": "^0.309.0",
     "framer-motion": "^11.0.3",
-    "recharts": "^2.10.3",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.1",
     "bcryptjs":"^2.4.3"
