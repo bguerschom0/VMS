@@ -3,12 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Moon, Sun, ChevronDown, User, LogOut, Menu, X, UserCircle } from 'lucide-react';
 import { roleBasedNavigation } from './navigationConfig';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/ui/dialog";
+import {  Dialog,  DialogContent,  DialogHeader,  DialogTitle,} from '../ui/dialog';
 
 const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
