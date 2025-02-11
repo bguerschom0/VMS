@@ -345,63 +345,66 @@ const Header = () => {
       )}
 
       {/* Profile Modal */}
-      <Dialog open={isProfileModalOpen} onOpenChange={setIsProfileModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Profile Information</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="flex flex-col items-center space-y-4">
-              <div className="bg-gray-200 dark:bg-gray-700 rounded-full p-6">
-                <UserCircle className="h-16 w-16 text-gray-600 dark:text-gray-300" />
-              </div>
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {user?.fullName}
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {user?.username}
-                </p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Role
-                </label>
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {user?.role}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Status
-                </label>
-                <p className="text-sm font-medium text-green-600 dark:text-green-400">
-                  Active
-                </p>
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Email
-                </label>
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {user?.email}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Department
-                </label>
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {user?.department || 'N/A'}
-                </p>
-              </div>
+<Dialog open={isProfileModalOpen} onOpenChange={setIsProfileModalOpen}>
+  <DialogContent className="sm:max-w-[400px] p-0 gap-0">
+    <div className="flex flex-col">
+      {/* Profile Header with Avatar */}
+      <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-t-lg">
+        <div className="flex flex-col items-center">
+          <div className="bg-white dark:bg-gray-700 rounded-full p-4 shadow-sm">
+            <UserCircle className="h-20 w-20 text-gray-400 dark:text-gray-300" />
+          </div>
+        </div>
+      </div>
+
+      {/* Profile Information */}
+      <div className="p-6 space-y-4">
+        {/* Full Name */}
+        <div className="text-center mb-4">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+            {user?.full_name}
+          </h2>
+        </div>
+
+        {/* Info Grid */}
+        <div className="space-y-3">
+          {/* Username */}
+          <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <span className="text-sm text-gray-500 dark:text-gray-400">Username</span>
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              {user?.username}
+            </span>
+          </div>
+
+          {/* Role */}
+          <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <span className="text-sm text-gray-500 dark:text-gray-400">Role</span>
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              {user?.role}
+            </span>
+          </div>
+
+          {/* Status */}
+          <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <span className="text-sm text-gray-500 dark:text-gray-400">Status</span>
+            <div className="flex items-center">
+              <div className="h-2 w-2 rounded-full bg-green-500 mr-2" />
+              <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                Active
+              </span>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
+    </div>
+
+    {/* Close Button */}
+    <DialogPrimitive.Close className="absolute right-4 top-4 rounded-full p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-600">
+      <X className="h-4 w-4" />
+      <span className="sr-only">Close</span>
+    </DialogPrimitive.Close>
+  </DialogContent>
+</Dialog>
     </>
   );
 };
