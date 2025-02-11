@@ -4,9 +4,9 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
 import { Users, AlertCircle, Clock, CheckCircle } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
-import { supabase } from '../config/supabase';
-import { StatCard } from '../components/StatCard';
+import { useAuth } from '../../hooks/useAuth';
+import { supabase } from '../../config/supabase';
+import { StatCard } from '../../components/StatCard';
 
 const SecurityGuardDashboard = () => {
   const { user } = useAuth();
