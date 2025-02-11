@@ -69,7 +69,6 @@ const AdminDashboard = () => {
         totalUsers,
         activeUsers,
         totalGuards,
-        systemUptime: 99.9 // Example static value
       });
 
     } catch (error) {
@@ -95,7 +94,7 @@ const AdminDashboard = () => {
               className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl"
             >
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Welcome, {user?.full_name || 'User'}
+                Welcome, {user?.full_name}
               </h1>
               <p className="mt-2 text-gray-600 dark:text-gray-400">
                 System and user management overview
@@ -119,50 +118,8 @@ const AdminDashboard = () => {
                 value={stats.totalGuards}
                 icon={<Calendar size={24} className="text-gray-600 dark:text-gray-300" />}
               />
-              <StatCard
-                title="System Uptime"
-                value={`${stats.systemUptime}%`}
-                icon={<Settings size={24} className="text-gray-600 dark:text-gray-300" />}
-              />
             </div>
 
-            {/* Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* User Role Distribution */}
-              <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl">
-                <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-                  User Role Distribution
-                </h3>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={userRoleStats}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {userRoleStats.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* System Activity Monitor */}
-              <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl">
-                <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-                  System Activity
-                </h3>
-                {/* Add system monitoring charts/stats here */}
-              </div>
             </div>
           </div>
         )}
