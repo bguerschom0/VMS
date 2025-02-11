@@ -19,6 +19,18 @@ const SecurityGuardDashboard = () => {
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const getGreeting = () => {
+  const hour = new Date().getHours();
+  
+  if (hour >= 5 && hour < 12) {
+    return 'Good Morning';
+  } else if (hour >= 12 && hour < 17) {
+    return 'Good Afternoon';
+  } else {
+    return 'Good Evening';
+  }
+};
+  
   useEffect(() => {
     fetchSecurityDashboardData();
   }, []);
@@ -27,22 +39,21 @@ const SecurityGuardDashboard = () => {
     try {
       setLoading(true);
 
-      // Fetch active visitors
+
       const { count: activeVisitors } = await supabase
         .from('visitors')
         .select('*', { count: 'exact' })
         .is('check_out_time', null);
 
-      // Fetch pending check-ins
-      const { count: pendingCheckIns } = await supabase
+
+      const { count: scheduledVisits } = await supabase
         .from('scheduled_visitors')
         .select('*', { count: 'exact' })
-        .eq('status', 'pending')
-        .gte('visit_date', new Date().toISOString());
+        .gte('visit_end_date', new Date().toISOString());
 
       // Fetch recent activity
       const { data: activityData } = await supabase
-        .from('visitor_logs')
+        .from('visitors')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(10);
@@ -50,9 +61,7 @@ const SecurityGuardDashboard = () => {
       setRecentActivity(activityData || []);
       setStats({
         activeVisitors,
-        pendingCheckIns,
-        shiftHours: 8, // Example static value
-        completedChecks: 45 // Example static value
+        scheduledVisits,
       });
 
     } catch (error) {
@@ -78,7 +87,7 @@ const SecurityGuardDashboard = () => {
               className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl"
             >
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Welcome, {user?.full_name}
+                {getGreeting()}, {user?.full_name}
               </h1>
               <p className="mt-2 text-gray-600 dark:text-gray-400">
                 Current shift overview
@@ -93,19 +102,11 @@ const SecurityGuardDashboard = () => {
                 icon={<Users size={24} className="text-gray-600 dark:text-gray-300" />}
               />
               <StatCard
-                title="Pending Check-ins"
-                value={stats.pendingCheckIns}
-                icon={<AlertCircle size={24} className="text-gray-600 dark:text-gray-300" />}
-              />
-              <StatCard
-                title="Shift Hours"
-                value={`${stats.shiftHours}h`}
-                icon={<Clock size={24} className="text-gray-600 dark:text-gray-300" />}
-              />
-              <StatCard
-                title="Completed Checks"
-                value={stats.completedChecks}
-                icon={<CheckCircle size={24} className="text-gray-600 dark:text-gray-300" />}
+                title="Scheduled Visits"
+                value={stats.scheduledVisits}
+                icon={<Calendar size={24} className="text-gray-600 dark:text-gray-300" />}
+                change={5}
+                changeType="increase"
               />
             </div>
 
@@ -136,10 +137,10 @@ const SecurityGuardDashboard = () => {
                           {new Date(activity.created_at).toLocaleTimeString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {activity.action}
+                          {activity.purpose}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {activity.visitor_name}
+                          {activity.full_name}
                         </td>
                       </tr>
                     ))}
