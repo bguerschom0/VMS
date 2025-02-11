@@ -129,6 +129,7 @@ const { count: incidentReports } = await supabase
         totalVisitors,
         activeVisitors,
         scheduledVisits,
+        incidentReports,
         completedVisits: totalVisitors - activeVisitors
       });
 
