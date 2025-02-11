@@ -4,7 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
-import { Users, Shield, AlertTriangle, Activity } from 'lucide-react';
+import { Users, Shield, AlertTriangle, Activity,  AlertCircle, Clock, CheckCircle, Calendar } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../config/supabase';
 import { StatCard } from '../../components/StatCard';
