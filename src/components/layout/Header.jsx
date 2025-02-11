@@ -389,9 +389,13 @@ const Header = () => {
           <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
             <span className="text-sm text-gray-500 dark:text-gray-400">Status</span>
             <div className="flex items-center">
-              <div className="h-2 w-2 rounded-full bg-green-500 mr-2" />
-              <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                {user?.is_active}
+              <div className={`h-2 w-2 rounded-full ${user?.is_active === true ? 'bg-green-500' : 'bg-red-500'} mr-2`} />
+              <span className={`text-sm font-medium ${
+                user?.is_active === true 
+                  ? 'text-green-600 dark:text-green-400' 
+                  : 'text-red-600 dark:text-red-400'
+              }`}>
+                {user?.is_active === true ? 'Active' : 'Inactive'}
               </span>
             </div>
           </div>
