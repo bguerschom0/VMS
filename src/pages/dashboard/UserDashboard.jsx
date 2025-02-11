@@ -1,156 +1,108 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
-import { 
-  Users, 
-  UserCheck, 
-  Calendar, 
-  CheckCircle 
-} from 'lucide-react';
+import { Calendar, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../config/supabase';
+import { StatCard } from '../components/StatCard';
 
-// Colors for pie chart
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
-
-// Stats Card Component
-const StatCard = ({ title, value, icon, change, changeType }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300"
-  >
-    <div className="flex justify-between items-start">
-      <div>
-        <p className="text-sm text-gray-600 dark:text-gray-400">{title}</p>
-        <h3 className="text-2xl font-bold mt-2 text-gray-900 dark:text-white">{value}</h3>
-      </div>
-      <div className="p-3 rounded-full bg-gray-100 dark:bg-gray-700">
-        {icon}
-      </div>
-    </div>
-    {change && (
-      <div className="mt-4 flex items-center">
-        <span className={`text-sm ${
-          changeType === 'increase' ? 'text-green-500' : 'text-red-500'
-        }`}>
-          {changeType === 'increase' ? '↑' : '↓'} {change}%
-        </span>
-        <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">vs last month</span>
-      </div>
-    )}
-  </motion.div>
-);
-
-const Dashboard = () => {
+const UserDashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({
-    totalVisitors: 0,
-    activeVisitors: 0,
-    scheduledVisits: 0,
-    completedVisits: 0
+    upcomingVisits: 0,
+    completedVisits: 0,
+    totalHours: 0,
+    pendingRequests: 0
   });
-  const [departmentStats, setDepartmentStats] = useState([]);
-  const [monthlyStats, setMonthlyStats] = useState([]);
+  const [visitHistory, setVisitHistory] = useState([]);
+  const [monthlyVisits, setMonthlyVisits] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchUserDashboardData();
   }, []);
 
-  const fetchDashboardData = async () => {
+  const fetchUserDashboardData = async () => {
     try {
       setLoading(true);
 
-      // Fetch total visitors
-      const { count: totalVisitors } = await supabase
-        .from('visitors')
-        .select('*', { count: 'exact' });
-
-      // Fetch active visitors
-      const { count: activeVisitors } = await supabase
-        .from('visitors')
-        .select('*', { count: 'exact' })
-        .is('check_out_time', null);
-
-      // Fetch scheduled visits
-      const { count: scheduledVisits } = await supabase
+      // Fetch upcoming visits
+      const { count: upcomingVisits } = await supabase
         .from('scheduled_visitors')
         .select('*', { count: 'exact' })
-        .gte('visit_end_date', new Date().toISOString());
+        .eq('user_id', user.id)
+        .gt('visit_date', new Date().toISOString());
 
-      // Fetch monthly visits for the last 6 months
-      const sixMonthsAgo = new Date();
-      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-      
-      const { data: monthlyData, error: monthlyError } = await supabase
+      // Fetch completed visits
+      const { count: completedVisits } = await supabase
+        .from('visitors')
+        .select('*', { count: 'exact' })
+        .eq('user_id', user.id)
+        .not('check_out_time', 'is', null);
+
+      // Fetch pending requests
+      const { count: pendingRequests } = await supabase
+        .from('visit_requests')
+        .select('*', { count: 'exact' })
+        .eq('user_id', user.id)
+        .eq('status', 'pending');
+
+      // Fetch visit history
+      const { data: historyData } = await supabase
+        .from('visitors')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('check_in_time', { ascending: false })
+        .limit(10);
+
+      // Fetch monthly visits data
+      const { data: monthlyData } = await supabase
         .from('visitors')
         .select('check_in_time')
-        .gte('check_in_time', sixMonthsAgo.toISOString())
-        .order('check_in_time', { ascending: true });
-
-      if (monthlyError) throw monthlyError;
+        .eq('user_id', user.id)
+        .gte('check_in_time', new Date(new Date().setMonth(new Date().getMonth() - 6)).toISOString());
 
       // Process monthly data
-      const monthlyVisits = monthlyData.reduce((acc, visit) => {
+      const monthlyStats = monthlyData.reduce((acc, visit) => {
         const month = new Date(visit.check_in_time).toLocaleString('default', { month: 'short' });
         acc[month] = (acc[month] || 0) + 1;
         return acc;
       }, {});
 
-      const monthlyStatsArray = Object.entries(monthlyVisits).map(([month, count]) => ({
+      const monthlyVisitsArray = Object.entries(monthlyStats).map(([month, visits]) => ({
         month,
-        visits: count
+        visits
       }));
 
-      setMonthlyStats(monthlyStatsArray);
-
-      // Fetch department distribution
-      const { data: departmentData, error: departmentError } = await supabase
-        .from('visitors')
-        .select('department')
-        .not('department', 'is', null);
-
-      if (departmentError) throw departmentError;
-
-      // Process department data
-      const departmentCounts = departmentData.reduce((acc, { department }) => {
-        acc[department] = (acc[department] || 0) + 1;
-        return acc;
-      }, {});
-
-      const departmentStatsArray = Object.entries(departmentCounts).map(([name, value]) => ({
-        name,
-        value
-      }));
-
-      setDepartmentStats(departmentStatsArray);
+      setVisitHistory(historyData || []);
+      setMonthlyVisits(monthlyVisitsArray);
       setStats({
-        totalVisitors,
-        activeVisitors,
-        scheduledVisits,
-        completedVisits: totalVisitors - activeVisitors
+        upcomingVisits,
+        completedVisits,
+        totalHours: calculateTotalHours(historyData || []),
+        pendingRequests
       });
 
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error('Error fetching user dashboard data:', error);
     } finally {
       setLoading(false);
     }
   };
 
-return (
+  const calculateTotalHours = (visits) => {
+    return visits.reduce((total, visit) => {
+      if (visit.check_in_time && visit.check_out_time) {
+        const duration = new Date(visit.check_out_time) - new Date(visit.check_in_time);
+        return total + (duration / (1000 * 60 * 60));
+      }
+      return total;
+    }, 0).toFixed(1);
+  };
+
+  return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         {loading ? (
@@ -166,62 +118,38 @@ return (
               className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl"
             >
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Welcome back, {user?.full_name || 'User'}
+                Welcome back, {user?.full_name}
               </h1>
               <p className="mt-2 text-gray-600 dark:text-gray-400">
-                Here's what's happening with your visitors today
+                Track your visits and requests
               </p>
             </motion.div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <StatCard
-                title="Total Visitors"
-                value={stats.totalVisitors}
-                icon={
-                  <Users 
-                    size={24}
-                    className="text-gray-600 dark:text-gray-300" 
-                  />
-                }
-                change={12}
-                changeType="increase"
-              />
-              <StatCard
-                title="Active Visitors"
-                value={stats.activeVisitors}
-                icon={
-                  <UserCheck 
-                    size={24}
-                    className="text-gray-600 dark:text-gray-300" 
-                  />
-                }
-              />
-              <StatCard
-                title="Scheduled Visits"
-                value={stats.scheduledVisits}
-                icon={
-                  <Calendar 
-                    size={24}
-                    className="text-gray-600 dark:text-gray-300" 
-                  />
-                }
-                change={5}
-                changeType="increase"
+                title="Upcoming Visits"
+                value={stats.upcomingVisits}
+                icon={<Calendar size={24} className="text-gray-600 dark:text-gray-300" />}
               />
               <StatCard
                 title="Completed Visits"
                 value={stats.completedVisits}
-                icon={
-                  <CheckCircle 
-                    size={24}
-                    className="text-gray-600 dark:text-gray-300" 
-                  />
-                }
+                icon={<CheckCircle size={24} className="text-gray-600 dark:text-gray-300" />}
+              />
+              <StatCard
+                title="Total Hours"
+                value={`${stats.totalHours}h`}
+                icon={<Clock size={24} className="text-gray-600 dark:text-gray-300" />}
+              />
+              <StatCard
+                title="Pending Requests"
+                value={stats.pendingRequests}
+                icon={<AlertCircle size={24} className="text-gray-600 dark:text-gray-300" />}
               />
             </div>
 
-            {/* Charts */}
+            {/* Charts and Tables */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Monthly Visits Chart */}
               <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl">
@@ -230,74 +158,68 @@ return (
                 </h3>
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={monthlyStats}>
+                    <BarChart data={monthlyVisits}>
                       <CartesianGrid strokeDasharray="3 3" className="opacity-50" />
-                      <XAxis 
-                        dataKey="month" 
-                        tick={{ fill: '#666' }}
-                      />
-                      <YAxis 
-                        tick={{ fill: '#666' }}
-                        width={30}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#fff',
-                          border: 'none',
-                          borderRadius: '8px',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                        }}
-                      />
-                      <Bar 
-                        dataKey="visits" 
-                        fill="#000000" 
-                        radius={[4, 4, 0, 0]}
-                      />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="visits" fill="#0088FE" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
-              {/* Department Distribution */}
+              {/* Visit History */}
               <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl">
                 <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-                  Visits by Department
+                  Recent Visit History
                 </h3>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={departmentStats}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {departmentStats.map((entry, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
-                            fill={COLORS[index % COLORS.length]} 
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        contentStyle={{
-                          backgroundColor: '#fff',
-                          border: 'none',
-                          borderRadius: '8px',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                        }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  
+                <div className="overflow-hidden">
+                  <table className="min-w-full">
+                    <thead>
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Date
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Purpose
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Duration
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Status
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {visitHistory.map((visit, index) => (
+                        <tr key={index}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {new Date(visit.check_in_time).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {visit.purpose}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {visit.check_out_time ? 
+                              `${((new Date(visit.check_out_time) - new Date(visit.check_in_time)) / (1000 * 60 * 60)).toFixed(1)}h` 
+                              : 'In Progress'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              visit.check_out_time ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {visit.check_out_time ? 'Completed' : 'Active'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
-
           </div>
         )}
       </div>
@@ -305,4 +227,4 @@ return (
   );
 };
 
-export default Dashboard;
+export default UserDashboard;
