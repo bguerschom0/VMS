@@ -35,7 +35,7 @@ export const roleBasedNavigation = {
       ]
     },
     {
-      name: 'Reports & History',
+      name: 'Reports',
       icon: BarChart,
       children: [
         { name: 'Check In & Out Report', path: '/reports', icon: BarChart },
@@ -66,7 +66,7 @@ export const roleBasedNavigation = {
       ]
     },
     {
-      name: 'Reports & History',
+      name: 'Reports',
       icon: BarChart,
       children: [
         { name: 'Check In & Out Report', path: '/reports', icon: BarChart },
@@ -152,7 +152,7 @@ export const roleBasedNavigation = {
       ]
     },
     {
-      name: 'Reports & History',
+      name: 'Reports',
       icon: BarChart,
       children: [
         { name: 'Check In & Out Report', path: '/reports', icon: BarChart },
