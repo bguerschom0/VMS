@@ -30,7 +30,7 @@ import AdminDashboard from './pages/dashboard/AdminDashboard'
 import SecurityGuardDashboard from './pages/dashboard/SecurityGuardDashboard'
 import SupervisorDashboard from './pages/dashboard/SupervisorDashboard'
 import UserDashboard from './pages/dashboard/UserDashboard'
-import ManagerDashboard from './pages/dashboard/AManagerDashboard'
+import ManagerDashboard from './pages/dashboard/ManagerDashboard'
 
 
 
