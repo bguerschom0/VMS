@@ -3,7 +3,7 @@ import { useAuth } from './useAuth';
 
 const roleAccess = {
   admin: [
-    '/dashboard',
+    '/admindashboard',
     '/user-management',
     '/check-in',
     '/check-out',
@@ -15,7 +15,7 @@ const roleAccess = {
     '/GuardShiftReport'
   ],
     manager: [
-    '/dashboard',
+    '/managerdashboard',
     '/bulkvisitors',
     '/reports',
     '/GuardShiftReportViewer',
@@ -23,7 +23,7 @@ const roleAccess = {
     '/visitor-history'
   ],
   supervisor: [
-    '/dashboard',
+    '/supervisordashboard',
     '/GuardShiftReport',
     '/check-in',
     '/check-out',
@@ -31,13 +31,13 @@ const roleAccess = {
     '/visitor-history'
   ],
   security_guard: [
-    '/dashboard',
+    '/securityguarddashboard',
     '/check-in',
     '/check-out',
     '/scheduled-visitors'
   ],
   user: [
-    '/dashboard',
+    '/userdashboard',
     '/check-out',
     '/bulkvisitors',
     '/scheduled-visitors',
