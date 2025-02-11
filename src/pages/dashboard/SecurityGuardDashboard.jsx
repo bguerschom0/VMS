@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
-import { Users, AlertCircle, Clock, CheckCircle } from 'lucide-react';
+import { Users, AlertCircle, Clock, CheckCircle, Calendar } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../config/supabase';
 import { StatCard } from '../../components/StatCard';
