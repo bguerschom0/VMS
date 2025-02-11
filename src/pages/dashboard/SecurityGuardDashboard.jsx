@@ -12,9 +12,7 @@ const SecurityGuardDashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({
     activeVisitors: 0,
-    pendingCheckIns: 0,
-    shiftHours: 0,
-    completedChecks: 0
+    scheduledVisits: 0,
   });
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
