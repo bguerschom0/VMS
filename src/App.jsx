@@ -81,10 +81,16 @@ const App = () => {
   return (
     <Routes>
       {/* Public route */}
-      <Route 
-        path="/login" 
-        element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} 
-      />
+<Route 
+  path="/login" 
+  element={
+    user ? (
+      <Navigate to={getRoleBasedDashboard(user.role)} replace />
+    ) : (
+      <LoginPage />
+    )
+  } 
+/>
 
       {/* Protected routes */}
       <Route
@@ -290,10 +296,17 @@ const App = () => {
 
       
       {/* Root route redirect */}
-      <Route
-        path="/"
-        element={<Navigate to={user ? "/dashboard" : "/login"} replace />}
+<Route
+  path="/"
+  element={
+    <ProtectedRoute>
+      <Navigate 
+        to={user ? getRoleBasedDashboard(user.role) : "/login"} 
+        replace 
       />
+    </ProtectedRoute>
+  }
+/>
 
       {/* Unauthorized and catch-all routes */}
       <Route path="/unauthorized" element={<Unauthorized />} />
