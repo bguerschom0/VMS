@@ -23,6 +23,18 @@ const AdminDashboard = () => {
   const [systemStats, setSystemStats] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const getGreeting = () => {
+  const hour = new Date().getHours();
+  
+  if (hour >= 5 && hour < 12) {
+    return 'Good Morning';
+  } else if (hour >= 12 && hour < 17) {
+    return 'Good Afternoon';
+  } else {
+    return 'Good Evening';
+  }
+};
+
   useEffect(() => {
     fetchAdminDashboardData();
   }, []);
@@ -94,7 +106,7 @@ const AdminDashboard = () => {
               className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl"
             >
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Welcome, {user?.full_name}
+                {getGreeting()}, {user?.full_name}
               </h1>
               <p className="mt-2 text-gray-600 dark:text-gray-400">
                 System and user management overview
