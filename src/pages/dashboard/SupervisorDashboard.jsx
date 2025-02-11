@@ -105,7 +105,7 @@ const SupervisorDashboard = () => {
               className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl"
             >
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Supervisor Dashboard
+                Welcome, {user?.full_name}
               </h1>
               <p className="mt-2 text-gray-600 dark:text-gray-400">
                 Security team overview and management
