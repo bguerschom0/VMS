@@ -386,19 +386,24 @@ const Header = () => {
           </div>
 
           {/* Status */}
-          <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <span className="text-sm text-gray-500 dark:text-gray-400">Status</span>
-            <div className="flex items-center">
-              <div className={`h-2 w-2 rounded-full ${user?.is_active === true ? 'bg-green-500' : 'bg-red-500'} mr-2`} />
-              <span className={`text-sm font-medium ${
-                user?.is_active === true 
-                  ? 'text-green-600 dark:text-green-400' 
-                  : 'text-red-600 dark:text-red-400'
-              }`}>
-                {user?.is_active === true ? 'Active' : 'Inactive'}
-              </span>
-            </div>
-          </div>
+<div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+  <span className="text-sm text-gray-500 dark:text-gray-400">Status</span>
+  <div className="flex items-center">
+    {/* Adding console log to debug */}
+    {console.log('is_active value:', user?.is_active, 'type:', typeof user?.is_active)}
+    
+    <div className={`h-2 w-2 rounded-full ${
+      Boolean(user?.is_active) === false ? 'bg-red-500' : 'bg-green-500'
+    } mr-2`} />
+    <span className={`text-sm font-medium ${
+      Boolean(user?.is_active) === false
+        ? 'text-red-600 dark:text-red-400' 
+        : 'text-green-600 dark:text-green-400'
+    }`}>
+      {Boolean(user?.is_active) === false ? 'Inactive' : 'Active'}
+    </span>
+  </div>
+</div>
         </div>
       </div>
     </div>
