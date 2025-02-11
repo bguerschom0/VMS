@@ -56,7 +56,7 @@ const SecurityGuardDashboard = () => {
         .from('visitors')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(5);
 
       setRecentActivity(activityData || []);
       setStats({
@@ -105,8 +105,6 @@ const SecurityGuardDashboard = () => {
                 title="Scheduled Visits"
                 value={stats.scheduledVisits}
                 icon={<Calendar size={24} className="text-gray-600 dark:text-gray-300" />}
-                change={5}
-                changeType="increase"
               />
             </div>
 
