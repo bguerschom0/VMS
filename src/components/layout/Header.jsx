@@ -8,7 +8,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/ui/dialog";
 
 const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
