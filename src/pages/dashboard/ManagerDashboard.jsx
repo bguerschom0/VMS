@@ -68,10 +68,10 @@ const ManagerDashboard = () => {
         .select('*', { count: 'exact' })
         .is('check_out_time', null);
 
-      const { count: incidentReports } = await supabase
-        .from('guard_shift_reports')
-        .select('*', { count: 'exact' })
-        .eq('incident_occurred', 'TRUE');
+const { count: incidentReports } = await supabase
+  .from('guard_shift_reports')
+  .select('*', { count: 'exact' })
+  .eq('incident_occurred', true);
 
       // Fetch scheduled visits
       const { count: scheduledVisits } = await supabase
