@@ -14,76 +14,54 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 const SupervisorDashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({
-    activeGuards: 0,
-    incidentReports: 0,
-    openAlerts: 0,
-    performance: 0
+    activeVisitors: 0,
+    scheduledVisits: 0,
+
   });
-  const [guardActivity, setGuardActivity] = useState([]);
-  const [shiftDistribution, setShiftDistribution] = useState([]);
+  const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const getGreeting = () => {
+  const hour = new Date().getHours();
+  
+  if (hour >= 5 && hour < 12) {
+    return 'Good Morning';
+  } else if (hour >= 12 && hour < 17) {
+    return 'Good Afternoon';
+  } else {
+    return 'Good Evening';
+  }
+};
+  
   useEffect(() => {
-    fetchSupervisorDashboardData();
+    fetchSecurityDashboardData();
   }, []);
 
-  const fetchSupervisorDashboardData = async () => {
+  const fetchSecurityDashboardData = async () => {
     try {
       setLoading(true);
 
-      // Fetch active guards count
-      const { count: activeGuards } = await supabase
-        .from('users')
+
+      const { count: activeVisitors } = await supabase
+        .from('visitors')
         .select('*', { count: 'exact' })
-        .eq('role', 'security-guard')
-        .eq('status', 'active');
+        .is('check_out_time', null);
 
-      // Fetch incident reports
-      const { count: incidentReports } = await supabase
-        .from('incident_reports')
+
+      const { count: scheduledVisits } = await supabase
+        .from('scheduled_visitors')
         .select('*', { count: 'exact' })
-        .eq('status', 'open');
+        .gte('visit_end_date', new Date().toISOString());
 
-      // Fetch open alerts
-      const { count: openAlerts } = await supabase
-        .from('alerts')
-        .select('*', { count: 'exact' })
-        .eq('status', 'open');
 
-      // Fetch guard activity
-      const { data: activityData } = await supabase
-        .from('guard_activity')
-        .select('*')
-        .order('timestamp', { ascending: false })
-        .limit(10);
-
-      // Fetch shift distribution
-      const { data: shiftData } = await supabase
-        .from('guard_shifts')
-        .select('shift_type');
-
-      // Process shift distribution data
-      const shiftCounts = shiftData.reduce((acc, { shift_type }) => {
-        acc[shift_type] = (acc[shift_type] || 0) + 1;
-        return acc;
-      }, {});
-
-      const shiftStatsArray = Object.entries(shiftCounts).map(([name, value]) => ({
-        name,
-        value
-      }));
-
-      setGuardActivity(activityData || []);
-      setShiftDistribution(shiftStatsArray);
+      setRecentActivity(activityData || []);
       setStats({
-        activeGuards,
-        incidentReports,
-        openAlerts,
-        performance: 92 // Example static value
+        activeVisitors,
+        scheduledVisits,
       });
 
     } catch (error) {
-      console.error('Error fetching supervisor dashboard data:', error);
+      console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
     }
@@ -105,7 +83,7 @@ const SupervisorDashboard = () => {
               className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl"
             >
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Welcome, {user?.full_name}
+                {getGreeting()}, {user?.full_name}
               </h1>
               <p className="mt-2 text-gray-600 dark:text-gray-400">
                 Welcome to Visitor Management Platform!
@@ -115,96 +93,17 @@ const SupervisorDashboard = () => {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <StatCard
-                title="Active Guards"
-                value={stats.activeGuards}
-                icon={<Shield size={24} className="text-gray-600 dark:text-gray-300" />}
-              />
-              <StatCard
-                title="Incident Reports"
-                value={stats.incidentReports}
-                icon={<AlertTriangle size={24} className="text-gray-600 dark:text-gray-300" />}
-              />
-              <StatCard
-                title="Open Alerts"
-                value={stats.openAlerts}
-                icon={<Activity size={24} className="text-gray-600 dark:text-gray-300" />}
-              />
-              <StatCard
-                title="Team Performance"
-                value={`${stats.performance}%`}
+                title="Active Visitors"
+                value={stats.activeVisitors}
                 icon={<Users size={24} className="text-gray-600 dark:text-gray-300" />}
               />
+              <StatCard
+                title="Scheduled Visits"
+                value={stats.scheduledVisits}
+                icon={<Calendar size={24} className="text-gray-600 dark:text-gray-300" />}
+              />
             </div>
 
-            {/* Charts and Tables */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Shift Distribution */}
-              <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl">
-                <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-                  Shift Distribution
-                </h3>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={shiftDistribution}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {shiftDistribution.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Guard Activity Log */}
-              <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl">
-                <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-                  Recent Guard Activity
-                </h3>
-                <div className="overflow-hidden">
-                  <table className="min-w-full">
-                    <thead>
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Guard
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Activity
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Time
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {guardActivity.map((activity, index) => (
-                        <tr key={index}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {activity.guard_name}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {activity.activity_type}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {new Date(activity.timestamp).toLocaleTimeString()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
           </div>
         )}
       </div>
