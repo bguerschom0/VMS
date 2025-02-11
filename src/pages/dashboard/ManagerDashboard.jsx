@@ -29,8 +29,10 @@ const ManagerDashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({
     totalVisitors: 0,
-    incidentReports: 0,
+    activeVisitors: 0,
     scheduledVisits: 0,
+    incidentReports: 0,
+
   });
   const [departmentStats, setDepartmentStats] = useState([]);
   const [monthlyStats, setMonthlyStats] = useState([]);
@@ -60,6 +62,11 @@ const ManagerDashboard = () => {
       const { count: totalVisitors } = await supabase
         .from('visitors')
         .select('*', { count: 'exact' });
+
+      const { count: activeVisitors } = await supabase
+        .from('visitors')
+        .select('*', { count: 'exact' })
+        .is('check_out_time', null);
 
       const { count: incidentReports } = await supabase
         .from('guard_shift_reports')
@@ -163,15 +170,20 @@ const ManagerDashboard = () => {
                 value={stats.totalVisitors}
                 icon={<Users size={24} className="text-gray-600 dark:text-gray-300" />}
               />
-              <StatCard
-                title="Incident Reports"
-                value={stats.incidentReports}
-                icon={<AlertTriangle size={24} className="text-gray-600 dark:text-gray-300" />}
+             <StatCard
+                title="Active Visitors"
+                value={stats.activeVisitors}
+                icon={<UserCheck size={24} className="text-gray-600 dark:text-gray-300" />}
               />
               <StatCard
                 title="Scheduled Visits"
                 value={stats.scheduledVisits}
                 icon={<Calendar size={24} className="text-gray-600 dark:text-gray-300" />}
+              />
+              <StatCard
+                title="Incident Reports"
+                value={stats.incidentReports}
+                icon={<AlertTriangle size={24} className="text-gray-600 dark:text-gray-300" />}
               />
 
             </div>
