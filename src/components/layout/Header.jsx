@@ -398,12 +398,6 @@ const Header = () => {
         </div>
       </div>
     </div>
-
-    {/* Close Button */}
-    <DialogPrimitive.Close className="absolute right-4 top-4 rounded-full p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-600">
-      <X className="h-4 w-4" />
-      <span className="sr-only">Close</span>
-    </DialogPrimitive.Close>
   </DialogContent>
 </Dialog>
     </>
