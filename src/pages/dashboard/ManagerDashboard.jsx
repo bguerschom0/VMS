@@ -28,13 +28,24 @@ const ManagerDashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({
     totalVisitors: 0,
-    activeVisitors: 0,
+    incidentReports: 0,
     scheduledVisits: 0,
-    completedVisits: 0
   });
   const [departmentStats, setDepartmentStats] = useState([]);
   const [monthlyStats, setMonthlyStats] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const getGreeting = () => {
+  const hour = new Date().getHours();
+  
+  if (hour >= 5 && hour < 12) {
+    return 'Good Morning';
+  } else if (hour >= 12 && hour < 17) {
+    return 'Good Afternoon';
+  } else {
+    return 'Good Evening';
+  }
+};
 
   useEffect(() => {
     fetchDashboardData();
@@ -44,16 +55,15 @@ const ManagerDashboard = () => {
     try {
       setLoading(true);
 
-      // Fetch total visitors
+
       const { count: totalVisitors } = await supabase
         .from('visitors')
         .select('*', { count: 'exact' });
 
-      // Fetch active visitors
-      const { count: activeVisitors } = await supabase
-        .from('visitors')
+      const { count: incidentReports } = await supabase
+        .from('guard_shift_reports')
         .select('*', { count: 'exact' })
-        .is('check_out_time', null);
+        .eq('incident_occurred', 'FALSE', 'TRUE');
 
       // Fetch scheduled visits
       const { count: scheduledVisits } = await supabase
@@ -137,12 +147,13 @@ const ManagerDashboard = () => {
               className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl"
             >
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Welcome back, {user?.full_name}
+                {getGreeting()}, {user?.full_name}
               </h1>
               <p className="mt-2 text-gray-600 dark:text-gray-400">
-                Here's what's happening with your visitors today
+                Welcome to Visitor Management Platform!
               </p>
             </motion.div>
+
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -150,13 +161,11 @@ const ManagerDashboard = () => {
                 title="Total Visitors"
                 value={stats.totalVisitors}
                 icon={<Users size={24} className="text-gray-600 dark:text-gray-300" />}
-                change={12}
-                changeType="increase"
               />
               <StatCard
-                title="Active Visitors"
-                value={stats.activeVisitors}
-                icon={<UserCheck size={24} className="text-gray-600 dark:text-gray-300" />}
+                title="Incident Reports"
+                value={stats.incidentReports}
+                icon={<AlertTriangle size={24} className="text-gray-600 dark:text-gray-300" />}
               />
               <StatCard
                 title="Scheduled Visits"
@@ -165,11 +174,7 @@ const ManagerDashboard = () => {
                 change={5}
                 changeType="increase"
               />
-              <StatCard
-                title="Completed Visits"
-                value={stats.completedVisits}
-                icon={<CheckCircle size={24} className="text-gray-600 dark:text-gray-300" />}
-              />
+
             </div>
 
             {/* Charts */}
