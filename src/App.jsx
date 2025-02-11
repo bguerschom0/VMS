@@ -7,7 +7,6 @@ import Footer from './components/layout/Footer';
 
 // Pages
 import LoginPage from './pages/Login/Login';
-import Dashboard from './pages/Dashboard';
 import CheckInOutReport from './pages/report/CheckInOutReport';
 import SearchVisitor from './pages/check-in/SearchVisitor';
 import VisitorForm from './pages/check-in/VisitorForm';
@@ -93,16 +92,6 @@ const App = () => {
 />
 
       {/* Protected routes */}
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <AuthenticatedLayout>
-              <Dashboard />
-            </AuthenticatedLayout>
-          </ProtectedRoute>
-        }
-      />
 
             <Route  path="/admindashboard"   element={  <ProtectedRoute>     <AuthenticatedLayout>      <AdminDashboard />     </AuthenticatedLayout>    </ProtectedRoute> } />
             <Route  path="/securityguarddashboard"   element={  <ProtectedRoute>     <AuthenticatedLayout>      <SecurityGuardDashboard />     </AuthenticatedLayout>    </ProtectedRoute> } />
