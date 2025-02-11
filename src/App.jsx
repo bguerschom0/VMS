@@ -24,6 +24,14 @@ import ScheduledVisitorsReport from './pages/report/ScheduledVisitorsReport';
 import Unauthorized from './pages/Unauthorized';
 
 
+//dashboard
+
+import AdminDashboard from './pages/dashboard/AdminDashboard'
+import SecurityGuardDashboard from './pages/dashboard/SecurityGuardDashboard'
+import SupervisorDashboard from './pages/dashboard/SupervisorDashboard'
+import UserDashboard from './pages/dashboard/UserDashboard'
+import ManagerDashboard from './pages/dashboard/AManagerDashboard'
+
 
 
 
@@ -89,6 +97,15 @@ const App = () => {
           </ProtectedRoute>
         }
       />
+
+            <Route  path="/admindashboard"   element={  <ProtectedRoute>     <AuthenticatedLayout>      <AdminDashboard />     </AuthenticatedLayout>    </ProtectedRoute> } />
+            <Route  path="/securityguarddashboard"   element={  <ProtectedRoute>     <AuthenticatedLayout>      <SecurityGuardDashboard />     </AuthenticatedLayout>    </ProtectedRoute> } />
+            <Route  path="/supervisordashboard"   element={  <ProtectedRoute>     <AuthenticatedLayout>      <SupervisorDashboard />     </AuthenticatedLayout>    </ProtectedRoute> } />
+            <Route  path="/userdashboard"   element={  <ProtectedRoute>     <AuthenticatedLayout>      <UserDashboard />     </AuthenticatedLayout>    </ProtectedRoute> } />
+            <Route  path="/managerdashboard"   element={  <ProtectedRoute>     <AuthenticatedLayout>      <ManagerDashboard />     </AuthenticatedLayout>    </ProtectedRoute> } />
+
+
+      
 
       {/* Check-in routes */}
       <Route
