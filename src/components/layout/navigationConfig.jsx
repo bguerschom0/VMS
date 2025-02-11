@@ -4,7 +4,7 @@ export const roleBasedNavigation = {
   admin: [
     { 
       name: 'Dashboard', 
-      path: '/dashboard', 
+      path: '/admindashboard', 
       icon: LayoutDashboard 
     },
     { 
@@ -47,7 +47,7 @@ export const roleBasedNavigation = {
     manager: [
     { 
       name: 'Dashboard', 
-      path: '/dashboard', 
+      path: '/managerdashboard', 
       icon: LayoutDashboard 
     },
 
@@ -78,7 +78,7 @@ export const roleBasedNavigation = {
   supervisor: [
     { 
       name: 'Dashboard', 
-      path: '/dashboard', 
+      path: '/supervisordashboard', 
       icon: LayoutDashboard 
     },
     { 
@@ -105,7 +105,7 @@ export const roleBasedNavigation = {
   security_guard: [
     { 
       name: 'Dashboard', 
-      path: '/dashboard', 
+      path: '/securityguarddashboard', 
       icon: LayoutDashboard 
     },
     {
@@ -126,7 +126,7 @@ export const roleBasedNavigation = {
   user: [
     { 
       name: 'Dashboard', 
-      path: '/dashboard', 
+      path: '/userdashboard', 
       icon: LayoutDashboard 
     },
     { 
