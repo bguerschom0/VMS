@@ -20,40 +20,11 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../config/supabase';
+import { StatCard } from '../components/StatCard';
 
-// Colors for pie chart
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
-// Stats Card Component
-const StatCard = ({ title, value, icon, change, changeType }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300"
-  >
-    <div className="flex justify-between items-start">
-      <div>
-        <p className="text-sm text-gray-600 dark:text-gray-400">{title}</p>
-        <h3 className="text-2xl font-bold mt-2 text-gray-900 dark:text-white">{value}</h3>
-      </div>
-      <div className="p-3 rounded-full bg-gray-100 dark:bg-gray-700">
-        {icon}
-      </div>
-    </div>
-    {change && (
-      <div className="mt-4 flex items-center">
-        <span className={`text-sm ${
-          changeType === 'increase' ? 'text-green-500' : 'text-red-500'
-        }`}>
-          {changeType === 'increase' ? '↑' : '↓'} {change}%
-        </span>
-        <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">vs last month</span>
-      </div>
-    )}
-  </motion.div>
-);
-
-const Dashboard = () => {
+const ManagerDashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({
     totalVisitors: 0,
@@ -150,7 +121,7 @@ const Dashboard = () => {
     }
   };
 
-return (
+  return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         {loading ? (
@@ -166,7 +137,7 @@ return (
               className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl"
             >
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Welcome back, {user?.full_name || 'User'}
+                Welcome back, {user?.full_name}
               </h1>
               <p className="mt-2 text-gray-600 dark:text-gray-400">
                 Here's what's happening with your visitors today
@@ -178,46 +149,26 @@ return (
               <StatCard
                 title="Total Visitors"
                 value={stats.totalVisitors}
-                icon={
-                  <Users 
-                    size={24}
-                    className="text-gray-600 dark:text-gray-300" 
-                  />
-                }
+                icon={<Users size={24} className="text-gray-600 dark:text-gray-300" />}
                 change={12}
                 changeType="increase"
               />
               <StatCard
                 title="Active Visitors"
                 value={stats.activeVisitors}
-                icon={
-                  <UserCheck 
-                    size={24}
-                    className="text-gray-600 dark:text-gray-300" 
-                  />
-                }
+                icon={<UserCheck size={24} className="text-gray-600 dark:text-gray-300" />}
               />
               <StatCard
                 title="Scheduled Visits"
                 value={stats.scheduledVisits}
-                icon={
-                  <Calendar 
-                    size={24}
-                    className="text-gray-600 dark:text-gray-300" 
-                  />
-                }
+                icon={<Calendar size={24} className="text-gray-600 dark:text-gray-300" />}
                 change={5}
                 changeType="increase"
               />
               <StatCard
                 title="Completed Visits"
                 value={stats.completedVisits}
-                icon={
-                  <CheckCircle 
-                    size={24}
-                    className="text-gray-600 dark:text-gray-300" 
-                  />
-                }
+                icon={<CheckCircle size={24} className="text-gray-600 dark:text-gray-300" />}
               />
             </div>
 
@@ -293,11 +244,9 @@ return (
                       />
                     </PieChart>
                   </ResponsiveContainer>
-                  
                 </div>
               </div>
             </div>
-
           </div>
         )}
       </div>
@@ -305,4 +254,4 @@ return (
   );
 };
 
-export default Dashboard;
+export default ManagerDashboard;
