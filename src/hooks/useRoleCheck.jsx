@@ -1,3 +1,4 @@
+// src/hooks/useRoleCheck.js
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './useAuth';
@@ -10,18 +11,25 @@ export const useRoleCheck = (requiredPath) => {
 
   useEffect(() => {
     const checkAccess = () => {
+      // If no user, redirect to login
       if (!user) {
         navigate('/login');
         return;
       }
 
-      // If trying to access root or dashboard, redirect to role-specific dashboard
-      if (requiredPath === '/' || requiredPath === '/dashboard') {
-        navigate(getRoleBasedDashboard(user.role));
+      const userRole = user.role?.toLowerCase();
+
+      // Handle root and dashboard redirects based on role
+      if (requiredPath === '/') {
+        const dashboardPath = getRoleBasedDashboard(userRole);
+        navigate(dashboardPath);
         return;
       }
 
-      const userNavigation = roleBasedNavigation[user.role?.toLowerCase()] || [];
+      // Get navigation config for user's role
+      const userNavigation = roleBasedNavigation[userRole] || [];
+      
+      // Get all allowed paths for the role
       const getAllowedPaths = (navItems) => {
         let paths = [];
         navItems.forEach(item => {
@@ -36,9 +44,16 @@ export const useRoleCheck = (requiredPath) => {
       };
 
       const allowedPaths = getAllowedPaths(userNavigation);
-      
-      // Check if the current path is allowed for the user's role
+
+      // Check if current path is in allowed paths
       if (!allowedPaths.includes(requiredPath)) {
+        // If on dashboard and not allowed, redirect to role-specific dashboard
+        if (requiredPath === '/dashboard') {
+          const dashboardPath = getRoleBasedDashboard(userRole);
+          navigate(dashboardPath);
+          return;
+        }
+        // Otherwise redirect to unauthorized
         navigate('/unauthorized');
       }
     };
