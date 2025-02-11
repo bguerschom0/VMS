@@ -18,9 +18,9 @@ import {
   Calendar, 
   CheckCircle 
 } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
-import { supabase } from '../config/supabase';
-import { StatCard } from '../components/StatCard';
+import { useAuth } from '../../hooks/useAuth';
+import { supabase } from '../../config/supabase';
+import { StatCard } from '../../components/StatCard';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
