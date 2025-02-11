@@ -44,6 +44,37 @@ export const roleBasedNavigation = {
       ]
     },
   ],
+    manager: [
+    { 
+      name: 'Dashboard', 
+      path: '/dashboard', 
+      icon: LayoutDashboard 
+    },
+
+    {
+      name: 'Visitor Management',
+      icon: Users,
+      children: [
+        { name: 'Visitor History', path: '/visitor-history', icon: History },
+      ]
+    },
+    {
+      name: 'Visitor Scheduling',
+      icon: Calendar,
+      children: [
+        { name: 'Bulk Visitor', path: '/bulkvisitors', icon: Users },
+      ]
+    },
+    {
+      name: 'Reports & History',
+      icon: BarChart,
+      children: [
+        { name: 'Check In & Out Report', path: '/reports', icon: BarChart },
+        { name: 'Guard Shift Report', path: '/GuardShiftReportViewer', icon: BarChart },
+        { name: 'Scheduled Visitor Report', path: '/scheduled-report', icon: BarChart },
+      ]
+    },
+  ],
   supervisor: [
     { 
       name: 'Dashboard', 
