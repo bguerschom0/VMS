@@ -33,7 +33,7 @@ import UserDashboard from './pages/dashboard/UserDashboard'
 import ManagerDashboard from './pages/dashboard/ManagerDashboard'
 
 
-import getRoleBasedDashboard from './utils/roleRoutes'
+import { getRoleBasedDashboard } from './utils/roleRoutes';
 
 
 
