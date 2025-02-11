@@ -46,7 +46,7 @@ const AdminDashboard = () => {
       const { count: totalGuards } = await supabase
         .from('users')
         .select('*', { count: 'exact' })
-        .eq('role', 'security-guard');
+        .eq('role', 'security_guard');
 
       // Fetch user role distribution
       const { data: roleData } = await supabase
