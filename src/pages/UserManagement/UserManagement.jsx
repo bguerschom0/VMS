@@ -45,6 +45,7 @@ const UserModal = ({ isOpen, mode, user, onClose, onSubmit }) => {
 
   const roles = [
     { value: 'admin', label: 'Administrator' },
+    { value: 'manager', label: 'Manager' },
     { value: 'supervisor', label: 'Supervisor' },
     { value: 'security_guard', label: 'Security Guard' },
     { value: 'user', label: 'User' }
