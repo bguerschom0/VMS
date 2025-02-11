@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { Moon, Sun, ChevronDown, User, LogOut, Menu, X, UserCircle } from 'lucide-react';
 import { roleBasedNavigation } from './navigationConfig';
 import {  Dialog,  DialogContent,  DialogHeader,  DialogTitle,} from '../ui/dialog';
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 
 const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
