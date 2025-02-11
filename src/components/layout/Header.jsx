@@ -391,7 +391,7 @@ const Header = () => {
             <div className="flex items-center">
               <div className="h-2 w-2 rounded-full bg-green-500 mr-2" />
               <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                Active
+                {user?.is_active}
               </span>
             </div>
           </div>
