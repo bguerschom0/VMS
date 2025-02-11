@@ -16,7 +16,8 @@ import {
   Users, 
   UserCheck, 
   Calendar, 
-  CheckCircle 
+  CheckCircle,
+  AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../config/supabase';
