@@ -90,7 +90,7 @@ const SecurityGuardDashboard = () => {
                 {getGreeting()}, {user?.full_name}
               </h1>
               <p className="mt-2 text-gray-600 dark:text-gray-400">
-                Current shift overview
+                Welcome to Visitor Management Platform!
               </p>
             </motion.div>
 
