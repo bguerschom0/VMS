@@ -64,7 +64,7 @@ const ManagerDashboard = () => {
       const { count: incidentReports } = await supabase
         .from('guard_shift_reports')
         .select('*', { count: 'exact' })
-        .eq('incident_occurred', 'FALSE', 'TRUE');
+        .eq('incident_occurred', 'TRUE');
 
       // Fetch scheduled visits
       const { count: scheduledVisits } = await supabase
@@ -172,8 +172,6 @@ const ManagerDashboard = () => {
                 title="Scheduled Visits"
                 value={stats.scheduledVisits}
                 icon={<Calendar size={24} className="text-gray-600 dark:text-gray-300" />}
-                change={5}
-                changeType="increase"
               />
 
             </div>
