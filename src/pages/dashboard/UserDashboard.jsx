@@ -4,9 +4,9 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
 import { Calendar, Clock, CheckCircle, AlertCircle } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
-import { supabase } from '../config/supabase';
-import { StatCard } from '../components/StatCard';
+import { useAuth } from '../../hooks/useAuth';
+import { supabase } from '../../config/supabase';
+import { StatCard } from '../../components/StatCard';
 
 const UserDashboard = () => {
   const { user } = useAuth();
