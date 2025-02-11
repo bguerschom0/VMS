@@ -3,7 +3,6 @@ import { useAuth } from './hooks/useAuth';
 
 // Layout Components
 import Header from './components/layout/Header';
-import Sidebar from './components/layout/Sidebar';
 import Footer from './components/layout/Footer';
 
 // Pages
