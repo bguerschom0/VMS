@@ -129,11 +129,6 @@ export const roleBasedNavigation = {
       path: '/userdashboard', 
       icon: LayoutDashboard 
     },
-    { 
-      name: 'Guard Shift Report', 
-      path: '/GuardShiftReport', 
-      icon: ClipboardList
-    },
     {
       name: 'Visitor Management',
       icon: Users,
