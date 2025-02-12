@@ -16,12 +16,18 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
+  // Check if user is authenticated
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Get allowed paths for user's role
-  const userNavigation = roleBasedNavigation[user.role?.toLowerCase()] || [];
+  // Check if user's role exists in roleBasedNavigation
+  const userRole = user.role?.toLowerCase();
+  if (!roleBasedNavigation[userRole]) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  // Get all allowed paths for the user's role
   const getAllowedPaths = (navItems) => {
     let paths = [];
     navItems.forEach(item => {
@@ -35,15 +41,16 @@ const ProtectedRoute = ({ children }) => {
     return paths;
   };
 
-  const allowedPaths = getAllowedPaths(userNavigation);
-  
+  const allowedPaths = getAllowedPaths(roleBasedNavigation[userRole]);
+
+  // If trying to access root or dashboard, redirect to role-specific dashboard
+  if (location.pathname === '/' || location.pathname === '/dashboard') {
+    return <Navigate to={getRoleBasedDashboard(userRole)} replace />;
+  }
+
   // Check if current path is allowed for user's role
   if (!allowedPaths.includes(location.pathname)) {
-    // If trying to access dashboard, redirect to role-specific dashboard
-    if (location.pathname === '/dashboard') {
-      return <Navigate to={getRoleBasedDashboard(user.role)} replace />;
-    }
-    // Otherwise redirect to unauthorized
+    console.log(`Access denied: ${userRole} attempted to access ${location.pathname}`);
     return <Navigate to="/unauthorized" replace />;
   }
 
