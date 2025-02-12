@@ -5,6 +5,7 @@ import { Moon, Sun, ChevronDown, User, LogOut, Menu, X, UserCircle } from 'lucid
 import { roleBasedNavigation } from './navigationConfig';
 import {  Dialog,  DialogContent,  DialogHeader,  DialogTitle,} from '../ui/dialog';
 import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { getRoleBasedDashboard } from '../../utils/roleRoutes';
 
 const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -58,10 +59,13 @@ const Header = () => {
     setIsMobileMenuOpen(false);
   };
 
-  const handleLogoClick = () => {
-    navigate('/dashboard');
-    setIsMobileMenuOpen(false);
-  };
+const handleLogoClick = () => {
+  if (user) {
+    const dashboardPath = getRoleBasedDashboard(user.role);
+    navigate(dashboardPath);
+  }
+  setIsMobileMenuOpen(false);
+};
 
   useEffect(() => {
     localStorage.setItem('darkMode', isDarkMode);
