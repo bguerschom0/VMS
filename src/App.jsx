@@ -75,18 +75,18 @@ const App = () => {
 
       {/* Dashboard routes */}
       <Route path="/admindashboard" element={<ProtectedRoute requiredRoles={['admin']}><AuthenticatedLayout><AdminDashboard /></AuthenticatedLayout></ProtectedRoute>} />
-      <Route path="/securityguarddashboard" element={<ProtectedRoute requiredRoles={['admin','security']}><AuthenticatedLayout><SecurityGuardDashboard /></AuthenticatedLayout></ProtectedRoute>} />
-      <Route path="/supervisordashboard" element={<ProtectedRoute requiredRoles={['admin','supervisor']}><AuthenticatedLayout><SupervisorDashboard /></AuthenticatedLayout></ProtectedRoute>} />
-      <Route path="/userdashboard" element={<ProtectedRoute requiredRoles={['admin','user']}><AuthenticatedLayout><UserDashboard /></AuthenticatedLayout></ProtectedRoute>} />
-      <Route path="/managerdashboard" element={<ProtectedRoute requiredRoles={['admin','manager']}><AuthenticatedLayout><ManagerDashboard /></AuthenticatedLayout></ProtectedRoute>} />
+      <Route path="/securityguarddashboard" element={<ProtectedRoute requiredRoles={['security_guard']}><AuthenticatedLayout><SecurityGuardDashboard /></AuthenticatedLayout></ProtectedRoute>} />
+      <Route path="/supervisordashboard" element={<ProtectedRoute requiredRoles={['supervisor']}><AuthenticatedLayout><SupervisorDashboard /></AuthenticatedLayout></ProtectedRoute>} />
+      <Route path="/userdashboard" element={<ProtectedRoute requiredRoles={['user']}><AuthenticatedLayout><UserDashboard /></AuthenticatedLayout></ProtectedRoute>} />
+      <Route path="/managerdashboard" element={<ProtectedRoute requiredRoles={['manager']}><AuthenticatedLayout><ManagerDashboard /></AuthenticatedLayout></ProtectedRoute>} />
 
       {/* Check-in routes */}
-      <Route path="/check-in" element={<ProtectedRoute requiredRoles={['admin', 'security']}><AuthenticatedLayout><SearchVisitor /></AuthenticatedLayout></ProtectedRoute>} />
-      <Route path="/check-in/form" element={<ProtectedRoute requiredRoles={['admin', 'security']}><AuthenticatedLayout><VisitorForm /></AuthenticatedLayout></ProtectedRoute>} />
+      <Route path="/check-in" element={<ProtectedRoute requiredRoles={['admin', 'security_guard']}><AuthenticatedLayout><SearchVisitor /></AuthenticatedLayout></ProtectedRoute>} />
+      <Route path="/check-in/form" element={<ProtectedRoute requiredRoles={['admin', 'security_guard']}><AuthenticatedLayout><VisitorForm /></AuthenticatedLayout></ProtectedRoute>} />
 
       {/* Check-out routes */}
-      <Route path="/check-out" element={<ProtectedRoute requiredRoles={['admin', 'security']}><AuthenticatedLayout><CheckOut /></AuthenticatedLayout></ProtectedRoute>} />
-      <Route path="/check-out/form" element={<ProtectedRoute requiredRoles={['admin', 'security']}><AuthenticatedLayout><CheckoutModal /></AuthenticatedLayout></ProtectedRoute>} />
+      <Route path="/check-out" element={<ProtectedRoute requiredRoles={['admin', 'security_guard']}><AuthenticatedLayout><CheckOut /></AuthenticatedLayout></ProtectedRoute>} />
+      <Route path="/check-out/form" element={<ProtectedRoute requiredRoles={['admin', 'security_guard']}><AuthenticatedLayout><CheckoutModal /></AuthenticatedLayout></ProtectedRoute>} />
 
       {/* Visitor history routes */}
       <Route path="/visitor-history" element={<ProtectedRoute requiredRoles={['admin', 'supervisor', 'manager', 'user']}><AuthenticatedLayout><VisitorHistory /></AuthenticatedLayout></ProtectedRoute>} />
@@ -102,7 +102,7 @@ const App = () => {
       <Route path="/user-management" element={<ProtectedRoute requiredRoles={['admin']}><AuthenticatedLayout><UserManagement /></AuthenticatedLayout></ProtectedRoute>} />
 
       {/* Reports routes */}
-      <Route path="/GuardShiftReport" element={<ProtectedRoute requiredRoles={['admin', 'security']}><AuthenticatedLayout><GuardShiftReport /></AuthenticatedLayout></ProtectedRoute>} />
+      <Route path="/GuardShiftReport" element={<ProtectedRoute requiredRoles={['admin', 'security_guard']}><AuthenticatedLayout><GuardShiftReport /></AuthenticatedLayout></ProtectedRoute>} />
       <Route path="/reports" element={<ProtectedRoute requiredRoles={['admin', 'supervisor', 'manager']}><AuthenticatedLayout><CheckInOutReport /></AuthenticatedLayout></ProtectedRoute>} />
       <Route path="/GuardShiftReportViewer" element={<ProtectedRoute requiredRoles={['admin', 'supervisor']}><AuthenticatedLayout><GuardShiftReportViewer /></AuthenticatedLayout></ProtectedRoute>} />
       <Route path="/scheduled-report" element={<ProtectedRoute requiredRoles={['admin', 'supervisor', 'manager']}><AuthenticatedLayout><ScheduledVisitorsReport /></AuthenticatedLayout></ProtectedRoute>} />
