@@ -4,11 +4,10 @@ import { useAuth } from '../hooks/useAuth';
 import { roleBasedNavigation } from '../layout/navigationConfig';
 import { getRoleBasedDashboard } from '../utils/roleRoutes';
 
-const ProtectedRoute = ({ children, requiredRoles = [] }) => {
+const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -17,17 +16,12 @@ const ProtectedRoute = ({ children, requiredRoles = [] }) => {
     );
   }
 
-  // Check if user is authenticated
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // If specific roles are required, check if user has permission
-  if (requiredRoles.length > 0 && !requiredRoles.includes(user.role?.toLowerCase())) {
-    return <Navigate to="/unauthorized" replace />;
-  }
-
-  // Get all allowed paths for user's role
+  // Get allowed paths for user's role
+  const userNavigation = roleBasedNavigation[user.role?.toLowerCase()] || [];
   const getAllowedPaths = (navItems) => {
     let paths = [];
     navItems.forEach(item => {
@@ -41,17 +35,15 @@ const ProtectedRoute = ({ children, requiredRoles = [] }) => {
     return paths;
   };
 
-  // Check if the current path is allowed for the user's role
-  const userNavigation = roleBasedNavigation[user.role?.toLowerCase()] || [];
   const allowedPaths = getAllowedPaths(userNavigation);
-
-  // Handle root and dashboard redirects
-  if (location.pathname === '/' || location.pathname === '/dashboard') {
-    return <Navigate to={getRoleBasedDashboard(user.role)} replace />;
-  }
-
-  // Check if the current path is allowed
+  
+  // Check if current path is allowed for user's role
   if (!allowedPaths.includes(location.pathname)) {
+    // If trying to access dashboard, redirect to role-specific dashboard
+    if (location.pathname === '/dashboard') {
+      return <Navigate to={getRoleBasedDashboard(user.role)} replace />;
+    }
+    // Otherwise redirect to unauthorized
     return <Navigate to="/unauthorized" replace />;
   }
 
