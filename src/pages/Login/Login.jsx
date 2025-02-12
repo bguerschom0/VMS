@@ -4,6 +4,7 @@ import { Moon, Sun, User, Lock, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../config/supabase';
+import { getRoleBasedDashboard } from '../../utils/roleRoutes';
 
 // Password Change Modal Component
 const PasswordChangeModal = ({ isOpen, onClose, onSubmit, isTemp }) => {
@@ -174,11 +175,14 @@ const LoginPage = () => {
         // Store temporary user for password change
         setTempUser(loggedInUser);
         setShowPasswordChange(true);
-      } else {
-        // Normal login flow
+} else {
+        // Normal login flow with role-based redirect
         setUser(loggedInUser);
         localStorage.setItem('user', JSON.stringify(loggedInUser));
-        navigate('/dashboard');
+        
+        // Get role-specific dashboard path
+        const dashboardPath = getRoleBasedDashboard(loggedInUser.role);
+        navigate(dashboardPath);
       }
     } catch (err) {
       setError('Invalid username or password');
@@ -223,8 +227,8 @@ const LoginPage = () => {
       setTempUser(null);
       setShowPasswordChange(false);
       
-      // Navigate to dashboard
-      navigate('/dashboard');
+      const dashboardPath = getRoleBasedDashboard(updatedUser.role);
+      navigate(dashboardPath);
     } catch (error) {
       console.error('Password change error:', error);
       setError(error.message || 'An unexpected error occurred');
