@@ -109,7 +109,7 @@ const AdminDashboard = () => {
                 {getGreeting()}, {user?.full_name}
               </h1>
               <p className="mt-2 text-gray-600 dark:text-gray-400">
-                System and user management overview
+                Welcome to Visitor Management Platform!
               </p>
             </motion.div>
 
