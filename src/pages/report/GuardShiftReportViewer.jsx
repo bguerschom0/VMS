@@ -259,54 +259,70 @@ const GuardShiftReportViewer = () => {
 
 const exportDetailedReport = async (report) => {
   try {
-    // Create temporary container for PDF content
     const tempContainer = document.createElement('div');
-    tempContainer.className = 'pdf-container';
     tempContainer.style.width = '800px';
     tempContainer.style.padding = '40px';
     tempContainer.style.backgroundColor = 'white';
     document.body.appendChild(tempContainer);
 
-    // Create the content structure
     tempContainer.innerHTML = `
-      <div style="font-family: Arial, sans-serif; color: #000;">
-        <!-- Header -->
-        <div style="margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px;">
-          <h1 style="font-size: 24px; margin: 0 0 10px 0;">Security Shift Report</h1>
-          <div style="font-size: 14px; color: #666;">
-            <p>Date: ${new Date(report.created_at).toLocaleDateString()}</p>
-            <p>Time: ${new Date(report.created_at).toLocaleTimeString()}</p>
-            <p>Submitted by: ${report.submitted_by}</p>
+      <div style="font-family: Arial, sans-serif;">
+        <!-- Clean Header -->
+        <div style="padding: 20px 0; margin-bottom: 30px; border-bottom: 1px solid #dee2e6;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1 style="margin: 0; font-size: 24px; color: #212529;">Security Report</h1>
+            <div style="text-align: right; color: #6c757d;">
+              <div>${new Date(report.created_at).toLocaleDateString()}</div>
+              <div style="font-size: 14px;">${new Date(report.created_at).toLocaleTimeString()}</div>
+            </div>
           </div>
         </div>
 
-        <!-- Basic Info -->
-        <div style="margin-bottom: 30px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
-          <div style="padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
-            <h3 style="margin: 0 0 5px 0; font-size: 14px; color: #666;">Shift Type</h3>
-            <p style="margin: 0; font-size: 16px; font-weight: bold;">${report.shift_type.toUpperCase()}</p>
+        <!-- Status Overview Cards -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px;">
+          <!-- Shift Info -->
+          <div style="padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px;">
+            <div style="color: #6c757d; font-size: 14px;">Shift Type</div>
+            <div style="font-size: 18px; font-weight: bold; color: #212529; margin-top: 5px;">
+              ${report.shift_type.toUpperCase()}
+            </div>
           </div>
-          <div style="padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
-            <h3 style="margin: 0 0 5px 0; font-size: 14px; color: #666;">Team Size</h3>
-            <p style="margin: 0; font-size: 16px; font-weight: bold;">${report.team_members?.length || 0} Members</p>
+          
+          <!-- Team Size -->
+          <div style="padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px;">
+            <div style="color: #6c757d; font-size: 14px;">Team Members</div>
+            <div style="font-size: 18px; font-weight: bold; color: #212529; margin-top: 5px;">
+              ${report.team_members?.length || 0} Members
+            </div>
           </div>
-          <div style="padding: 15px; border: 1px solid ${report.incident_occurred ? '#fee2e2' : '#ddd'}; border-radius: 8px; background: ${report.incident_occurred ? '#fef2f2' : 'white'};">
-            <h3 style="margin: 0 0 5px 0; font-size: 14px; color: ${report.incident_occurred ? '#dc2626' : '#666'};">Status</h3>
-            <p style="margin: 0; font-size: 16px; font-weight: bold; color: ${report.incident_occurred ? '#dc2626' : 'black'}">${report.incident_occurred ? 'Incident Reported' : 'Normal'}</p>
+          
+          <!-- Status -->
+          <div style="padding: 15px; background: ${report.incident_occurred ? '#fff3f3' : '#f8f9fa'}; 
+                      border: 1px solid ${report.incident_occurred ? '#fee2e2' : '#dee2e6'}; border-radius: 4px;">
+            <div style="color: ${report.incident_occurred ? '#dc2626' : '#6c757d'}; font-size: 14px;">Status</div>
+            <div style="font-size: 18px; font-weight: bold; color: ${report.incident_occurred ? '#dc2626' : '#212529'}; margin-top: 5px;">
+              ${report.incident_occurred ? 'Incident Reported' : 'Normal'}
+            </div>
           </div>
         </div>
 
-        <!-- CCTV Status -->
-        <div style="margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-          <h2 style="margin: 0 0 15px 0; font-size: 18px;">CCTV Monitoring Status</h2>
-          <p style="margin: 0 0 15px 0;"><strong>Main Location:</strong> ${report.monitoring_location}</p>
+        <!-- Location Status -->
+        <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px;">
+          <h2 style="margin: 0 0 15px 0; font-size: 18px; color: #212529;">Location Status</h2>
+          <div style="margin-bottom: 15px;">
+            <div style="color: #6c757d; font-size: 14px;">Main Location</div>
+            <div style="font-size: 16px; color: #212529; margin-top: 5px;">${report.monitoring_location}</div>
+          </div>
           ${report.remote_locations_checked ? `
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
               ${Object.entries(report.remote_locations_checked).map(([location, data]) => `
-                <div style="padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
-                  <p style="margin: 0 0 5px 0; font-weight: bold;">${location}</p>
-                  <p style="margin: 0; color: ${data.status === 'normal' ? '#16a34a' : data.status === 'issues' ? '#ca8a04' : '#dc2626'}">${data.status}</p>
-                  ${data.notes ? `<p style="margin: 5px 0 0 0; font-size: 14px; color: #666;">${data.notes}</p>` : ''}
+                <div style="padding: 10px; background: white; border: 1px solid #dee2e6; border-radius: 4px;">
+                  <div style="font-weight: bold; color: #212529;">${location}</div>
+                  <div style="color: ${
+                    data.status === 'normal' ? '#198754' : 
+                    data.status === 'issues' ? '#ffc107' : '#dc3545'
+                  };">${data.status}</div>
+                  ${data.notes ? `<div style="font-size: 14px; color: #6c757d; margin-top: 5px;">${data.notes}</div>` : ''}
                 </div>
               `).join('')}
             </div>
@@ -314,8 +330,8 @@ const exportDetailedReport = async (report) => {
         </div>
 
         <!-- Utility Status -->
-        <div style="margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-          <h2 style="margin: 0 0 15px 0; font-size: 18px;">Utility Status</h2>
+        <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px;">
+          <h2 style="margin: 0 0 15px 0; font-size: 18px; color: #212529;">Utility Status</h2>
           <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
             ${[
               { label: 'Electricity', status: report.electricity_status },
@@ -323,25 +339,25 @@ const exportDetailedReport = async (report) => {
               { label: 'Office', status: report.office_status },
               { label: 'Parking', status: report.parking_status }
             ].map(utility => `
-              <div style="padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
-                <h3 style="margin: 0 0 5px 0; font-size: 14px; color: #666;">${utility.label}</h3>
-                <p style="margin: 0; color: ${
-                  utility.status === 'normal' ? '#16a34a' : 
-                  utility.status === 'issues' ? '#ca8a04' : '#dc2626'
-                }">${utility.status || 'N/A'}</p>
+              <div style="padding: 10px; background: white; border: 1px solid #dee2e6; border-radius: 4px;">
+                <div style="color: #6c757d; font-size: 14px;">${utility.label}</div>
+                <div style="color: ${
+                  utility.status === 'normal' ? '#198754' : 
+                  utility.status === 'issues' ? '#ffc107' : '#dc3545'
+                };">${utility.status || 'N/A'}</div>
               </div>
             `).join('')}
           </div>
         </div>
 
         <!-- Team Members -->
-        <div style="margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-          <h2 style="margin: 0 0 15px 0; font-size: 18px;">Security Team</h2>
+        <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px;">
+          <h2 style="margin: 0 0 15px 0; font-size: 18px; color: #212529;">Security Team</h2>
           <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
             ${report.team_members?.map(member => `
-              <div style="padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
-                <p style="margin: 0 0 5px 0; font-weight: bold;">${member.name}</p>
-                <p style="margin: 0; font-size: 14px; color: #666;">ID: ${member.id}</p>
+              <div style="padding: 10px; background: white; border: 1px solid #dee2e6; border-radius: 4px;">
+                <div style="font-weight: bold; color: #212529;">${member.name}</div>
+                <div style="font-size: 14px; color: #6c757d;">ID: ${member.id}</div>
               </div>
             `).join('')}
           </div>
@@ -349,34 +365,47 @@ const exportDetailedReport = async (report) => {
 
         ${report.incident_occurred ? `
           <!-- Incident Report -->
-          <div style="margin-bottom: 30px; padding: 20px; border: 2px solid #fee2e2; border-radius: 8px; background: #fef2f2;">
+          <div style="margin-bottom: 30px; padding: 20px; background: #fff3f3; border: 1px solid #fee2e2; border-radius: 4px;">
             <h2 style="margin: 0 0 15px 0; font-size: 18px; color: #dc2626;">Incident Report</h2>
             <div style="margin-bottom: 15px;">
-              <h3 style="margin: 0 0 5px 0; font-size: 14px; color: #dc2626;">Incident Type</h3>
-              <p style="margin: 0; padding: 10px; background: white; border: 1px solid #fee2e2; border-radius: 4px;">${report.incident_type}</p>
+              <div style="color: #dc2626; font-size: 14px;">Incident Type</div>
+              <div style="padding: 10px; background: white; border: 1px solid #fee2e2; border-radius: 4px; margin-top: 5px;">
+                ${report.incident_type}
+              </div>
             </div>
             <div style="margin-bottom: 15px;">
-              <h3 style="margin: 0 0 5px 0; font-size: 14px; color: #dc2626;">Description</h3>
-              <p style="margin: 0; padding: 10px; background: white; border: 1px solid #fee2e2; border-radius: 4px;">${report.incident_description}</p>
+              <div style="color: #dc2626; font-size: 14px;">Description</div>
+              <div style="padding: 10px; background: white; border: 1px solid #fee2e2; border-radius: 4px; margin-top: 5px;">
+                ${report.incident_description}
+              </div>
             </div>
             <div>
-              <h3 style="margin: 0 0 5px 0; font-size: 14px; color: #dc2626;">Action Taken</h3>
-              <p style="margin: 0; padding: 10px; background: white; border: 1px solid #fee2e2; border-radius: 4px;">${report.action_taken}</p>
+              <div style="color: #dc2626; font-size: 14px;">Action Taken</div>
+              <div style="padding: 10px; background: white; border: 1px solid #fee2e2; border-radius: 4px; margin-top: 5px;">
+                ${report.action_taken}
+              </div>
             </div>
           </div>
         ` : ''}
 
         ${report.notes ? `
           <!-- Additional Notes -->
-          <div style="padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-            <h2 style="margin: 0 0 15px 0; font-size: 18px;">Additional Notes</h2>
-            <p style="margin: 0; white-space: pre-wrap;">${report.notes}</p>
+          <div style="padding: 20px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px;">
+            <h2 style="margin: 0 0 15px 0; font-size: 18px; color: #212529;">Additional Notes</h2>
+            <div style="padding: 10px; background: white; border: 1px solid #dee2e6; border-radius: 4px;">
+              ${report.notes}
+            </div>
           </div>
         ` : ''}
+
+        <!-- Footer -->
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; text-align: center; color: #6c757d; font-size: 12px;">
+          Report generated on ${new Date().toLocaleString()}
+        </div>
       </div>
     `;
 
-    // Convert to PDF using html2canvas and jsPDF
+    // Convert to PDF
     const canvas = await html2canvas(tempContainer, {
       scale: 2,
       useCORS: true,
@@ -395,7 +424,7 @@ const exportDetailedReport = async (report) => {
     pdf.addImage(canvas.toDataURL('image/jpeg', 1.0), 'JPEG', 0, position, imgWidth, imgHeight);
     heightLeft -= pageHeight;
 
-    // Add subsequent pages if content overflows
+    // Add subsequent pages if needed
     while (heightLeft >= 0) {
       position = heightLeft - imgHeight;
       pdf.addPage();
@@ -403,10 +432,10 @@ const exportDetailedReport = async (report) => {
       heightLeft -= pageHeight;
     }
 
-    // Save the PDF
+    // Save PDF
     pdf.save(`Security_Report_${report.submitted_by}_${new Date(report.created_at).toLocaleDateString()}.pdf`);
 
-    // Clean up
+    // Cleanup
     document.body.removeChild(tempContainer);
   } catch (error) {
     console.error('Error exporting report:', error);
